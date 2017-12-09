@@ -1,0 +1,2 @@
+build --cxxopt=-std=c++17 --cxxopt=-Wno-error=maybe-uninitialized -c opt
+# -Wno-error=maybe-uninitialized: boringssl t1_lib.cc:2191
