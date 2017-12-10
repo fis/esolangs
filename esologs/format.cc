@@ -61,11 +61,9 @@ void FormatError(struct mg_connection* conn, int code, const char* fmt, ...) {
 
 LogFormatter::LogFormatter(struct mg_connection* conn) : conn_(conn) {
   HeaderHtml(conn_, "TODO");
-  mg_printf(conn_, "<div id=\"log\">");
 }
 
 LogFormatter::~LogFormatter() {
-  mg_printf(conn_, "</div>\n");
   FooterHtml(conn_);
 }
 
@@ -74,7 +72,9 @@ void LogFormatter::FormatEvent(const LogEvent& event) {
 
   mg_printf(
       conn_,
-      "<span class=\"t\">%02d:%02d:%02d</span> ",
+      "<div class=\"r\">"
+      "<span class=\"t\">%02d:%02d:%02d</span>"
+      "<span class=\"s\"> </span>",
       (int)(tstamp / 3600000000),
       (int)(tstamp / 60000000 % 60),
       (int)(tstamp / 1000000 % 60));
@@ -90,6 +90,11 @@ void LogFormatter::FormatEvent(const LogEvent& event) {
     else
       nick = "?unknown?";
   }
+
+  unsigned nick_hash = 0;
+  for (const auto& c : nick)
+    nick_hash = 31 * nick_hash + (unsigned char)c;
+  nick_hash %= 10;
 
   int body_arg = event.command() == "QUIT" ? 0 : 1;
   std::string body;
@@ -111,12 +116,17 @@ void LogFormatter::FormatEvent(const LogEvent& event) {
   if (event.command() == "PRIVMSG" || event.command() == "NOTICE") {
     mg_printf(
         conn_,
-        "<span class=\"ma\">&lt;%s&gt;</span> <span class=\"mb\">%s</span>",
-        nick.c_str(), body.c_str());
+        "<span class=\"ma h%d\">&lt;%s&gt;</span>"
+        "<span class=\"s\"> </span>"
+        "<span class=\"mb\">%s</span>",
+        nick_hash, nick.c_str(), body.c_str());
   } else if (event.command() == "JOIN" || event.command() == "PART" || event.command() == "QUIT") {
     mg_printf(
         conn_,
-        "<span class=\"x\">-!-</span> <span class=\"ed\"><span class=\"ea\">%s</span> has %s",
+        "<span class=\"x\">-!-</span>"
+        "<span class=\"s\"> </span>"
+        "<span class=\"ed\"><span class=\"ea h%d\">%s</span> has %s",
+        nick_hash,
         nick.c_str(),
         event.command() == "JOIN" ? "joined" : event.command() == "PART" ? "left" : "quit");
     if (!body.empty())
@@ -125,12 +135,17 @@ void LogFormatter::FormatEvent(const LogEvent& event) {
   } else if (event.command() == "KICK") {
     mg_printf(
         conn_,
-        "<span class=\"x\">-!-</span> <span class=\"ed\"><span class=\"ea\">%s</span> has kicked <span class=\"ea\">%s</span>.</span>",
-        nick.c_str(), body.c_str());
+        "<span class=\"x\">-!-</span>"
+        "<span class=\"s\"> </span>"
+        "<span class=\"ed\"><span class=\"ea h%d\">%s</span> has kicked <span class=\"ea\">%s</span>.</span>",
+        nick_hash, nick.c_str(), body.c_str());
   } else if (event.command() == "MODE" || event.command() == "TOPIC") {
     mg_printf(
         conn_,
-        "<span class=\"x\">-!-</span> <span class=\"ed\"><span class=\"ea\">%s</span> has set %s: <span class\"eb\">%s</span>.</span>",
+        "<span class=\"x\">-!-</span>"
+        "<span class=\"s\"> </span>"
+        "<span class=\"ed\"><span class=\"ea h%d\">%s</span> has set %s: <span class\"eb\">%s</span>.</span>",
+        nick_hash,
         nick.c_str(),
         event.command() == "MODE" ? "channel mode" : "topic",
         body.c_str());
@@ -138,7 +153,7 @@ void LogFormatter::FormatEvent(const LogEvent& event) {
     mg_printf(conn_, "<span class=\"e\">unexpected log event :(</span>");
   }
 
-  mg_printf(conn_, "<br>\n");
+  mg_printf(conn_, "</div>\n");
 }
 
 } // namespace esologs

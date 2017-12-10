@@ -1,31 +1,47 @@
-span.ma, span.x {
-    display: inline-block;
-    width: 20ex;
-    text-align: right;
-}
-
-div#log {
+body {
     font-family: monospace;
 }
 
-span.mb, span.eb {
-    whitespace: pre-wrap;
+div.r {
+    display: flex;
 }
 
 span.mb, span.ed {
-    display: inline-block;
-    margin-left: 1ex;
-    vertical-align: top;
+    flex: 1;
+}
+
+span.ma, span.x {
+    flex: 0 1 20ex;
+    text-align: right;
+}
+
+span.s {
+    flex: 0 1 2ex;
+}
+
+span.mb, span.eb, span.s {
+    whitespace: pre-wrap;
 }
 
 span.x, span.ed {
-    color: #4000d0;
+    color: #808080;
 }
 
-span.x, span.ea {
+span.ma, span.x, span.ea {
     font-weight: bold;
 }
 
 span.eb {
     color: black;
 }
+
+span.h0 { color: #536771; }
+span.h1 { color: #0f3c5a; }
+span.h2 { color: #596f45; }
+span.h3 { color: #195016; }
+span.h4 { color: #7d4d4c; }
+span.h5 { color: #710d0e; }
+span.h6 { color: #7e5f37; }
+span.h7 { color: #7f3f00; }
+span.h8 { color: #65596b; }
+span.h9 { color: #351e4d; }
