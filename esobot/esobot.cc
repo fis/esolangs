@@ -7,11 +7,9 @@
 #include <iostream>
 #include <string>
 
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/zero_copy_stream_impl.h>
-
 #include "base/log.h"
 #include "esobot/log.pb.h"
+#include "esobot/logger.h"
 #include "event/loop.h"
 #include "irc/config.pb.h"
 #include "irc/connection.h"
@@ -21,18 +19,15 @@ extern "C" {
 #include <fcntl.h>
 #include <netdb.h>
 #include <sys/socket.h>
-#include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 }
 
 namespace esobot {
 
-namespace fs = std::experimental::filesystem;
-
 constexpr char kNick[] = "esowiki";
 constexpr char kChannel[] = "#esoteric";
-#if 1
+#if 0
 constexpr char kIrcServer[] = "chat.freenode.net";
 constexpr char kIrcPort[] = "6697";
 constexpr char kLogRoot[] = "/home/esowiki/logs";
@@ -125,109 +120,6 @@ void RcFeedReader::CanRead(int fd) {
   irc_->Send({ "PRIVMSG", kChannel, msg });
 }
 
-class Logger {
- public:
-  Logger();
-  void Log(const irc::Message& msg);
-
- private:
-  using us = std::chrono::microseconds;
-
-  us current_day_us_;
-  std::unique_ptr<google::protobuf::io::FileOutputStream> current_log_;
-
-  std::pair<us, us> Now() {
-    using namespace std::chrono_literals;
-    us now_us = std::chrono::duration_cast<us>(std::chrono::system_clock::now().time_since_epoch());
-    us time_us = now_us % 86400000000us;
-    return std::pair(now_us - time_us, time_us);
-  }
-
-  void OpenLog(us day_us);
-};
-
-Logger::Logger() {
-  current_day_us_ = Now().first;
-  OpenLog(current_day_us_);
-}
-
-void Logger::Log(const irc::Message& msg) {
-  auto [day_us, time_us] = Now();
-
-  bool logged =
-      ((msg.command_is("PRIVMSG")
-        || msg.command_is("NOTICE")
-        || msg.command_is("JOIN")
-        || msg.command_is("PART")
-        || msg.command_is("KICK")
-        || msg.command_is("MODE")
-        || msg.command_is("TOPIC"))
-       && msg.arg_is(0, kChannel))
-      || msg.command_is("QUIT")
-      || msg.command_is("NICK");
-  if (!logged)
-    return;
-
-  if (day_us != current_day_us_) {
-    current_day_us_ = day_us;
-    OpenLog(day_us);
-  }
-
-  LogEvent log_event;
-  log_event.set_time_us(time_us.count());
-  if (!msg.prefix().empty())
-    log_event.set_prefix(msg.prefix());
-  log_event.set_command(msg.command());
-  for (const auto& arg : msg.args())
-    log_event.add_args(arg);
-
-  {
-    const int size = log_event.ByteSize();
-
-    google::protobuf::io::CodedOutputStream out(current_log_.get());
-
-    out.WriteLittleEndian32(size);
-
-    std::uint8_t* buffer = out.GetDirectBufferForNBytesAndAdvance(size);
-    if (buffer)
-      log_event.SerializeWithCachedSizesToArray(buffer);
-    else
-      log_event.SerializeWithCachedSizes(&out);
-  }
-
-  current_log_->Flush();
-};
-
-void Logger::OpenLog(us day_us) {
-  if (current_log_)
-    current_log_.reset();
-
-  using clock = std::chrono::system_clock;
-  std::time_t day = clock::to_time_t(clock::time_point(std::chrono::duration_cast<clock::duration>(day_us)));
-  std::tm* day_tm = std::gmtime(&day);
-
-  char buf[16];
-
-  fs::path log_file(kLogRoot);
-
-  std::snprintf(buf, sizeof buf, "%d", 1900 + day_tm->tm_year);
-  log_file /= buf;
-  std::snprintf(buf, sizeof buf, "%d", day_tm->tm_mon + 1);
-  log_file /= buf;
-
-  fs::create_directories(log_file);
-
-  std::snprintf(buf, sizeof buf, "%d.pb", day_tm->tm_mday);
-  log_file /= buf;
-
-  int fd = open(log_file.c_str(), O_WRONLY | O_CREAT, 0640);
-  if (fd == -1)
-    throw base::Exception("log file open failed", errno); // TODO: include path
-
-  current_log_ = std::make_unique<google::protobuf::io::FileOutputStream>(fd);
-  current_log_->SetCloseOnDelete(true);
-}
-
 class EsoBot : public irc::Connection::Reader {
  public:
   EsoBot();
@@ -241,7 +133,7 @@ class EsoBot : public irc::Connection::Reader {
   std::unique_ptr<RcFeedReader> rc_feed_reader_;
 };
 
-EsoBot::EsoBot() {
+EsoBot::EsoBot() : log_(kLogRoot, kChannel) {
   irc::Config config;
   config.set_nick(kNick);
   config.set_user(kNick);

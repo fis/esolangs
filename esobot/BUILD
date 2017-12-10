@@ -1,12 +1,17 @@
 cc_binary(
     name = "esobot",
-    srcs = ["esobot.cc"],
+    srcs = [
+        "esobot.cc",
+        "logger.cc",
+        "logger.h",
+    ],
     deps = [
         ":log_cc_proto",
         "@zemlib//base",
         "@zemlib//event",
         "@zemlib//irc",
         "@zemlib//irc:config_cc_proto",
+        "@zemlib//proto:delim",
     ],
     linkopts = ["-lstdc++fs"],
 )
