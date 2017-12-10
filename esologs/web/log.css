@@ -1,0 +1,31 @@
+span.ma, span.x {
+    display: inline-block;
+    width: 20ex;
+    text-align: right;
+}
+
+div#log {
+    font-family: monospace;
+}
+
+span.mb, span.eb {
+    whitespace: pre-wrap;
+}
+
+span.mb, span.ed {
+    display: inline-block;
+    margin-left: 1ex;
+    vertical-align: top;
+}
+
+span.x, span.ed {
+    color: #4000d0;
+}
+
+span.x, span.ea {
+    font-weight: bold;
+}
+
+span.eb {
+    color: black;
+}

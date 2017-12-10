@@ -1,4 +1,22 @@
 cc_binary(
+    name = "esologs",
+    srcs = [
+        "format.cc",
+        "format.h",
+        "index.cc",
+        "index.h",
+        "server.cc",
+    ],
+    deps = [
+        ":log_cc_proto",
+        "@civetweb//:civetweb",
+        "@com_googlesource_code_re2//:re2",
+        "@zemlib//proto:delim",
+    ],
+    linkopts = ["-lstdc++fs"],
+)
+
+cc_binary(
     name = "logcat",
     srcs = ["logcat.cc"],
     deps = [
