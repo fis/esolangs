@@ -16,7 +16,7 @@ namespace esobot {
 
 namespace fs = std::experimental::filesystem;
 
-Logger::Logger(const char* dir, const char* channel) : dir_(dir), channel_(channel) {
+Logger::Logger(const std::string& dir, const std::string& channel) : dir_(dir), channel_(channel) {
   current_day_us_ = Now().first;
   OpenLog(current_day_us_);
 }
@@ -32,7 +32,7 @@ void Logger::Log(const irc::Message& msg, bool sent) {
         || msg.command_is("KICK")
         || msg.command_is("MODE")
         || msg.command_is("TOPIC"))
-       && msg.arg_is(0, channel_))
+       && msg.arg_is(0, channel_.c_str()))
       || msg.command_is("QUIT")
       || msg.command_is("NICK");
   if (!logged)

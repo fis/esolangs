@@ -8,14 +8,27 @@ cc_binary(
         "rcfeed.h",
     ],
     deps = [
+        ":config_cc_proto",
         ":log_cc_proto",
         "@zemlib//base",
         "@zemlib//event",
         "@zemlib//irc",
         "@zemlib//irc:config_cc_proto",
         "@zemlib//proto:delim",
+        "@zemlib//proto:text",
     ],
     linkopts = ["-lstdc++fs"],
+)
+
+proto_library(
+    name = "config_proto",
+    srcs = ["config.proto"],
+    deps = ["@zemlib//irc:config_proto"],
+)
+
+cc_proto_library(
+    name = "config_cc_proto",
+    deps = [":config_proto"],
 )
 
 proto_library(

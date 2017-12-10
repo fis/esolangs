@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package esobot;
+
+import "irc/config.proto";
+
+message Config {
+  irc.Config irc = 1;
+  string log_path = 2;
+}

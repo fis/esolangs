@@ -2,6 +2,7 @@
 #define ESOBOT_LOGGER_H_
 
 #include <chrono>
+#include <string>
 
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 
@@ -13,7 +14,7 @@ namespace esobot {
 
 class Logger {
  public:
-  Logger(const char* dir, const char* channel);
+  Logger(const std::string& dir, const std::string& channel);
   void Log(const irc::Message& msg, bool sent = false);
   void Send(irc::Connection* conn, const irc::Message& msg) {
     Log(msg, /* sent: */ true);
@@ -23,8 +24,9 @@ class Logger {
  private:
   using us = std::chrono::microseconds;
 
-  const char* dir_;
-  const char* channel_;
+  const std::string dir_;
+  const std::string channel_;
+
   us current_day_us_;
   std::unique_ptr<proto::DelimWriter> current_log_;
 
