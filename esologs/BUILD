@@ -1,10 +1,18 @@
+cc_binary(
+    name = "logcat",
+    srcs = ["logcat.cc"],
+    deps = [
+        ":log_cc_proto",
+        "@zemlib//proto:delim",
+    ],
+)
+
 cc_library(
     name = "writer",
     srcs = ["writer.cc"],
     hdrs = ["writer.h"],
     deps = [
         ":log_cc_proto",
-        "@com_google_protobuf//:protobuf",
         "@zemlib//proto:delim",
     ],
     linkopts = ["-lstdc++fs"],
