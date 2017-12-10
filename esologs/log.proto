@@ -1,10 +1,16 @@
 syntax = "proto3";
 
-package esobot;
+package esologs;
 
 message LogEvent {
   uint64 time_us = 1;
   string prefix = 2;
   string command = 3;
   repeated string args = 4;
+
+  enum Direction {
+    RECEIVED = 0;
+    SENT = 1;
+  }
+  Direction direction = 5;
 }

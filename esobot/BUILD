@@ -9,12 +9,11 @@ cc_binary(
     ],
     deps = [
         ":config_cc_proto",
-        ":log_cc_proto",
+        "//esologs:writer",
         "@zemlib//base",
         "@zemlib//event",
         "@zemlib//irc",
         "@zemlib//irc:config_cc_proto",
-        "@zemlib//proto:delim",
         "@zemlib//proto:text",
     ],
     linkopts = ["-lstdc++fs"],
@@ -29,14 +28,4 @@ proto_library(
 cc_proto_library(
     name = "config_cc_proto",
     deps = [":config_proto"],
-)
-
-proto_library(
-    name = "log_proto",
-    srcs = ["log.proto"],
-)
-
-cc_proto_library(
-    name = "log_cc_proto",
-    deps = [":log_proto"],
 )
