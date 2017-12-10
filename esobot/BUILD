@@ -4,6 +4,8 @@ cc_binary(
         "esobot.cc",
         "logger.cc",
         "logger.h",
+        "rcfeed.cc",
+        "rcfeed.h",
     ],
     deps = [
         ":log_cc_proto",
