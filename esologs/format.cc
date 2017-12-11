@@ -37,9 +37,9 @@ void FormatIndex(struct mg_connection* conn, const LogIndex& index) {
           conn,
           "<li>"
           "<a href=\"%s.html\">%s</a>"
-          " (<a href=\"%s.txt\">text</a> / <a href=\"%s.raw\">raw</a>)"
+          " (<a href=\"%s.txt\">text</a>)"
           "</li>\n",
-          ymd, ymd, ymd, ymd);
+          ymd, ymd, ymd);
     });
 
   FooterHtml(conn);

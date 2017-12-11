@@ -91,6 +91,6 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
 } // namespace esologs
 
 int main(void) {
-  esologs::Server server("tmp");
+  esologs::Server server("logs");
   std::getchar();
 }
