@@ -1,5 +1,6 @@
 #include <cstdarg>
 #include <cstdio>
+#include <functional>
 
 #include "esologs/format.h"
 
@@ -34,8 +35,11 @@ void FormatIndex(struct mg_connection* conn, const LogIndex& index) {
       std::snprintf(ymd, sizeof ymd, "%04d-%02d-%02d", y, m, d);
       mg_printf(
           conn,
-          "<li><a href=\"%s.html\">%s</a> (<a href=\"%s.txt\">text</a>)</li>\n",
-          ymd, ymd, ymd);
+          "<li>"
+          "<a href=\"%s.html\">%s</a>"
+          " (<a href=\"%s.txt\">text</a> / <a href=\"%s.raw\">raw</a>)"
+          "</li>\n",
+          ymd, ymd, ymd, ymd);
     });
 
   FooterHtml(conn);
@@ -61,106 +65,171 @@ void FormatError(struct mg_connection* conn, int code, const char* fmt, ...) {
 
 namespace internal {
 
-class HtmlLogFormatter : public LogFormatter {
- public:
-  HtmlLogFormatter(struct mg_connection* conn);
-  ~HtmlLogFormatter();
-  void FormatEvent(const LogEvent& event) override;
-
- private:
-  struct mg_connection* conn_;
+struct LogLine {
+  enum Type {
+    MESSAGE,
+    JOIN,
+    PART,
+    QUIT,
+    KICK,
+    MODE,
+    TOPIC,
+    ERROR,
+  };
+  Type type;
+  std::string tstamp;
+  std::string nick;
+  std::string body;
 };
 
-HtmlLogFormatter::HtmlLogFormatter(struct mg_connection* conn) : conn_(conn) {
-  HeaderHtml(conn_, "TODO");
-}
+constexpr const char* kLineDescriptions[] = {
+  /* MESSAGE: */ "?",
+  /* JOIN: */ "joined",
+  /* PART: */ "left",
+  /* QUIT: */ "quit",
+  /* KICK: */ "kicked",
+  /* MODE: */ "set channel mode",
+  /* TOPIC: */ "set topic",
+  /* ERROR: */ "?",
+};
 
-HtmlLogFormatter::~HtmlLogFormatter() {
-  FooterHtml(conn_);
-}
+struct LogLineFormatter : public LogFormatter {
+  struct mg_connection* conn_;
 
-void HtmlLogFormatter::FormatEvent(const LogEvent& event) {
-  auto tstamp = event.time_us();
+  LogLineFormatter(struct mg_connection* conn) : conn_(conn) {}
 
-  mg_printf(
-      conn_,
-      "<div class=\"r\">"
-      "<span class=\"t\">%02d:%02d:%02d</span>"
-      "<span class=\"s\"> </span>",
-      (int)(tstamp / 3600000000),
-      (int)(tstamp / 60000000 % 60),
-      (int)(tstamp / 1000000 % 60));
+  void FormatEvent(const LogEvent& event) override;
 
-  std::string nick;
+  virtual void FormatLine(const LogLine& line) = 0;
+};
+
+void LogLineFormatter::FormatEvent(const LogEvent& event) {
+  static constexpr struct {
+    const char* cmd;
+    LogLine::Type type;
+  } kLineTypes[] = {
+    {"PRIVMSG", LogLine::MESSAGE},
+    {"NOTICE", LogLine::MESSAGE},
+    {"JOIN", LogLine::JOIN},
+    {"PART", LogLine::PART},
+    {"QUIT", LogLine::QUIT},
+    {"KICK", LogLine::KICK},
+    {"MODE", LogLine::MODE},
+    {"TOPIC", LogLine::TOPIC},
+  };
+  static constexpr std::size_t kLineTypeCount = sizeof kLineTypes / sizeof *kLineTypes;
+
+  LogLine line;
+
+  auto time_us = event.time_us();
+  line.tstamp.resize(8);
+  std::snprintf(
+      line.tstamp.data(), 9,
+      "%02d:%02d:%02d",
+      (int)(time_us / 3600000000),
+      (int)(time_us / 60000000 % 60),
+      (int)(time_us / 1000000 % 60));
+
   if (event.direction() == LogEvent::SENT) {
-    nick = "esowiki";
+    line.nick = "esowiki";  // TODO: configure?
   } else {
-    nick = event.prefix();
-    std::size_t sep = nick.find('!');
-    if (sep != std::string::npos)
-      nick.erase(sep);
+    const std::string& prefix = event.prefix();
+    std::size_t sep = prefix.find('!');
+    if (sep > 0 && sep != std::string::npos)
+      line.nick = prefix.substr(0, sep);
     else
-      nick = "?unknown?";
+      line.nick = "?unknown?";
   }
 
-  unsigned nick_hash = 0;
-  for (const auto& c : nick)
-    nick_hash = 31 * nick_hash + (unsigned char)c;
-  nick_hash %= 10;
+  const std::string& cmd = event.command();
+  std::size_t line_type = 0;
+  for (; line_type < kLineTypeCount; ++line_type) {
+    if (cmd == kLineTypes[line_type].cmd) {
+      line.type = kLineTypes[line_type].type;
+      break;
+    }
+  }
+  if (line_type == kLineTypeCount)
+    line.type = LogLine::ERROR;
 
-  int body_arg = event.command() == "QUIT" ? 0 : 1;
-  std::string body;
+  int body_arg = line.type == LogLine::QUIT ? 0 : 1;
   if (event.args_size() > body_arg) {
+    // TODO: better sanitization, don't HTML-escape text format
     for (const auto& c : event.args(body_arg)) {
       if (c < 32)
         continue;
-      else if (c == '<')
-        body += "&lt;";
-      else if (c == '>')
-        body += "&gt;";
-      else if (c == '&')
-        body += "&amp;";
-      else
-        body += c;
+      line.body += c;
     }
   }
 
-  if (event.command() == "PRIVMSG" || event.command() == "NOTICE") {
+  FormatLine(line);
+}
+
+struct HtmlLineFormatter : public LogLineFormatter {
+  using LogLineFormatter::LogLineFormatter;
+  void FormatHeader() override;
+  void FormatLine(const LogLine& line) override;
+  void FormatFooter() override;
+};
+
+void HtmlLineFormatter::FormatHeader() {
+  HeaderHtml(conn_, "TODO");
+}
+
+void HtmlLineFormatter::FormatFooter() {
+  FooterHtml(conn_);
+}
+
+void HtmlLineFormatter::FormatLine(const LogLine& line) {
+  mg_printf(
+      conn_,
+      "<div class=\"r\">"
+      "<span class=\"t\">%s</span>"
+      "<span class=\"s\"> </span>",
+      line.tstamp.c_str());
+
+  unsigned nick_hash = 0;
+  for (const auto& c : line.nick)
+    nick_hash = 31 * nick_hash + (unsigned char)c;
+  nick_hash %= 10;
+
+  std::string body;
+  for (const auto& c : line.body) {
+    if (c == '<')
+      body += "&lt;";
+    else if (c == '>')
+      body += "&gt;";
+    else if (c == '&')
+      body += "&amp;";
+    else
+      body += c;
+  }
+
+  if (line.type == LogLine::MESSAGE) {
     mg_printf(
         conn_,
         "<span class=\"ma h%d\">&lt;%s&gt;</span>"
         "<span class=\"s\"> </span>"
         "<span class=\"mb\">%s</span>",
-        nick_hash, nick.c_str(), body.c_str());
-  } else if (event.command() == "JOIN" || event.command() == "PART" || event.command() == "QUIT") {
+        nick_hash, line.nick.c_str(), body.c_str());
+  } else if (line.type != LogLine::ERROR) {
     mg_printf(
         conn_,
         "<span class=\"x\">-!-</span>"
         "<span class=\"s\"> </span>"
         "<span class=\"ed\"><span class=\"ea h%d\">%s</span> has %s",
         nick_hash,
-        nick.c_str(),
-        event.command() == "JOIN" ? "joined" : event.command() == "PART" ? "left" : "quit");
-    if (!body.empty())
-      mg_printf(conn_, " (<span class=\"eb\">%s</span>)", body.c_str());
+        line.nick.c_str(),
+        kLineDescriptions[line.type]);
+    if (!line.body.empty()) {
+      if (line.type == LogLine::PART || line.type == LogLine::QUIT)
+        mg_printf(conn_, " (<span class=\"eb\">%s</span>)", body.c_str());
+      else if (line.type == LogLine::KICK)
+        mg_printf(conn_, "<span class=\"ea\">%s</span>", body.c_str()); // TODO: nick hash
+      else if (line.type == LogLine::MODE || line.type == LogLine::TOPIC)
+        mg_printf(conn_, ": <span class\"eb\">%s</span>", body.c_str());
+    }
     mg_printf(conn_, ".</span>");
-  } else if (event.command() == "KICK") {
-    mg_printf(
-        conn_,
-        "<span class=\"x\">-!-</span>"
-        "<span class=\"s\"> </span>"
-        "<span class=\"ed\"><span class=\"ea h%d\">%s</span> has kicked <span class=\"ea\">%s</span>.</span>",
-        nick_hash, nick.c_str(), body.c_str());
-  } else if (event.command() == "MODE" || event.command() == "TOPIC") {
-    mg_printf(
-        conn_,
-        "<span class=\"x\">-!-</span>"
-        "<span class=\"s\"> </span>"
-        "<span class=\"ed\"><span class=\"ea h%d\">%s</span> has set %s: <span class\"eb\">%s</span>.</span>",
-        nick_hash,
-        nick.c_str(),
-        event.command() == "MODE" ? "channel mode" : "topic",
-        body.c_str());
   } else {
     mg_printf(conn_, "<span class=\"e\">unexpected log event :(</span>");
   }
@@ -168,85 +237,52 @@ void HtmlLogFormatter::FormatEvent(const LogEvent& event) {
   mg_printf(conn_, "</div>\n");
 }
 
-class TextLogFormatter : public LogFormatter {
- public:
-  TextLogFormatter(struct mg_connection* conn);
-  void FormatEvent(const LogEvent& event) override;
-
- private:
-  struct mg_connection* conn_;
+struct TextLineFormatter : public LogLineFormatter {
+  using LogLineFormatter::LogLineFormatter;
+  void FormatHeader() override;
+  void FormatLine(const LogLine& line) override;
+  void FormatFooter() override;
 };
 
-TextLogFormatter::TextLogFormatter(struct mg_connection* conn) : conn_(conn) {
+void TextLineFormatter::FormatHeader() {
   mg_printf(
-      conn,
+      conn_,
       "HTTP/1.1 200 OK\r\n"
       "Content-Type: text/plain; charset=utf-8\r\n"
       "\r\n");
 }
 
-void TextLogFormatter::FormatEvent(const LogEvent& event) {
-  auto tstamp = event.time_us();
+void TextLineFormatter::FormatFooter() {}
 
-  mg_printf(
-      conn_,
-      "%02d:%02d:%02d ",
-      (int)(tstamp / 3600000000),
-      (int)(tstamp / 60000000 % 60),
-      (int)(tstamp / 1000000 % 60));
+void TextLineFormatter::FormatLine(const LogLine& line) {
+  mg_printf(conn_, "%s ", line.tstamp.c_str());
 
-  std::string nick;
-  if (event.direction() == LogEvent::SENT) {
-    nick = "esowiki";
+  if (line.type == LogLine::MESSAGE) {
+    mg_printf(conn_, "<%s> %s\n", line.nick.c_str(), line.body.c_str());
+  } else if (line.type != LogLine::ERROR) {
+    mg_printf(conn_, "-!- %s has %s", line.nick.c_str(), kLineDescriptions[line.type]);
+    if (!line.body.empty()) {
+      if (line.type == LogLine::PART || line.type == LogLine::QUIT)
+        mg_printf(conn_, " (%s)", line.body.c_str());
+      else if (line.type == LogLine::KICK)
+        mg_printf(conn_, "%s", line.body.c_str());
+      else if (line.type == LogLine::MODE || line.type == LogLine::TOPIC)
+        mg_printf(conn_, ": %s", line.body.c_str());
+    }
+    mg_printf(conn_, ".\n");
   } else {
-    nick = event.prefix();
-    std::size_t sep = nick.find('!');
-    if (sep != std::string::npos)
-      nick.erase(sep);
-    else
-      nick = "?unknown?";
+    mg_printf(conn_, "[unexpected log event :(]");
   }
-
-  int body_arg = event.command() == "QUIT" ? 0 : 1;
-  std::string body;
-  if (event.args_size() > body_arg)
-    body = event.args(body_arg);
-
-  if (event.command() == "PRIVMSG" || event.command() == "NOTICE") {
-    mg_printf(conn_, "<%s> %s", nick.c_str(), body.c_str());
-  } else if (event.command() == "JOIN" || event.command() == "PART" || event.command() == "QUIT") {
-    mg_printf(
-        conn_,
-        "-!- %s has %s",
-        nick.c_str(),
-        event.command() == "JOIN" ? "joined" : event.command() == "PART" ? "left" : "quit");
-    if (!body.empty())
-      mg_printf(conn_, " (%s)", body.c_str());
-    mg_printf(conn_, ".");
-  } else if (event.command() == "KICK") {
-    mg_printf(conn_, "-!- %s has kicked %s.", nick.c_str(), body.c_str());
-  } else if (event.command() == "MODE" || event.command() == "TOPIC") {
-    mg_printf(
-        conn_,
-        "-!- %s has set %s: %s.",
-        nick.c_str(),
-        event.command() == "MODE" ? "channel mode" : "topic",
-        body.c_str());
-  } else {
-    mg_printf(conn_, "unexpected log event :(");
-  }
-
-  mg_printf(conn_, "\n");
 }
 
 } // namespace internal
 
 std::unique_ptr<LogFormatter> LogFormatter::CreateHTML(struct mg_connection* conn) {
-  return std::make_unique<internal::HtmlLogFormatter>(conn);
+  return std::make_unique<internal::HtmlLineFormatter>(conn);
 }
 
 std::unique_ptr<LogFormatter> LogFormatter::CreateText(struct mg_connection* conn) {
-  return std::make_unique<internal::TextLogFormatter>(conn);
+  return std::make_unique<internal::TextLineFormatter>(conn);
 }
 
 } // namespace esologs

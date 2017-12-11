@@ -15,7 +15,11 @@ void FormatError(struct mg_connection* conn, int code, const char* fmt, ...);
 struct LogFormatter {
   static std::unique_ptr<LogFormatter> CreateHTML(struct mg_connection* conn);
   static std::unique_ptr<LogFormatter> CreateText(struct mg_connection* conn);
+
+  virtual void FormatHeader() = 0;
   virtual void FormatEvent(const LogEvent& event) = 0;
+  virtual void FormatFooter() = 0;
+
   virtual ~LogFormatter() = default;
 };
 

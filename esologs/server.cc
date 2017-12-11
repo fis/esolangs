@@ -76,8 +76,10 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
         format == "html" ? LogFormatter::CreateHTML(conn) : LogFormatter::CreateText(conn);
 
     LogEvent event;
+    fmt->FormatHeader();
     while (reader.Read(&event))
       fmt->FormatEvent(event);
+    fmt->FormatFooter();
 
     return true;
   }
