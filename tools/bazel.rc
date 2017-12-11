@@ -1,2 +1,4 @@
-build --cxxopt=-std=c++17 --cxxopt=-Wno-error=maybe-uninitialized -c opt
-# -Wno-error=maybe-uninitialized: boringssl t1_lib.cc:2191
+build --cxxopt=-std=c++17
+build --cxxopt=-Wno-error=maybe-uninitialized  # boringssl t1_lib.cc
+build --copt=-Wno-error=implicit-fallthrough   # brotli decode.c
+build -c opt

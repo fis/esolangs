@@ -11,6 +11,7 @@ cc_binary(
         ":log_cc_proto",
         "@civetweb//:civetweb",
         "@com_googlesource_code_re2//:re2",
+        "@zemlib//proto:brotli",
         "@zemlib//proto:delim",
     ],
     linkopts = ["-lstdc++fs"],
@@ -21,6 +22,7 @@ cc_binary(
     srcs = ["logcat.cc"],
     deps = [
         ":log_cc_proto",
+        "@zemlib//proto:brotli",
         "@zemlib//proto:delim",
     ],
 )

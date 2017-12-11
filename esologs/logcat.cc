@@ -1,7 +1,10 @@
 #include <cstdio>
+#include <memory>
+#include <string_view>
 
 #include "base/exc.h"
 #include "esologs/log.pb.h"
+#include "proto/brotli.h"
 #include "proto/delim.h"
 
 int main(int argc, char *argv[]) {
@@ -14,8 +17,19 @@ int main(int argc, char *argv[]) {
 
   for (int i = 1; i < argc; i++) {
     try {
-      proto::DelimReader reader(argv[i]);
-      while (reader.Read(&event)) {
+      std::unique_ptr<proto::DelimReader> reader;
+      {
+        std::string_view arg(argv[i]);
+        if (arg.size() >= 6 && arg.substr(arg.size() - 6) == ".pb.br") {
+          reader = std::make_unique<proto::DelimReader>(proto::BrotliInputStream::FromFile(argv[i]));
+        } else if (arg.size() >= 3 && arg.substr(arg.size() - 3) == ".pb") {
+          reader = std::make_unique<proto::DelimReader>(argv[i]);
+        } else {
+          std::fprintf(stderr, "unknown file format: %s\n", argv[i]);
+          continue;
+        }
+      }
+      while (reader->Read(&event)) {
         auto tstamp = event.time_us();
         std::printf(
             "[%02d:%02d:%02d.%03d] ",
