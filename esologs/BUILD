@@ -11,6 +11,7 @@ cc_binary(
         ":log_cc_proto",
         "@civetweb//:civetweb",
         "@com_googlesource_code_re2//:re2",
+        "@zemlib//base",
         "@zemlib//proto:brotli",
         "@zemlib//proto:delim",
     ],

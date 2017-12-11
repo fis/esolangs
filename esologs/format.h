@@ -16,7 +16,7 @@ struct LogFormatter {
   static std::unique_ptr<LogFormatter> CreateHTML(struct mg_connection* conn);
   static std::unique_ptr<LogFormatter> CreateText(struct mg_connection* conn);
 
-  virtual void FormatHeader() = 0;
+  virtual void FormatHeader(int y, int m, int d) = 0;
   virtual void FormatEvent(const LogEvent& event) = 0;
   virtual void FormatFooter() = 0;
 

@@ -8,8 +8,10 @@
 #include "civetweb.h"
 #include "re2/re2.h"
 
+#include "base/log.h"
 #include "esologs/format.h"
 #include "esologs/index.h"
+#include "proto/brotli.h"
 #include "proto/delim.h"
 
 namespace esologs {
@@ -66,18 +68,26 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
     logfile /= std::to_string(d);
     logfile += ".pb";
 
-    if (!fs::is_regular_file(logfile)) {
-      FormatError(conn, 404, "no logs for date: %04d-%02d-%02d", y, m, d);
-      return true;
+    std::unique_ptr<proto::DelimReader> reader;
+
+    if (fs::is_regular_file(logfile)) {
+      reader = std::make_unique<proto::DelimReader>(logfile.c_str());
+    } else {
+      logfile += ".br";
+      if (fs::is_regular_file(logfile)) {
+        reader = std::make_unique<proto::DelimReader>(proto::BrotliInputStream::FromFile(logfile.c_str()));
+      } else {
+        FormatError(conn, 404, "no logs for date: %04d-%02d-%02d", y, m, d);
+        return true;
+      }
     }
 
-    proto::DelimReader reader(logfile.c_str());
     std::unique_ptr<LogFormatter> fmt =
         format == "html" ? LogFormatter::CreateHTML(conn) : LogFormatter::CreateText(conn);
 
     LogEvent event;
-    fmt->FormatHeader();
-    while (reader.Read(&event))
+    fmt->FormatHeader(y, m, d);
+    while (reader->Read(&event))
       fmt->FormatEvent(event);
     fmt->FormatFooter();
 
@@ -92,5 +102,6 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
 
 int main(void) {
   esologs::Server server("logs");
+  LOG(INFO) << "server started";
   std::getchar();
 }

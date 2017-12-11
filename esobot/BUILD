@@ -14,7 +14,7 @@ cc_binary(
         "@zemlib//event",
         "@zemlib//irc",
         "@zemlib//irc:config_cc_proto",
-        "@zemlib//proto:text",
+        "@zemlib//proto:util",
     ],
     linkopts = ["-lstdc++fs"],
 )

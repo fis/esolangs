@@ -6,7 +6,7 @@
 #include "irc/config.pb.h"
 #include "irc/connection.h"
 #include "irc/message.h"
-#include "proto/text.h"
+#include "proto/util.h"
 
 namespace esobot {
 

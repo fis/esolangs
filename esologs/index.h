@@ -14,8 +14,8 @@ class LogIndex {
 
   template <typename F>
   void For(F f) const {
-    for (const auto& date : dates_)
-      f(date.year, date.month, date.day);
+    for (auto it = dates_.rbegin(); it != dates_.rend(); ++it)
+      f(it->year, it->month, it->day);
   }
 
  private:

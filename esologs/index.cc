@@ -3,6 +3,7 @@
 
 #include "re2/re2.h"
 
+#include "base/log.h"
 #include "esologs/index.h"
 
 namespace esologs {
@@ -18,7 +19,7 @@ void LogIndex::Scan(bool full) {
     lower_bound = dates_.back();
 
   RE2 re_ym("\\d+");
-  RE2 re_d("(\\d+)\\.pb");
+  RE2 re_d("(\\d+)\\.pb(?:\\.br)?");
 
   fs::path root = root_;
 

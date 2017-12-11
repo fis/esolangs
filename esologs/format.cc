@@ -67,12 +67,13 @@ namespace internal {
 
 struct LogLine {
   enum Type {
+    // TODO: add NICK
     MESSAGE,
     JOIN,
     PART,
     QUIT,
     KICK,
-    MODE,
+    MODE, // TODO: fix args
     TOPIC,
     ERROR,
   };
@@ -167,13 +168,15 @@ void LogLineFormatter::FormatEvent(const LogEvent& event) {
 
 struct HtmlLineFormatter : public LogLineFormatter {
   using LogLineFormatter::LogLineFormatter;
-  void FormatHeader() override;
+  void FormatHeader(int y, int m, int d) override;
   void FormatLine(const LogLine& line) override;
   void FormatFooter() override;
 };
 
-void HtmlLineFormatter::FormatHeader() {
-  HeaderHtml(conn_, "TODO");
+void HtmlLineFormatter::FormatHeader(int y, int m, int d) {
+  char title[64];
+  std::snprintf(title, sizeof title, "%04d-%02d-%02d - #esoteric logs", y, m, d);
+  HeaderHtml(conn_, title);
 }
 
 void HtmlLineFormatter::FormatFooter() {
@@ -239,12 +242,12 @@ void HtmlLineFormatter::FormatLine(const LogLine& line) {
 
 struct TextLineFormatter : public LogLineFormatter {
   using LogLineFormatter::LogLineFormatter;
-  void FormatHeader() override;
+  void FormatHeader(int, int, int) override;
   void FormatLine(const LogLine& line) override;
   void FormatFooter() override;
 };
 
-void TextLineFormatter::FormatHeader() {
+void TextLineFormatter::FormatHeader(int, int, int) {
   mg_printf(
       conn_,
       "HTTP/1.1 200 OK\r\n"
