@@ -35,7 +35,7 @@ EsoBot::EsoBot(const char* config_file) {
   CHECK(config.irc().channels_size() == 1);
   channel_ = config.irc().channels(0);
 
-  log_ = std::make_unique<Logger>(config.log_path(), channel_);
+  log_ = std::make_unique<Logger>(channel_, config.log_path());
 
   irc_ = std::make_unique<irc::Connection>(config.irc(), &loop_);
   irc_->AddReader(this);
