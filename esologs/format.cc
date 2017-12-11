@@ -59,15 +59,27 @@ void FormatError(struct mg_connection* conn, int code, const char* fmt, ...) {
       code, text);
 }
 
-LogFormatter::LogFormatter(struct mg_connection* conn) : conn_(conn) {
+namespace internal {
+
+class HtmlLogFormatter : public LogFormatter {
+ public:
+  HtmlLogFormatter(struct mg_connection* conn);
+  ~HtmlLogFormatter();
+  void FormatEvent(const LogEvent& event) override;
+
+ private:
+  struct mg_connection* conn_;
+};
+
+HtmlLogFormatter::HtmlLogFormatter(struct mg_connection* conn) : conn_(conn) {
   HeaderHtml(conn_, "TODO");
 }
 
-LogFormatter::~LogFormatter() {
+HtmlLogFormatter::~HtmlLogFormatter() {
   FooterHtml(conn_);
 }
 
-void LogFormatter::FormatEvent(const LogEvent& event) {
+void HtmlLogFormatter::FormatEvent(const LogEvent& event) {
   auto tstamp = event.time_us();
 
   mg_printf(
@@ -154,6 +166,87 @@ void LogFormatter::FormatEvent(const LogEvent& event) {
   }
 
   mg_printf(conn_, "</div>\n");
+}
+
+class TextLogFormatter : public LogFormatter {
+ public:
+  TextLogFormatter(struct mg_connection* conn);
+  void FormatEvent(const LogEvent& event) override;
+
+ private:
+  struct mg_connection* conn_;
+};
+
+TextLogFormatter::TextLogFormatter(struct mg_connection* conn) : conn_(conn) {
+  mg_printf(
+      conn,
+      "HTTP/1.1 200 OK\r\n"
+      "Content-Type: text/plain; charset=utf-8\r\n"
+      "\r\n");
+}
+
+void TextLogFormatter::FormatEvent(const LogEvent& event) {
+  auto tstamp = event.time_us();
+
+  mg_printf(
+      conn_,
+      "%02d:%02d:%02d ",
+      (int)(tstamp / 3600000000),
+      (int)(tstamp / 60000000 % 60),
+      (int)(tstamp / 1000000 % 60));
+
+  std::string nick;
+  if (event.direction() == LogEvent::SENT) {
+    nick = "esowiki";
+  } else {
+    nick = event.prefix();
+    std::size_t sep = nick.find('!');
+    if (sep != std::string::npos)
+      nick.erase(sep);
+    else
+      nick = "?unknown?";
+  }
+
+  int body_arg = event.command() == "QUIT" ? 0 : 1;
+  std::string body;
+  if (event.args_size() > body_arg)
+    body = event.args(body_arg);
+
+  if (event.command() == "PRIVMSG" || event.command() == "NOTICE") {
+    mg_printf(conn_, "<%s> %s", nick.c_str(), body.c_str());
+  } else if (event.command() == "JOIN" || event.command() == "PART" || event.command() == "QUIT") {
+    mg_printf(
+        conn_,
+        "-!- %s has %s",
+        nick.c_str(),
+        event.command() == "JOIN" ? "joined" : event.command() == "PART" ? "left" : "quit");
+    if (!body.empty())
+      mg_printf(conn_, " (%s)", body.c_str());
+    mg_printf(conn_, ".");
+  } else if (event.command() == "KICK") {
+    mg_printf(conn_, "-!- %s has kicked %s.", nick.c_str(), body.c_str());
+  } else if (event.command() == "MODE" || event.command() == "TOPIC") {
+    mg_printf(
+        conn_,
+        "-!- %s has set %s: %s.",
+        nick.c_str(),
+        event.command() == "MODE" ? "channel mode" : "topic",
+        body.c_str());
+  } else {
+    mg_printf(conn_, "unexpected log event :(");
+  }
+
+  mg_printf(conn_, "\n");
+}
+
+} // namespace internal
+
+std::unique_ptr<LogFormatter> LogFormatter::CreateHTML(struct mg_connection* conn) {
+  return std::make_unique<internal::HtmlLogFormatter>(conn);
+}
+
+std::unique_ptr<LogFormatter> LogFormatter::CreateText(struct mg_connection* conn) {
+  return std::make_unique<internal::TextLogFormatter>(conn);
 }
 
 } // namespace esologs

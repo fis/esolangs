@@ -71,12 +71,13 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
       return true;
     }
 
-    LogFormatter fmt(conn);
     proto::DelimReader reader(logfile.c_str());
-    LogEvent event;
+    std::unique_ptr<LogFormatter> fmt =
+        format == "html" ? LogFormatter::CreateHTML(conn) : LogFormatter::CreateText(conn);
 
+    LogEvent event;
     while (reader.Read(&event))
-      fmt.FormatEvent(event);
+      fmt->FormatEvent(event);
 
     return true;
   }

@@ -12,15 +12,11 @@ void FormatIndex(struct mg_connection* conn, const LogIndex& index);
 
 void FormatError(struct mg_connection* conn, int code, const char* fmt, ...);
 
-class LogFormatter {
- public:
-  LogFormatter(struct mg_connection* conn);
-  ~LogFormatter();
-
-  void FormatEvent(const LogEvent& event);
-
- private:
-  struct mg_connection* conn_;
+struct LogFormatter {
+  static std::unique_ptr<LogFormatter> CreateHTML(struct mg_connection* conn);
+  static std::unique_ptr<LogFormatter> CreateText(struct mg_connection* conn);
+  virtual void FormatEvent(const LogEvent& event) = 0;
+  virtual ~LogFormatter() = default;
 };
 
 } // namespace esologs
