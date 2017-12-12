@@ -1,5 +1,6 @@
 #include <cstdarg>
 #include <cstdio>
+#include <ctime>
 #include <functional>
 
 #include "esologs/format.h"
@@ -7,6 +8,14 @@
 namespace esologs {
 
 namespace {
+
+void HeaderText(struct mg_connection* conn) {
+  mg_printf(
+      conn,
+      "HTTP/1.1 200 OK\r\n"
+      "Content-Type: text/plain; charset=utf-8\r\n"
+      "\r\n");
+}
 
 void HeaderHtml(struct mg_connection* conn, const char* title) {
   mg_printf(
@@ -28,6 +37,8 @@ void FooterHtml(struct mg_connection* conn) {
 } // unnamed namespace
 
 void FormatIndex(struct mg_connection* conn, const LogIndex& index) {
+  // TODO: links to other logs
+
   HeaderHtml(conn, "#esoteric logs");
 
   index.For([&conn](int y, int m, int d) {
@@ -37,9 +48,9 @@ void FormatIndex(struct mg_connection* conn, const LogIndex& index) {
           conn,
           "<li>"
           "<a href=\"%s.html\">%s</a>"
-          " (<a href=\"%s.txt\">text</a>)"
+          " (<a href=\"%s.txt\">text</a> / <a href=\"%s-raw.txt\">raw</a>)"
           "</li>\n",
-          ymd, ymd, ymd);
+          ymd, ymd, ymd, ymd);
     });
 
   FooterHtml(conn);
@@ -244,20 +255,10 @@ void HtmlLineFormatter::FormatLine(const LogLine& line) {
 
 struct TextLineFormatter : public LogLineFormatter {
   using LogLineFormatter::LogLineFormatter;
-  void FormatHeader(int, int, int) override;
+  void FormatHeader(int, int, int) override { HeaderText(conn_); }
   void FormatLine(const LogLine& line) override;
-  void FormatFooter() override;
+  void FormatFooter() override {};
 };
-
-void TextLineFormatter::FormatHeader(int, int, int) {
-  mg_printf(
-      conn_,
-      "HTTP/1.1 200 OK\r\n"
-      "Content-Type: text/plain; charset=utf-8\r\n"
-      "\r\n");
-}
-
-void TextLineFormatter::FormatFooter() {}
 
 void TextLineFormatter::FormatLine(const LogLine& line) {
   mg_printf(conn_, "%s ", line.tstamp.c_str());
@@ -280,6 +281,41 @@ void TextLineFormatter::FormatLine(const LogLine& line) {
   }
 }
 
+struct RawFormatter : public LogFormatter {
+  struct mg_connection* conn_;
+  google::protobuf::uint64 offset_us_;
+  RawFormatter(struct mg_connection* conn) : conn_(conn), offset_us_(0) {}
+  void FormatHeader(int y, int m, int d) override;
+  void FormatEvent(const LogEvent& event) override;
+  void FormatFooter() override {}
+};
+
+void RawFormatter::FormatHeader(int y, int m, int d) {
+  HeaderText(conn_);
+
+  std::tm date = {0};
+  date.tm_year = y - 1900;
+  date.tm_mon = m - 1;
+  date.tm_mday = d;
+  offset_us_ = google::protobuf::uint64(std::mktime(&date)) * 1000000u;
+}
+
+void RawFormatter::FormatEvent(const LogEvent& event) {
+  auto time_us = event.time_us() + offset_us_;
+  mg_printf(
+      conn_,
+      "%c %lu %lu ",
+      event.direction() == LogEvent::SENT ? '>' : '<',
+      (unsigned long)(time_us / 1000000u),
+      (unsigned long)(time_us % 1000000u));
+  if (!event.prefix().empty())
+    mg_printf(conn_, ":%s ", event.prefix().c_str());
+  mg_printf(conn_, "%s", event.command().c_str());
+  for (int i = 0, n = event.args_size(); i < n; ++i)
+    mg_printf(conn_, " %s%s", i == n - 1 ? ":" : "", event.args(i).c_str());
+  mg_printf(conn_, "\n");
+}
+
 } // namespace internal
 
 std::unique_ptr<LogFormatter> LogFormatter::CreateHTML(struct mg_connection* conn) {
@@ -288,6 +324,10 @@ std::unique_ptr<LogFormatter> LogFormatter::CreateHTML(struct mg_connection* con
 
 std::unique_ptr<LogFormatter> LogFormatter::CreateText(struct mg_connection* conn) {
   return std::make_unique<internal::TextLineFormatter>(conn);
+}
+
+std::unique_ptr<LogFormatter> LogFormatter::CreateRaw(struct mg_connection* conn) {
+  return std::make_unique<internal::RawFormatter>(conn);
 }
 
 } // namespace esologs

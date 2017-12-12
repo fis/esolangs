@@ -14,6 +14,10 @@
 #include "proto/brotli.h"
 #include "proto/delim.h"
 
+extern "C" {
+#include <stdlib.h>
+}
+
 namespace esologs {
 
 namespace fs = std::experimental::filesystem;
@@ -34,7 +38,7 @@ class Server : public CivetHandler {
 };
 
 Server::Server(const std::string& root)
-    : root_(root), index_(root), re_logfile_("/(\\d+)-(\\d+)-(\\d+)\\.(html|txt)")
+    : root_(root), index_(root), re_logfile_("/(\\d+)-(\\d+)-(\\d+)(\\.html|\\.txt|-raw\\.txt)")
 {
   const char* options[] = {
     "listening_ports", "13280",
@@ -82,8 +86,13 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
       }
     }
 
-    std::unique_ptr<LogFormatter> fmt =
-        format == "html" ? LogFormatter::CreateHTML(conn) : LogFormatter::CreateText(conn);
+    std::unique_ptr<LogFormatter> fmt;
+    if (format == ".html")
+      fmt = LogFormatter::CreateHTML(conn);
+    else if (format == ".txt")
+      fmt = LogFormatter::CreateText(conn);
+    else
+      fmt = LogFormatter::CreateRaw(conn);
 
     LogEvent event;
     fmt->FormatHeader(y, m, d);
@@ -101,6 +110,7 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
 } // namespace esologs
 
 int main(void) {
+  setenv("TZ", "UTC", 1);
   esologs::Server server("logs");
   LOG(INFO) << "server started";
   std::getchar();
