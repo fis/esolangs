@@ -110,7 +110,7 @@ struct LogLine {
     QUIT,
     NICK,
     KICK,
-    MODE, // TODO: fix args
+    MODE,
     TOPIC,
     ERROR,
   };
@@ -193,7 +193,9 @@ void LogLineFormatter::FormatEvent(const LogEvent& event) {
     line.type = LogLine::ERROR;
 
   int body_arg = (line.type == LogLine::QUIT || line.type == LogLine::NICK) ? 0 : 1;
-  if (event.args_size() > body_arg) {
+  for (int i = body_arg; i < event.args_size(); ++i) {
+    if (i > body_arg)
+      line.body += ' ';
     // TODO: better sanitization, don't HTML-escape text format
     for (const auto& c : event.args(body_arg)) {
       if ((unsigned char)c < 32)
@@ -269,7 +271,7 @@ void HtmlLineFormatter::FormatLine(const LogLine& line) {
       else if (line.type == LogLine::NICK || line.type == LogLine::KICK)
         mg_printf(conn_, " <span class=\"ea\">%s</span>", body.c_str()); // TODO: nick hash
       else if (line.type == LogLine::MODE || line.type == LogLine::TOPIC)
-        mg_printf(conn_, ": <span class\"eb\">%s</span>", body.c_str());
+        mg_printf(conn_, ": <span class=\"eb\">%s</span>", body.c_str());
     }
     mg_printf(conn_, ".</span>");
   } else {
