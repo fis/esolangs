@@ -196,9 +196,9 @@ void LogLineFormatter::FormatEvent(const LogEvent& event) {
   for (int i = body_arg; i < event.args_size(); ++i) {
     if (i > body_arg)
       line.body += ' ';
-    // TODO: better sanitization, don't HTML-escape text format
     for (const auto& c : event.args(body_arg)) {
-      if ((unsigned char)c < 32)
+      unsigned char v = c;
+      if (v < 2 || (v > 3 && v < 15) || (v > 15 && v < 29))
         continue;
       line.body += c;
     }
@@ -224,6 +224,122 @@ void HtmlLineFormatter::FormatFooter() {
   FooterHtml(conn_);
 }
 
+unsigned NickHash(const std::string& nick) {
+  unsigned nick_hash = 0;
+  for (const auto& c : nick)
+    nick_hash = 31 * nick_hash + (unsigned char)c;
+  return nick_hash % 10;
+}
+
+struct IrcFormat {
+  bool bold = false;
+  bool italic = false;
+  bool underline = false;
+  bool strikethrough = false;
+  int fg = -1, bg = -1;
+
+  void AppendClass(std::string* out) {
+    const char* sep = "";
+    if (bold) {
+      *out += sep; *out += "fb"; sep = " ";
+    }
+    if (italic) {
+      *out += sep; *out += "fi"; sep = " ";
+    }
+    if (underline) {
+      *out += sep; *out += "fu"; sep = " ";
+    }
+    if (strikethrough) {
+      *out += sep; *out += "fs"; sep = " ";
+    }
+    if (fg != -1) {
+      *out += sep; *out += "fc"; *out += std::to_string(fg); sep = " ";
+    }
+    if (bg != -1) {
+      *out += sep; *out += "fg"; *out += std::to_string(bg); sep = " ";
+    }
+  }
+  std::size_t ParseColor(const std::string& raw, std::size_t i) {
+    std::size_t len = raw.size();
+
+    if (i+1 >= len || (raw[i+1] < '0' || raw[i+1] > '9')) {
+      fg = bg = -1;
+      return i;
+    }
+
+    ++i;
+    fg = raw[i] - '0';
+    if (i+1 < len && (raw[i+1] >= '0' && raw[i+1] <= '9')) {
+      ++i;
+      fg = 10*fg + (raw[i] - '0');
+    }
+
+    if (i+2 >= len || raw[i+1] != ',' || (raw[i+2] < '0' || raw[i+2] > '9'))
+      return i;
+
+    i += 2;
+    bg = raw[i] - '0';
+    if (i+1 < len && (raw[i+1] >= '0' && raw[i+1] <= '9')) {
+      ++i;
+      bg = 10*bg + (raw[i] - '0');
+    }
+
+    return i;
+  }
+  void Reset() {
+    bold = italic = underline = strikethrough = false;
+    fg = bg = -1;
+  }
+  bool is_default() {
+    return !bold && !italic && !underline && !strikethrough && fg == -1 && bg == -1;
+  }
+};
+
+std::string HtmlEscape(const std::string& raw) {
+  std::string cooked;
+
+  IrcFormat format;
+
+  for (std::size_t i = 0; i < raw.size(); ++i) {
+    char c = raw[i];
+    if ((unsigned char)c < 32) {
+      if (!format.is_default())
+        cooked += "</span>";
+
+      if (c == 2)
+        format.bold = !format.bold;
+      else if (c == 3)
+        i = format.ParseColor(raw, i);
+      else if (c == 15)
+        format.Reset();
+      else if (c == 29)
+        format.italic = !format.italic;
+      else if (c == 30)
+        format.strikethrough = !format.strikethrough;
+      else if (c == 31)
+        format.underline = !format.underline;
+
+      if (!format.is_default()) {
+        cooked += "<span class=\"";
+        format.AppendClass(&cooked);
+        cooked += "\">";
+      }
+    } else if (c == '<') {
+      cooked += "&lt;";
+    } else if (c == '>') {
+      cooked += "&gt;";
+    } else if (c == '&') {
+      cooked += "&amp;";
+    } else {
+      cooked += c;
+    }
+  }
+  if (!format.is_default())
+    cooked += "</span>";
+
+  return cooked;
+}
+
 void HtmlLineFormatter::FormatLine(const LogLine& line) {
   mg_printf(
       conn_,
@@ -232,44 +348,29 @@ void HtmlLineFormatter::FormatLine(const LogLine& line) {
       "<span class=\"s\"> </span>",
       line.tstamp.c_str());
 
-  unsigned nick_hash = 0;
-  for (const auto& c : line.nick)
-    nick_hash = 31 * nick_hash + (unsigned char)c;
-  nick_hash %= 10;
-
-  std::string body;
-  for (const auto& c : line.body) {
-    if (c == '<')
-      body += "&lt;";
-    else if (c == '>')
-      body += "&gt;";
-    else if (c == '&')
-      body += "&amp;";
-    else
-      body += c;
-  }
+  std::string body = HtmlEscape(line.body);
 
   if (line.type == LogLine::MESSAGE) {
     mg_printf(
         conn_,
-        "<span class=\"ma h%d\">&lt;%s&gt;</span>"
+        "<span class=\"ma h%u\">&lt;%s&gt;</span>"
         "<span class=\"s\"> </span>"
         "<span class=\"mb\">%s</span>",
-        nick_hash, line.nick.c_str(), body.c_str());
+        NickHash(line.nick), line.nick.c_str(), body.c_str());
   } else if (line.type != LogLine::ERROR) {
     mg_printf(
         conn_,
         "<span class=\"x\">-!-</span>"
         "<span class=\"s\"> </span>"
-        "<span class=\"ed\"><span class=\"ea h%d\">%s</span> has %s",
-        nick_hash,
+        "<span class=\"ed\"><span class=\"ea h%u\">%s</span> has %s",
+        NickHash(line.nick),
         line.nick.c_str(),
         kLineDescriptions[line.type]);
-    if (!line.body.empty()) {
+    if (!body.empty()) {
       if (line.type == LogLine::PART || line.type == LogLine::QUIT)
         mg_printf(conn_, " (<span class=\"eb\">%s</span>)", body.c_str());
       else if (line.type == LogLine::NICK || line.type == LogLine::KICK)
-        mg_printf(conn_, " <span class=\"ea\">%s</span>", body.c_str()); // TODO: nick hash
+        mg_printf(conn_, " <span class=\"ea h%u\">%s</span>", NickHash(body), body.c_str());
       else if (line.type == LogLine::MODE || line.type == LogLine::TOPIC)
         mg_printf(conn_, ": <span class=\"eb\">%s</span>", body.c_str());
     }
@@ -288,20 +389,39 @@ struct TextLineFormatter : public LogLineFormatter {
   void FormatFooter() override {};
 };
 
+std::string UnFormat(const std::string& raw) {
+  std::string cooked;
+
+  IrcFormat format;
+
+  for (std::size_t i = 0; i < raw.size(); ++i) {
+    char c = raw[i];
+    if ((unsigned char)c < 32) {
+      if (c == 3)
+        i = format.ParseColor(raw, i);
+    } else {
+      cooked += c;
+    }
+  }
+
+  return cooked;
+}
+
 void TextLineFormatter::FormatLine(const LogLine& line) {
   mg_printf(conn_, "%s ", line.tstamp.c_str());
 
+  std::string body = UnFormat(line.body);
   if (line.type == LogLine::MESSAGE) {
-    mg_printf(conn_, "<%s> %s\n", line.nick.c_str(), line.body.c_str());
+    mg_printf(conn_, "<%s> %s\n", line.nick.c_str(), body.c_str());
   } else if (line.type != LogLine::ERROR) {
     mg_printf(conn_, "-!- %s has %s", line.nick.c_str(), kLineDescriptions[line.type]);
     if (!line.body.empty()) {
       if (line.type == LogLine::PART || line.type == LogLine::QUIT)
-        mg_printf(conn_, " (%s)", line.body.c_str());
+        mg_printf(conn_, " (%s)", body.c_str());
       else if (line.type == LogLine::KICK)
-        mg_printf(conn_, "%s", line.body.c_str());
+        mg_printf(conn_, "%s", body.c_str());
       else if (line.type == LogLine::MODE || line.type == LogLine::TOPIC)
-        mg_printf(conn_, ": %s", line.body.c_str());
+        mg_printf(conn_, ": %s", body.c_str());
     }
     mg_printf(conn_, ".\n");
   } else {

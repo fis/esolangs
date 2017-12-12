@@ -45,3 +45,42 @@ span.h6 { color: #7e5f37; }
 span.h7 { color: #7f3f00; }
 span.h8 { color: #65596b; }
 span.h9 { color: #351e4d; }
+
+span.fb { font-weight: bold; }
+span.fi { font-style: italic; }
+span.fu { text-decoration: underline; }
+span.fs { text-decoration: line-through; }
+
+span.fc0 { color: #eee; }
+span.fc1 { color: #000; }
+span.fc2 { color: #00a; }
+span.fc3 { color: #0a0; }
+span.fc4 { color: #a00; }
+span.fc5 { color: #a50; }
+span.fc6 { color: #a0a; }
+span.fc7 { color: #f90; }
+span.fc8 { color: #ee0; }
+span.fc9 { color: #5f5; }
+span.fc10 { color: #0aa; }
+span.fc11 { color: #0ff; }
+span.fc12 { color: #55f; }
+span.fc13 { color: #e0e; }
+span.fc14 { color: #888; }
+span.fc15 { color: #ccc; }
+
+span.fg0 { background-color: #eee; }
+span.fg1 { background-color: #000; }
+span.fg2 { background-color: #00a; }
+span.fg3 { background-color: #0a0; }
+span.fg4 { background-color: #a00; }
+span.fg5 { background-color: #a50; }
+span.fg6 { background-color: #a0a; }
+span.fg7 { background-color: #f90; }
+span.fg8 { background-color: #ee0; }
+span.fg9 { background-color: #5f5; }
+span.fg10 { background-color: #0aa; }
+span.fg11 { background-color: #0ff; }
+span.fg12 { background-color: #55f; }
+span.fg13 { background-color: #e0e; }
+span.fg14 { background-color: #888; }
+span.fg15 { background-color: #ccc; }
