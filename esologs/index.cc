@@ -10,7 +10,20 @@ namespace esologs {
 
 namespace fs = std::experimental::filesystem;
 
+namespace {
+
+constexpr std::chrono::steady_clock::duration kRescanInterval = std::chrono::seconds(30);
+
+} // unnamed namespace
+
+void LogIndex::Refresh() {
+  if (std::chrono::steady_clock::now() - last_scan_ >= kRescanInterval)
+    Scan();
+}
+
 void LogIndex::Scan(bool full) {
+  last_scan_ = std::chrono::steady_clock::now();
+
   if (full)
     dates_.clear();
 

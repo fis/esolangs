@@ -17,7 +17,7 @@ void HeaderText(struct mg_connection* conn) {
       "\r\n");
 }
 
-void HeaderHtml(struct mg_connection* conn, const char* title) {
+void HeaderHtml(struct mg_connection* conn, const char* title, const char* style) {
   mg_printf(
       conn,
       "HTTP/1.1 200 OK\r\n"
@@ -25,9 +25,9 @@ void HeaderHtml(struct mg_connection* conn, const char* title) {
       "\r\n"
       "<!DOCTYPE html>\n"
       "<html>\n"
-      "<head><title>%s</title><link rel=\"stylesheet\" type=\"text/css\" href=\"log.css\"></head>\n"
+      "<head><title>%s</title><link rel=\"stylesheet\" type=\"text/css\" href=\"%s\"></head>\n"
       "<body>\n",
-      title);
+      title, style);
 }
 
 void FooterHtml(struct mg_connection* conn) {
@@ -36,12 +36,12 @@ void FooterHtml(struct mg_connection* conn) {
 
 } // unnamed namespace
 
-void FormatIndex(struct mg_connection* conn, const LogIndex& index) {
+void FormatIndex(struct mg_connection* conn, LogIndex* index) {
   // TODO: links to other logs
 
-  HeaderHtml(conn, "#esoteric logs");
+  HeaderHtml(conn, "#esoteric logs", "index.css");
 
-  index.For([&conn](int y, int m, int d) {
+  index->For([&conn](int y, int m, int d) {
       char ymd[16];
       std::snprintf(ymd, sizeof ymd, "%04d-%02d-%02d", y, m, d);
       mg_printf(
@@ -189,7 +189,7 @@ struct HtmlLineFormatter : public LogLineFormatter {
 void HtmlLineFormatter::FormatHeader(int y, int m, int d) {
   char title[64];
   std::snprintf(title, sizeof title, "%04d-%02d-%02d - #esoteric logs", y, m, d);
-  HeaderHtml(conn_, title);
+  HeaderHtml(conn_, title, "log.css");
 }
 
 void HtmlLineFormatter::FormatFooter() {

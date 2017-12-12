@@ -10,7 +10,7 @@
 
 namespace esologs {
 
-void FormatIndex(struct mg_connection* conn, const LogIndex& index);
+void FormatIndex(struct mg_connection* conn, LogIndex* index);
 
 void FormatError(struct mg_connection* conn, int code, const char* fmt, ...);
 

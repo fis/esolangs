@@ -1,6 +1,7 @@
 #ifndef ESOLOGS_INDEX_H_
 #define ESOLOGS_INDEX_H_
 
+#include <chrono>
 #include <string>
 #include <vector>
 
@@ -13,7 +14,8 @@ class LogIndex {
   }
 
   template <typename F>
-  void For(F f) const {
+  void For(F f) {
+    Refresh();
     for (auto it = dates_.rbegin(); it != dates_.rend(); ++it)
       f(it->year, it->month, it->day);
   }
@@ -28,7 +30,9 @@ class LogIndex {
 
   const std::string root_;
   std::vector<YMD> dates_;
+  std::chrono::steady_clock::time_point last_scan_;
 
+  void Refresh();
   void Scan(bool full = false);
 };
 

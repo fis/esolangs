@@ -2,6 +2,7 @@
 #include <cstring>
 #include <experimental/filesystem>
 #include <memory>
+#include <mutex>
 #include <string>
 
 #include "CivetServer.h"
@@ -31,6 +32,7 @@ class Server : public CivetHandler {
  private:
   const fs::path root_;
   LogIndex index_;
+  std::mutex index_lock_;
 
   const RE2 re_logfile_;
 
@@ -58,7 +60,8 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
   }
 
   if (std::strcmp(info->local_uri, "/") == 0) {
-    FormatIndex(conn, index_);
+    std::lock_guard<std::mutex> lock(index_lock_);
+    FormatIndex(conn, &index_);
     return true;
   }
 
