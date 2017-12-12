@@ -8,7 +8,7 @@ h1 {
     padding: 0;
     font-size: large;
     font-weight: bold;
-    white-space: pre-wrap;
+    white-space: pre;
 }
 span.d {
     color: #808080;
@@ -24,8 +24,15 @@ ul {
     margin: 0.5rem 0 0.5rem 0;
     padding: 0 2rem 0 2rem;
 }
+li {
+    white-space: pre;
+}
 
 div#b {
     display: flex;
     flex-wrap: wrap;
+}
+div.m {
+    flex: 0 0;
+    width: 100%;
 }
