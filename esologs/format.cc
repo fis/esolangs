@@ -67,11 +67,11 @@ namespace internal {
 
 struct LogLine {
   enum Type {
-    // TODO: add NICK
     MESSAGE,
     JOIN,
     PART,
     QUIT,
+    NICK,
     KICK,
     MODE, // TODO: fix args
     TOPIC,
@@ -88,6 +88,7 @@ constexpr const char* kLineDescriptions[] = {
   /* JOIN: */ "joined",
   /* PART: */ "left",
   /* QUIT: */ "quit",
+  /* NICK: */ "changed nick to",
   /* KICK: */ "kicked",
   /* MODE: */ "set channel mode",
   /* TOPIC: */ "set topic",
@@ -114,6 +115,7 @@ void LogLineFormatter::FormatEvent(const LogEvent& event) {
     {"JOIN", LogLine::JOIN},
     {"PART", LogLine::PART},
     {"QUIT", LogLine::QUIT},
+    {"NICK", LogLine::NICK},
     {"KICK", LogLine::KICK},
     {"MODE", LogLine::MODE},
     {"TOPIC", LogLine::TOPIC},
@@ -153,11 +155,11 @@ void LogLineFormatter::FormatEvent(const LogEvent& event) {
   if (line_type == kLineTypeCount)
     line.type = LogLine::ERROR;
 
-  int body_arg = line.type == LogLine::QUIT ? 0 : 1;
+  int body_arg = (line.type == LogLine::QUIT || line.type == LogLine::NICK) ? 0 : 1;
   if (event.args_size() > body_arg) {
     // TODO: better sanitization, don't HTML-escape text format
     for (const auto& c : event.args(body_arg)) {
-      if (c < 32)
+      if ((unsigned char)c < 32)
         continue;
       line.body += c;
     }
@@ -227,8 +229,8 @@ void HtmlLineFormatter::FormatLine(const LogLine& line) {
     if (!line.body.empty()) {
       if (line.type == LogLine::PART || line.type == LogLine::QUIT)
         mg_printf(conn_, " (<span class=\"eb\">%s</span>)", body.c_str());
-      else if (line.type == LogLine::KICK)
-        mg_printf(conn_, "<span class=\"ea\">%s</span>", body.c_str()); // TODO: nick hash
+      else if (line.type == LogLine::NICK || line.type == LogLine::KICK)
+        mg_printf(conn_, " <span class=\"ea\">%s</span>", body.c_str()); // TODO: nick hash
       else if (line.type == LogLine::MODE || line.type == LogLine::TOPIC)
         mg_printf(conn_, ": <span class\"eb\">%s</span>", body.c_str());
     }
