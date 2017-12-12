@@ -20,7 +20,7 @@ span.s {
 }
 
 span.mb, span.eb, span.s {
-    whitespace: pre-wrap;
+    white-space: pre-wrap;
 }
 
 span.x, span.ed {
