@@ -1,0 +1,31 @@
+body {
+    font-family: monospace;
+    padding-bottom: 1rem;
+}
+
+h1 {
+    margin: 0.5rem 0 0.5rem 0;
+    padding: 0;
+    font-size: large;
+    font-weight: bold;
+    white-space: pre-wrap;
+}
+span.d {
+    color: #808080;
+}
+h2 {
+    margin: 0.5rem 0 0.5rem 0;
+    padding: 0 2rem 0 2rem;
+    font-size: medium;
+    font-weight: bold;
+}
+ul {
+    list-style-type: none;
+    margin: 0.5rem 0 0.5rem 0;
+    padding: 0 2rem 0 2rem;
+}
+
+div#b {
+    display: flex;
+    flex-wrap: wrap;
+}

@@ -34,13 +34,16 @@ class Server : public CivetHandler {
   LogIndex index_;
   std::mutex index_lock_;
 
+  const RE2 re_index_;
   const RE2 re_logfile_;
 
   std::unique_ptr<CivetServer> web_server_;
 };
 
 Server::Server(const std::string& root)
-    : root_(root), index_(root), re_logfile_("/(\\d+)-(\\d+)-(\\d+)(\\.html|\\.txt|-raw\\.txt)")
+    : root_(root), index_(root),
+      re_index_("/(?:(\\d+)\\.html)?"),
+      re_logfile_("/(\\d+)-(\\d+)-(\\d+)(\\.html|\\.txt|-raw\\.txt)")
 {
   const char* options[] = {
     "listening_ports", "13280",
@@ -59,13 +62,14 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
     return true;
   }
 
-  if (std::strcmp(info->local_uri, "/") == 0) {
+  std::string ys, ms, ds, format;
+
+  if (RE2::FullMatch(info->local_uri, re_index_, &ys)) {
     std::lock_guard<std::mutex> lock(index_lock_);
-    FormatIndex(conn, &index_);
+    FormatIndex(conn, &index_, ys.empty() ? index_.default_year() : std::stoi(ys));
     return true;
   }
 
-  std::string ys, ms, ds, format;
   if (RE2::FullMatch(info->local_uri, re_logfile_, &ys, &ms, &ds, &format)) {
     int y = std::stoi(ys), m = std::stoi(ms), d = std::stoi(ds);
 

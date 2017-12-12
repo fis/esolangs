@@ -36,22 +36,48 @@ void FooterHtml(struct mg_connection* conn) {
 
 } // unnamed namespace
 
-void FormatIndex(struct mg_connection* conn, LogIndex* index) {
+void FormatIndex(struct mg_connection* conn, LogIndex* index, int y) {
   // TODO: links to other logs
 
-  HeaderHtml(conn, "#esoteric logs", "index.css");
+  char title[64];
+  std::snprintf(title, sizeof title, "%04d - #esoteric logs", y);
+  HeaderHtml(conn, title, "index.css");
 
-  index->For([&conn](int y, int m, int d) {
+  auto [y_min, y_max] = index->bounds();
+  mg_printf(conn, "<h1>");
+  if (y > y_min)
+    mg_printf(conn, "<a href=\"%04d.html\">←%04d</a>", y-1, y-1);
+  else
+    mg_printf(conn, "<span class=\"d\">←%04d</span>", y-1);
+  mg_printf(conn, "  %04d  ", y);
+  if (y < y_max)
+    mg_printf(conn, "<a href=\"%04d.html\">%04d→</a>", y+1, y+1);
+  else
+    mg_printf(conn, "<span class=\"d\">%04d→</span>", y+1);
+  mg_printf(conn, "</h1>\n<div id=\"b\">\n");
+
+  int mh = 0;
+  index->For(y, [&conn, &mh](int y, int m, int d) {
+      if (m != mh) {
+        mg_printf(conn, "%s<div class=\"m\"><h2>%04d-%02d</h2>\n<ul>\n", mh ? "</ul>\n</div>\n" : "", y, m);
+        mh = m;
+      }
+
       char ymd[16];
       std::snprintf(ymd, sizeof ymd, "%04d-%02d-%02d", y, m, d);
       mg_printf(
           conn,
           "<li>"
           "<a href=\"%s.html\">%s</a>"
-          " (<a href=\"%s.txt\">text</a> / <a href=\"%s-raw.txt\">raw</a>)"
+          " - <a href=\"%s.txt\">text</a>"
+          " - <a href=\"%s-raw.txt\">raw</a>"
           "</li>\n",
           ymd, ymd, ymd, ymd);
     });
+  if (mh)
+    mg_printf(conn, "</ul>\n</div>\n");
+
+  mg_printf(conn, "</div>\n");
 
   FooterHtml(conn);
 }

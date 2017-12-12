@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace esologs {
@@ -14,10 +15,32 @@ class LogIndex {
   }
 
   template <typename F>
-  void For(F f) {
+  void For(int y, F f) {
     Refresh();
-    for (auto it = dates_.rbegin(); it != dates_.rend(); ++it)
+
+    for (auto it = dates_.rbegin(); it != dates_.rend(); ++it) {
+      if (it->year > y)
+        continue;
+      else if (it->year < y)
+        break;
       f(it->year, it->month, it->day);
+    }
+  }
+
+  int default_year() {
+    Refresh();
+    if (dates_.empty())
+      return 2002;  // arbitrary
+    else
+      return dates_.back().year;
+  }
+
+  std::pair<int, int> bounds() {
+    Refresh();
+    if (dates_.empty())
+      return std::pair(2002, 2002);
+    else
+      return std::pair(dates_.front().year, dates_.back().year);
   }
 
  private:
