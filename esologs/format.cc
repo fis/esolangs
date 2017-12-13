@@ -46,7 +46,8 @@ constexpr char kAboutText[] =
     "See <a href=\"https://esolangs.org/wiki/Esolang:Community_portal\">"
     "Esolang:Community portal</a> for more information about the channel. "
     "The code for collecting these logs can be found in the "
-    "<a href=\"https://github.com/fis/esowiki\">github.com/fis/esowiki</a> "
+    //"<a href=\"https://github.com/fis/esowiki\">github.com/fis/esowiki</a> "
+    "[COMING REAL SOON] "
     "repository."
     "</p>\n"
     "<p>"
@@ -58,8 +59,6 @@ constexpr char kAboutText[] =
 } // unnamed namespace
 
 void FormatIndex(struct mg_connection* conn, LogIndex* index, int y) {
-  // TODO: links to other logs
-
   bool all = y < 0;
 
   char title[64];
@@ -92,7 +91,7 @@ void FormatIndex(struct mg_connection* conn, LogIndex* index, int y) {
 
   for (y = y_max; y >= y_min; --y) {
     if (all)
-      mg_printf(conn, "<h1>%04d</h1>", y);
+      mg_printf(conn, "<h1><a href=\"%04d.html\">%04d</a></h1>", y, y);
     mg_printf(conn, "<div id=\"b\">\n");
 
     int mh = 0;
