@@ -8,6 +8,7 @@ cc_binary(
         "server.cc",
     ],
     deps = [
+        ":config_cc_proto",
         ":log_cc_proto",
         "@civetweb//:civetweb",
         "@com_googlesource_code_re2//:re2",
@@ -37,7 +38,17 @@ cc_library(
         "@zemlib//proto:delim",
     ],
     linkopts = ["-lstdc++fs"],
-    visibility = ["//visibility:public"],
+    visibility = ["//esobot:__pkg__"],
+)
+
+proto_library(
+    name = "config_proto",
+    srcs = ["config.proto"],
+)
+
+cc_proto_library(
+    name = "config_cc_proto",
+    deps = [":config_proto"],
 )
 
 proto_library(

@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package esologs;
+
+message Config {
+  string listen_port = 1;
+  string log_path = 2;
+  string nick = 3;
+}

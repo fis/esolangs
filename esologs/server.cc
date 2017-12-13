@@ -1,19 +1,23 @@
+#include <chrono>
 #include <cstdio>
 #include <cstring>
 #include <experimental/filesystem>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <thread>
 
 #include "CivetServer.h"
 #include "civetweb.h"
 #include "re2/re2.h"
 
 #include "base/log.h"
+#include "esologs/config.pb.h"
 #include "esologs/format.h"
 #include "esologs/index.h"
 #include "proto/brotli.h"
 #include "proto/delim.h"
+#include "proto/util.h"
 
 extern "C" {
 #include <stdlib.h>
@@ -25,28 +29,41 @@ namespace fs = std::experimental::filesystem;
 
 class Server : public CivetHandler {
  public:
-  Server(const std::string& root);
+  Server(const char* config_file);
 
   bool handleGet(CivetServer* server, struct mg_connection* conn) override;
 
  private:
-  const fs::path root_;
-  LogIndex index_;
+  fs::path root_;
+  std::string nick_;
+
+  std::unique_ptr<LogIndex> index_;
   std::mutex index_lock_;
 
-  const RE2 re_index_;
-  const RE2 re_logfile_;
+  const RE2 re_index_ = RE2("/(?:(\\d+)\\.html)?");
+  const RE2 re_logfile_ = RE2("/(\\d+)-(\\d+)-(\\d+)(\\.html|\\.txt|-raw\\.txt)");
 
   std::unique_ptr<CivetServer> web_server_;
 };
 
-Server::Server(const std::string& root)
-    : root_(root), index_(root),
-      re_index_("/(?:(\\d+)\\.html)?"),
-      re_logfile_("/(\\d+)-(\\d+)-(\\d+)(\\.html|\\.txt|-raw\\.txt)")
-{
+Server::Server(const char* config_file) {
+  Config config;
+  proto::ReadText(config_file, &config);
+
+  if (config.listen_port().empty())
+    throw base::Exception("missing required setting: listen_port");
+  if (config.log_path().empty())
+    throw base::Exception("missing required setting: log_path");
+  if (config.nick().empty())
+    throw base::Exception("missing required setting: nick");
+
+  root_ = config.log_path();
+  nick_ = config.nick();
+
+  index_ = std::make_unique<LogIndex>(root_);
+
   const char* options[] = {
-    "listening_ports", "13280",
+    "listening_ports", config.listen_port().c_str(),
     "num_threads", "2",
     nullptr
   };
@@ -66,8 +83,8 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
 
   if (RE2::FullMatch(info->local_uri, re_index_, &ys)) {
     std::lock_guard<std::mutex> lock(index_lock_);
-    index_.Refresh();
-    FormatIndex(conn, &index_, ys.empty() ? index_.default_year() : std::stoi(ys));
+    index_->Refresh();
+    FormatIndex(conn, index_.get(), ys.empty() ? index_->default_year() : std::stoi(ys));
     return true;
   }
 
@@ -117,9 +134,16 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
 
 } // namespace esologs
 
-int main(void) {
+int main(int argc, char* argv[]) {
+  if (argc != 2) {
+    LOG(ERROR) << "usage: " << argv[0] << " <esologs.config>";
+    return 1;
+  }
+
   setenv("TZ", "UTC", 1);
-  esologs::Server server("logs");
+  esologs::Server server(argv[1]);
   LOG(INFO) << "server started";
-  std::getchar();
+
+  while (true)  // TODO: event loop for background tasks
+    std::this_thread::sleep_for(std::chrono::hours(1));
 }
