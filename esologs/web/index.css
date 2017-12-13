@@ -37,6 +37,10 @@ div.m {
     width: 100%;
 }
 
+p {
+    font-family: sans-serif;
+}
+
 @media (pointer:coarse) {
     li {
         margin: 0.5rem 0 0.5rem 0;

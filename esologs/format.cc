@@ -42,7 +42,17 @@ void FooterHtml(struct mg_connection* conn) {
 constexpr char kAboutText[] =
     "<h1 id=\"about\">about</h1>\n"
     "<p>"
-    "TODO: this is some information about the logs."
+    "These logs are for the <code>#esoteric</code> IRC channel on Freenode. "
+    "See <a href=\"https://esolangs.org/wiki/Esolang:Community_portal\">"
+    "Esolang:Community portal</a> for more information about the channel. "
+    "The code for collecting these logs can be found in the "
+    "<a href=\"https://github.com/fis/esowiki\">github.com/fis/esowiki</a> "
+    "repository."
+    "</p>\n"
+    "<p>"
+    "Other public collections of logs of the channel can be found at "
+    "<a href=\"http://codu.org/logs/_esoteric/\">codu.org</a> and "
+    "<a href=\"http://tunes.org/~nef/logs/esoteric/?C=M;O=D\">tunes.org</a>."
     "</p>\n";
 
 } // unnamed namespace
@@ -72,7 +82,11 @@ void FormatIndex(struct mg_connection* conn, LogIndex* index, int y) {
       mg_printf(conn, "<a href=\"%04d.html\">%04d→</a>", y+1, y+1);
     else
       mg_printf(conn, "<span class=\"d\">%04d→</span>", y+1);
-    mg_printf(conn, "  <a href=\"all.html\">↑all</a></h1>\n");
+    mg_printf(
+        conn,
+        "  <a href=\"all.html\">↑all</a>"
+        "  <a href=\"#about\">↓about</a>"
+        "</h1>\n");
     y_min = y_max = y;
   }
 
