@@ -40,7 +40,7 @@ class Server : public CivetHandler {
   std::unique_ptr<LogIndex> index_;
   std::mutex index_lock_;
 
-  const RE2 re_index_ = RE2("/(?:(\\d+)\\.html)?");
+  const RE2 re_index_ = RE2("/(?:(\\d+|all)\\.html)?");
   const RE2 re_logfile_ = RE2("/(\\d+)-(\\d+)-(\\d+)(\\.html|\\.txt|-raw\\.txt)");
 
   std::unique_ptr<CivetServer> web_server_;
@@ -82,9 +82,19 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
   std::string ys, ms, ds, format;
 
   if (RE2::FullMatch(info->local_uri, re_index_, &ys)) {
+    int y;
+
     std::lock_guard<std::mutex> lock(index_lock_);
     index_->Refresh();
-    FormatIndex(conn, index_.get(), ys.empty() ? index_->default_year() : std::stoi(ys));
+
+    if (ys.empty())
+      y = index_->default_year();
+    else if (ys == "all")
+      y = -1;
+    else
+      y = std::stoi(ys);
+
+    FormatIndex(conn, index_.get(), y);
     return true;
   }
 

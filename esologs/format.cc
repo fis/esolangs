@@ -1,5 +1,6 @@
 #include <cstdarg>
 #include <cstdio>
+#include <cstring>
 #include <ctime>
 #include <functional>
 
@@ -38,51 +39,73 @@ void FooterHtml(struct mg_connection* conn) {
   mg_printf(conn, "</body>\n</html>\n");
 }
 
+constexpr char kAboutText[] =
+    "<h1 id=\"about\">about</h1>\n"
+    "<p>"
+    "TODO: this is some information about the logs."
+    "</p>\n";
+
 } // unnamed namespace
 
 void FormatIndex(struct mg_connection* conn, LogIndex* index, int y) {
   // TODO: links to other logs
 
+  bool all = y < 0;
+
   char title[64];
-  std::snprintf(title, sizeof title, "%04d - #esoteric logs", y);
+  if (all)
+    std::strcpy(title, "#esoteric logs");
+  else
+    std::snprintf(title, sizeof title, "%04d - #esoteric logs", y);
   HeaderHtml(conn, title, "index.css");
 
   auto [y_min, y_max] = index->bounds();
-  mg_printf(conn, "<h1>");
-  if (y > y_min)
-    mg_printf(conn, "<a href=\"%04d.html\">←%04d</a>", y-1, y-1);
-  else
-    mg_printf(conn, "<span class=\"d\">←%04d</span>", y-1);
-  mg_printf(conn, "  %04d  ", y);
-  if (y < y_max)
-    mg_printf(conn, "<a href=\"%04d.html\">%04d→</a>", y+1, y+1);
-  else
-    mg_printf(conn, "<span class=\"d\">%04d→</span>", y+1);
-  mg_printf(conn, "</h1>\n<div id=\"b\">\n");
 
-  int mh = 0;
-  index->For(y, [&conn, &mh](int y, int m, int d) {
-      if (m != mh) {
-        mg_printf(conn, "%s<div class=\"m\"><h2>%04d-%02d</h2>\n<ul>\n", mh ? "</ul>\n</div>\n" : "", y, m);
-        mh = m;
-      }
+  if (!all) {
+    mg_printf(conn, "<h1>");
+    if (y > y_min)
+      mg_printf(conn, "<a href=\"%04d.html\">←%04d</a>", y-1, y-1);
+    else
+      mg_printf(conn, "<span class=\"d\">←%04d</span>", y-1);
+    mg_printf(conn, "  %04d  ", y);
+    if (y < y_max)
+      mg_printf(conn, "<a href=\"%04d.html\">%04d→</a>", y+1, y+1);
+    else
+      mg_printf(conn, "<span class=\"d\">%04d→</span>", y+1);
+    mg_printf(conn, "  <a href=\"all.html\">↑all</a></h1>\n");
+    y_min = y_max = y;
+  }
 
-      char ymd[16];
-      std::snprintf(ymd, sizeof ymd, "%04d-%02d-%02d", y, m, d);
-      mg_printf(
-          conn,
-          "<li>"
-          "<a href=\"%s.html\">%s</a>"
-          " - <a href=\"%s.txt\">text</a>"
-          " - <a href=\"%s-raw.txt\">raw</a>"
-          "</li>\n",
-          ymd, ymd, ymd, ymd);
-    });
-  if (mh)
-    mg_printf(conn, "</ul>\n</div>\n");
+  for (y = y_max; y >= y_min; --y) {
+    if (all)
+      mg_printf(conn, "<h1>%04d</h1>", y);
+    mg_printf(conn, "<div id=\"b\">\n");
 
-  mg_printf(conn, "</div>\n");
+    int mh = 0;
+    index->For(y, [&conn, &mh](int y, int m, int d) {
+        if (m != mh) {
+          mg_printf(conn, "%s<div class=\"m\"><h2>%04d-%02d</h2>\n<ul>\n", mh ? "</ul>\n</div>\n" : "", y, m);
+          mh = m;
+        }
 
+        char ymd[16];
+        std::snprintf(ymd, sizeof ymd, "%04d-%02d-%02d", y, m, d);
+        mg_printf(
+            conn,
+            "<li>"
+            "<a href=\"%s.html\">%s</a>"
+            " - <a href=\"%s.txt\">text</a>"
+            " - <a href=\"%s-raw.txt\">raw</a>"
+            "</li>\n",
+            ymd, ymd, ymd, ymd);
+      });
+    if (mh)
+      mg_printf(conn, "</ul>\n</div>\n");
+
+    mg_printf(conn, "</div>\n");
+  }
+
+  mg_printf(conn, "%s", kAboutText);
   FooterHtml(conn);
 }
 
