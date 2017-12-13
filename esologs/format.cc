@@ -196,7 +196,7 @@ void LogLineFormatter::FormatEvent(const LogEvent& event) {
   for (int i = body_arg; i < event.args_size(); ++i) {
     if (i > body_arg)
       line.body += ' ';
-    for (const auto& c : event.args(body_arg)) {
+    for (const auto& c : event.args(i)) {
       unsigned char v = c;
       if (v < 2 || (v > 3 && v < 15) || (v > 15 && v < 29))
         continue;
