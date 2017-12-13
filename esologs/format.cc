@@ -25,7 +25,11 @@ void HeaderHtml(struct mg_connection* conn, const char* title, const char* style
       "\r\n"
       "<!DOCTYPE html>\n"
       "<html>\n"
-      "<head><title>%s</title><link rel=\"stylesheet\" type=\"text/css\" href=\"%s\"></head>\n"
+      "<head>"
+      "<title>%s</title>"
+      "<link rel=\"stylesheet\" type=\"text/css\" href=\"%s\">"
+      "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+      "</head>\n"
       "<body>\n",
       title, style);
 }

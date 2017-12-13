@@ -36,3 +36,9 @@ div.m {
     flex: 0 0;
     width: 100%;
 }
+
+@media (pointer:coarse) {
+    li {
+        margin: 0.5rem 0 0.5rem 0;
+    }
+}

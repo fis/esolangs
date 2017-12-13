@@ -84,3 +84,18 @@ span.fg12 { background-color: #55f; }
 span.fg13 { background-color: #e0e; }
 span.fg14 { background-color: #888; }
 span.fg15 { background-color: #ccc; }
+
+@media (max-width: 640px) {
+    div.r {
+        display: block;
+    }
+
+    span.mb, span.ed {
+        display: table;
+        padding-bottom: 0.5rem;
+    }
+
+    span.ma, span.x {
+        text-align: left;
+    }
+}
