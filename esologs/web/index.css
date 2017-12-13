@@ -30,11 +30,11 @@ li {
 
 div#b {
     display: flex;
+    flex-direction: row;
     flex-wrap: wrap;
 }
 div.m {
-    flex: 0 0;
-    width: 100%;
+    flex: 0 0 auto;
 }
 
 p {
