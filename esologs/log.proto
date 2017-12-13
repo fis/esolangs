@@ -4,9 +4,9 @@ package esologs;
 
 message LogEvent {
   uint64 time_us = 1;
-  string prefix = 2;
-  string command = 3;
-  repeated string args = 4;
+  bytes prefix = 2;
+  bytes command = 3;
+  repeated bytes args = 4;
 
   enum Direction {
     RECEIVED = 0;
