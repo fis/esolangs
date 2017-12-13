@@ -94,17 +94,17 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
     else
       y = std::stoi(ys);
 
-    FormatIndex(conn, index_.get(), y);
+    FormatIndex(conn, *index_, y);
     return true;
   }
 
   if (RE2::FullMatch(info->local_uri, re_logfile_, &ys, &ms, &ds, &format)) {
-    int y = std::stoi(ys), m = std::stoi(ms), d = std::stoi(ds);
+    const YMD date(std::stoi(ys), std::stoi(ms), std::stoi(ds));
 
     fs::path logfile = root_;
-    logfile /= std::to_string(y);
-    logfile /= std::to_string(m);
-    logfile /= std::to_string(d);
+    logfile /= std::to_string(date.year);
+    logfile /= std::to_string(date.month);
+    logfile /= std::to_string(date.day);
     logfile += ".pb";
 
     std::unique_ptr<proto::DelimReader> reader;
@@ -116,9 +116,17 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
       if (fs::is_regular_file(logfile)) {
         reader = std::make_unique<proto::DelimReader>(proto::BrotliInputStream::FromFile(logfile.c_str()));
       } else {
-        FormatError(conn, 404, "no logs for date: %04d-%02d-%02d", y, m, d);
+        FormatError(conn, 404, "no logs for date: %04d-%02d-%02d", date.year, date.month, date.day);
         return true;
       }
+    }
+
+    const YMD* prev;
+    const YMD* next;
+    {
+      std::lock_guard<std::mutex> lock(index_lock_);
+      auto [p, n] = index_->neighbors(date);
+      prev = p, next = n;
     }
 
     std::unique_ptr<LogFormatter> fmt;
@@ -130,10 +138,10 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
       fmt = LogFormatter::CreateRaw(conn);
 
     LogEvent event;
-    fmt->FormatHeader(y, m, d);
+    fmt->FormatHeader(date, prev, next);
     while (reader->Read(&event))
       fmt->FormatEvent(event);
-    fmt->FormatFooter();
+    fmt->FormatFooter(date, prev, next);
 
     return true;
   }

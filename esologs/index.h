@@ -8,8 +8,34 @@
 
 namespace esologs {
 
+struct YMD {
+  int year;
+  int month;
+  int day;
+  YMD(int y, int m, int d) : year(y), month(m), day(d) {}
+  friend bool operator==(const YMD& a, const YMD& b);
+  friend bool operator!=(const YMD& a, const YMD& b);
+  friend bool operator< (const YMD& a, const YMD& b);
+  friend bool operator<=(const YMD& a, const YMD& b);
+  friend bool operator>=(const YMD& a, const YMD& b);
+  friend bool operator> (const YMD& a, const YMD& b);
+};
+
+inline bool operator==(const YMD& a, const YMD& b) { return a.year == b.year && a.month == b.month && a.day == b.day; }
+inline bool operator!=(const YMD& a, const YMD& b) { return !(a == b); }
+
+inline bool operator<(const YMD& a, const YMD& b) {
+  return a.year < b.year || (a.year == b.year && (a.month < b.month || (a.month == b.month && a.day < b.day)));
+}
+inline bool operator<=(const YMD& a, const YMD& b) {
+  return a.year < b.year || (a.year == b.year && (a.month < b.month || (a.month == b.month && a.day <= b.day)));
+}
+inline bool operator>=(const YMD& a, const YMD& b) { return b <= a; }
+inline bool operator>(const YMD& a, const YMD& b) { return b < a; }
+
 class LogIndex {
  public:
+
   LogIndex(const std::string& root) : root_(root) {
     Scan(/* full: */ true);
   }
@@ -17,7 +43,7 @@ class LogIndex {
   void Refresh();
 
   template <typename F>
-  void For(int y, F f) {
+  void For(int y, F f) const {
     for (auto it = dates_.rbegin(); it != dates_.rend(); ++it) {
       if (it->year > y)
         continue;
@@ -27,28 +53,23 @@ class LogIndex {
     }
   }
 
-  int default_year() {
+  int default_year() const noexcept {
     if (dates_.empty())
       return 2002;  // arbitrary
     else
       return dates_.back().year;
   }
 
-  std::pair<int, int> bounds() {
+  std::pair<int, int> bounds() const noexcept {
     if (dates_.empty())
       return std::pair(2002, 2002);
     else
       return std::pair(dates_.front().year, dates_.back().year);
   }
 
- private:
-  struct YMD {
-    int year;
-    int month;
-    int day;
-    YMD(int y, int m, int d) : year(y), month(m), day(d) {}
-  };
+  std::pair<const YMD*, const YMD*> neighbors(const YMD& ymd) const noexcept;
 
+ private:
   const std::string root_;
   std::vector<YMD> dates_;
   std::chrono::steady_clock::time_point last_scan_;

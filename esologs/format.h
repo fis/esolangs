@@ -10,7 +10,7 @@
 
 namespace esologs {
 
-void FormatIndex(struct mg_connection* conn, LogIndex* index, int y);
+void FormatIndex(struct mg_connection* conn, const LogIndex& index, int y);
 
 void FormatError(struct mg_connection* conn, int code, const char* fmt, ...);
 
@@ -19,9 +19,9 @@ struct LogFormatter {
   static std::unique_ptr<LogFormatter> CreateText(struct mg_connection* conn);
   static std::unique_ptr<LogFormatter> CreateRaw(struct mg_connection* conn);
 
-  virtual void FormatHeader(int y, int m, int d) = 0;
+  virtual void FormatHeader(const YMD& date, const YMD* prev, const YMD* next) = 0;
   virtual void FormatEvent(const LogEvent& event) = 0;
-  virtual void FormatFooter() = 0;
+  virtual void FormatFooter(const YMD& date, const YMD* prev, const YMD* next) = 0;
 
   virtual ~LogFormatter() = default;
 };

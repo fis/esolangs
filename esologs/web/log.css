@@ -19,7 +19,7 @@ span.s {
     flex: 0 1 2ex;
 }
 
-span.mb, span.eb, span.s {
+div.n, span.mb, span.eb, span.s {
     white-space: pre-wrap;
 }
 
@@ -27,12 +27,16 @@ span.x, span.ed {
     color: #808080;
 }
 
-span.ma, span.x, span.ea {
+span.nc, span.ma, span.x, span.ea {
     font-weight: bold;
 }
 
 span.eb {
     color: black;
+}
+
+div.n {
+    margin: 0.5rem 0 0.5rem 0;
 }
 
 span.h0 { color: #536771; }
@@ -97,5 +101,9 @@ span.fg15 { background-color: #ccc; }
 
     span.ma, span.x {
         text-align: left;
+    }
+
+    div.n {
+        white-space: normal;
     }
 }

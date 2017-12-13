@@ -88,4 +88,13 @@ void LogIndex::Scan(bool full) {
   }
 }
 
+std::pair<const YMD*, const YMD*> LogIndex::neighbors(const YMD& ymd) const noexcept {
+  auto pos = std::lower_bound(dates_.begin(), dates_.end(), ymd);
+  if (pos == dates_.end() || *pos != ymd)
+    return std::pair(nullptr, nullptr);  // shouldn't happen
+  return std::pair(
+      pos != dates_.begin() ? &*(pos-1) : nullptr,
+      pos+1 != dates_.end() ? &*(pos+1) : nullptr);
+}
+
 } // namespace esologs
