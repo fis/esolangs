@@ -14,10 +14,10 @@ class LogIndex {
     Scan(/* full: */ true);
   }
 
+  void Refresh();
+
   template <typename F>
   void For(int y, F f) {
-    Refresh();
-
     for (auto it = dates_.rbegin(); it != dates_.rend(); ++it) {
       if (it->year > y)
         continue;
@@ -28,7 +28,6 @@ class LogIndex {
   }
 
   int default_year() {
-    Refresh();
     if (dates_.empty())
       return 2002;  // arbitrary
     else
@@ -36,7 +35,6 @@ class LogIndex {
   }
 
   std::pair<int, int> bounds() {
-    Refresh();
     if (dates_.empty())
       return std::pair(2002, 2002);
     else
@@ -55,7 +53,6 @@ class LogIndex {
   std::vector<YMD> dates_;
   std::chrono::steady_clock::time_point last_scan_;
 
-  void Refresh();
   void Scan(bool full = false);
 };
 

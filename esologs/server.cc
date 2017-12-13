@@ -66,6 +66,7 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
 
   if (RE2::FullMatch(info->local_uri, re_index_, &ys)) {
     std::lock_guard<std::mutex> lock(index_lock_);
+    index_.Refresh();
     FormatIndex(conn, &index_, ys.empty() ? index_.default_year() : std::stoi(ys));
     return true;
   }
