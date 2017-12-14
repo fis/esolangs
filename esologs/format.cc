@@ -253,6 +253,7 @@ struct HtmlLineFormatter : public LogLineFormatter {
   void FormatLine(const LogLine& line) override;
   void FormatFooter(const YMD& date, const YMD* prev, const YMD* next) override;
  private:
+  int row_id_ = 0;
   void FormatNav(const YMD& date, const YMD* prev, const YMD* next);
 };
 
@@ -293,6 +294,21 @@ void HtmlLineFormatter::FormatHeader(const YMD& date, const YMD* prev, const YMD
 void HtmlLineFormatter::FormatFooter(const YMD& date, const YMD* prev, const YMD* next) {
   FormatNav(date, prev, next);
   FooterHtml(conn_);
+}
+
+void RowId(int id, char* p, std::size_t max_len) {
+  static constexpr char alphabet[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  static constexpr std::size_t kAlphabetSize = sizeof alphabet - 1;
+
+  if (!max_len) return;
+
+  while (id > 0 && max_len > 1) {
+    *p = alphabet[id % kAlphabetSize];
+    id /= kAlphabetSize;
+    ++p;
+    --max_len;
+  }
+  *p = 0;
 }
 
 unsigned NickHash(const std::string& nick) {
@@ -412,31 +428,34 @@ std::string HtmlEscape(const std::string& raw) {
 }
 
 void HtmlLineFormatter::FormatLine(const LogLine& line) {
+  char id[16];
+  RowId(row_id_++, id, sizeof id);
+
   mg_printf(
       conn_,
-      "<div class=\"r\">"
+      "<div id=\"l%s\" class=\"r\">"
       "<span class=\"t\">%s</span>"
       "<span class=\"s\"> </span>",
-      line.tstamp.c_str());
+      id, line.tstamp.c_str());
 
   std::string body = HtmlEscape(line.body);
 
   if (line.type == LogLine::MESSAGE) {
     mg_printf(
         conn_,
-        "<span class=\"ma h%u\">&lt;%s&gt;</span>"
+        "<span class=\"ma h%u\"><a href=\"#l%s\">&lt;%s&gt;</a></span>"
         "<span class=\"s\"> </span>"
         "<span class=\"mb\">%s</span>",
-        NickHash(line.nick), line.nick.c_str(), body.c_str());
+        NickHash(line.nick), id, line.nick.c_str(),
+        body.c_str());
   } else if (line.type != LogLine::ERROR) {
     mg_printf(
         conn_,
-        "<span class=\"x\">-!-</span>"
+        "<span class=\"x\"><a href=\"#l%s\">-!-</a></span>"
         "<span class=\"s\"> </span>"
         "<span class=\"ed\"><span class=\"ea h%u\">%s</span> has %s",
-        NickHash(line.nick),
-        line.nick.c_str(),
-        kLineDescriptions[line.type]);
+        id,
+        NickHash(line.nick), line.nick.c_str(), kLineDescriptions[line.type]);
     if (!body.empty()) {
       if (line.type == LogLine::PART || line.type == LogLine::QUIT)
         mg_printf(conn_, " (<span class=\"eb\">%s</span>)", body.c_str());

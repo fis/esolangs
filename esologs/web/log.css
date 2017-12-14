@@ -39,6 +39,17 @@ div.n {
     margin: 0.5rem 0 0.5rem 0;
 }
 
+span.ma > a, span.x > a {
+    text-decoration: none;
+    color: inherit;
+}
+div.r:target {
+    background-color: #ddf;
+}
+div.r:target > span.t {
+    font-weight: bold;
+}
+
 span.h0 { color: #536771; }
 span.h1 { color: #0f3c5a; }
 span.h2 { color: #596f45; }
