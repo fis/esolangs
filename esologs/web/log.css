@@ -38,6 +38,11 @@ span.eb {
 div.n {
     margin: 0.5rem 0 0.5rem 0;
 }
+div.dh {
+    margin: 0.5rem 0 0.5rem 0;
+    font-weight: bold;
+    background-color: #ddd;
+}
 
 span.ma > a, span.x > a {
     text-decoration: none;

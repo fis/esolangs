@@ -27,6 +27,9 @@ ul {
 li {
     white-space: pre;
 }
+li.m {
+    margin: 0.5rem 0 0.5rem 0;
+}
 
 div#b {
     display: flex;

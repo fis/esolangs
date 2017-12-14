@@ -97,7 +97,18 @@ void FormatIndex(struct mg_connection* conn, const LogIndex& index, int y) {
     int mh = 0;
     index.For(y, [&conn, &mh](int y, int m, int d) {
         if (m != mh) {
-          mg_printf(conn, "%s<div class=\"m\"><h2>%04d-%02d</h2>\n<ul>\n", mh ? "</ul>\n</div>\n" : "", y, m);
+          mg_printf(
+              conn,
+              "%s"
+              "<div class=\"m\">"
+              "<h2>%04d-%02d</h2>\n"
+              "<ul>\n"
+              "<li class=\"m\">"
+              "<a href=\"%04d-%02d.html\">full month</a>"
+              " - <a href=\"%04d-%02d.txt\">text</a>"
+              " - <a href=\"%04d-%02d-raw.txt\">raw</a>",
+              mh ? "</ul>\n</div>\n" : "",
+              y, m, y, m, y, m, y, m);
           mh = m;
         }
 
@@ -249,33 +260,55 @@ void LogLineFormatter::FormatEvent(const LogEvent& event) {
 
 struct HtmlLineFormatter : public LogLineFormatter {
   using LogLineFormatter::LogLineFormatter;
-  void FormatHeader(const YMD& date, const YMD* prev, const YMD* next) override;
+  void FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) override;
+  void FormatDay(bool multiday, int year, int month, int day) override;
   void FormatLine(const LogLine& line) override;
-  void FormatFooter(const YMD& date, const YMD* prev, const YMD* next) override;
+  void FormatFooter(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) override;
  private:
   int row_id_ = 0;
-  void FormatNav(const YMD& date, const YMD* prev, const YMD* next);
+  void FormatNav(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next);
 };
 
-void HtmlLineFormatter::FormatNav(const YMD& date, const YMD* prev, const YMD* next) {
+void HtmlLineFormatter::FormatNav(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) {
+  bool month = date.day == 0;
+
   mg_printf(conn_, "<div class=\"n\">");
-  if (prev)
+
+  if (prev && month)
+    mg_printf(
+        conn_,
+        "<a href=\"%04d-%02d.html\">←%04d-%02d</a>",
+        prev->year, prev->month,
+        prev->year, prev->month);
+  else if (prev && !month)
     mg_printf(
         conn_,
         "<a href=\"%04d-%02d-%02d.html\">←%04d-%02d-%02d</a>",
         prev->year, prev->month, prev->day,
         prev->year, prev->month, prev->day);
   else
-    mg_printf(conn_, "           ");
-  mg_printf(conn_, "  <span class=\"nc\">%04d-%02d-%02d</span>  ", date.year, date.month, date.day);
-  if (next)
+    mg_printf(conn_, "        %s", month ? "" : "   ");
+
+  if (month)
+    mg_printf(conn_, "  <span class=\"nc\">%04d-%02d</span>  ", date.year, date.month);
+  else
+    mg_printf(conn_, "  <span class=\"nc\">%04d-%02d-%02d</span>  ", date.year, date.month, date.day);
+
+  if (next && month)
+    mg_printf(
+        conn_,
+        "<a href=\"%04d-%02d.html\">%04d-%02d→</a>",
+        next->year, next->month,
+        next->year, next->month);
+  else if (next && !month)
     mg_printf(
         conn_,
         "<a href=\"%04d-%02d-%02d.html\">%04d-%02d-%02d→</a>",
         next->year, next->month, next->day,
         next->year, next->month, next->day);
   else
-    mg_printf(conn_, "           ");
+    mg_printf(conn_, "        %s", month ? "" : "   ");
+
   mg_printf(
       conn_,
       "  <a href=\"%04d.html\">↑%04d</a>"
@@ -284,16 +317,24 @@ void HtmlLineFormatter::FormatNav(const YMD& date, const YMD* prev, const YMD* n
       date.year, date.year);
 }
 
-void HtmlLineFormatter::FormatHeader(const YMD& date, const YMD* prev, const YMD* next) {
+void HtmlLineFormatter::FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) {
   char title[64];
   std::snprintf(title, sizeof title, "%04d-%02d-%02d - #esoteric logs", date.year, date.month, date.day);
   HeaderHtml(conn_, title, "log.css");
   FormatNav(date, prev, next);
 }
 
-void HtmlLineFormatter::FormatFooter(const YMD& date, const YMD* prev, const YMD* next) {
+void HtmlLineFormatter::FormatFooter(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) {
   FormatNav(date, prev, next);
   FooterHtml(conn_);
+}
+
+void HtmlLineFormatter::FormatDay(bool multiday, int year, int month, int day) {
+  if (multiday)
+    mg_printf(
+        conn_,
+        "<div class=\"dh\"><a href=\"%04d-%02d-%02d.html\">%04d-%02d-%02d</a></div>\n",
+        year, month, day, year, month, day);
 }
 
 void RowId(int id, char* p, std::size_t max_len) {
@@ -474,10 +515,16 @@ void HtmlLineFormatter::FormatLine(const LogLine& line) {
 
 struct TextLineFormatter : public LogLineFormatter {
   using LogLineFormatter::LogLineFormatter;
-  void FormatHeader(const YMD&, const YMD*, const YMD*) override { HeaderText(conn_); }
+  void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override { HeaderText(conn_); }
+  void FormatDay(bool multiday, int year, int month, int day) override;
   void FormatLine(const LogLine& line) override;
-  void FormatFooter(const YMD&, const YMD*, const YMD*) override {}
+  void FormatFooter(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
 };
+
+void TextLineFormatter::FormatDay(bool multiday, int year, int month, int day) {
+  if (multiday)
+    mg_printf(conn_, "\n%04d-%02d-%02d:\n\n", year, month, day);
+}
 
 std::string UnFormat(const std::string& raw) {
   std::string cooked;
@@ -523,18 +570,17 @@ struct RawFormatter : public LogFormatter {
   struct mg_connection* conn_;
   google::protobuf::uint64 offset_us_;
   RawFormatter(struct mg_connection* conn) : conn_(conn), offset_us_(0) {}
-  void FormatHeader(const YMD& date, const YMD* prev, const YMD* next) override;
+  void FormatHeader(const YMD& date, const std::optional<YMD>&, const std::optional<YMD>&) override { HeaderText(conn_); }
+  void FormatDay(bool, int year, int month, int day) override;
   void FormatEvent(const LogEvent& event) override;
-  void FormatFooter(const YMD&, const YMD*, const YMD*) override {}
+  void FormatFooter(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
 };
 
-void RawFormatter::FormatHeader(const YMD& date, const YMD* prev, const YMD* next) {
-  HeaderText(conn_);
-
+void RawFormatter::FormatDay(bool, int year, int month, int day) {
   std::tm tm = {0};
-  tm.tm_year = date.year - 1900;
-  tm.tm_mon = date.month - 1;
-  tm.tm_mday = date.day;
+  tm.tm_year = year - 1900;
+  tm.tm_mon = month - 1;
+  tm.tm_mday = day;
   offset_us_ = google::protobuf::uint64(std::mktime(&tm)) * 1000000u;
 }
 

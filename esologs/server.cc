@@ -41,7 +41,7 @@ class Server : public CivetHandler {
   std::mutex index_lock_;
 
   const RE2 re_index_ = RE2("/(?:(\\d+|all)\\.html)?");
-  const RE2 re_logfile_ = RE2("/(\\d+)-(\\d+)-(\\d+)(\\.html|\\.txt|-raw\\.txt)");
+  const RE2 re_logfile_ = RE2("/(\\d+)-(\\d+)(?:-(\\d+))?(\\.html|\\.txt|-raw\\.txt)");
 
   std::unique_ptr<CivetServer> web_server_;
 };
@@ -99,34 +99,21 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
   }
 
   if (RE2::FullMatch(info->local_uri, re_logfile_, &ys, &ms, &ds, &format)) {
-    const YMD date(std::stoi(ys), std::stoi(ms), std::stoi(ds));
+    const YMD date(std::stoi(ys), std::stoi(ms), ds.empty() ? 0 : std::stoi(ds));
 
-    fs::path logfile = root_;
-    logfile /= std::to_string(date.year);
-    logfile /= std::to_string(date.month);
-    logfile /= std::to_string(date.day);
-    logfile += ".pb";
-
-    std::unique_ptr<proto::DelimReader> reader;
-
-    if (fs::is_regular_file(logfile)) {
-      reader = std::make_unique<proto::DelimReader>(logfile.c_str());
-    } else {
-      logfile += ".br";
-      if (fs::is_regular_file(logfile)) {
-        reader = std::make_unique<proto::DelimReader>(proto::BrotliInputStream::FromFile(logfile.c_str()));
-      } else {
-        FormatError(conn, 404, "no logs for date: %04d-%02d-%02d", date.year, date.month, date.day);
-        return true;
-      }
-    }
-
-    const YMD* prev;
-    const YMD* next;
+    bool found;
+    std::optional<YMD> prev, next;
     {
       std::lock_guard<std::mutex> lock(index_lock_);
-      auto [p, n] = index_->neighbors(date);
-      prev = p, next = n;
+      found = index_->Lookup(date, &prev, &next);
+    }
+
+    if (!found) {
+      if (date.day != 0)
+        FormatError(conn, 404, "no logs for date: %04d-%02d-%02d", date.year, date.month, date.day);
+      else
+        FormatError(conn, 404, "no logs for month: %04d-%02d", date.year, date.month);
+      return true;
     }
 
     std::unique_ptr<LogFormatter> fmt;
@@ -139,8 +126,32 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
 
     LogEvent event;
     fmt->FormatHeader(date, prev, next);
-    while (reader->Read(&event))
-      fmt->FormatEvent(event);
+
+    int d_min = date.day ? date.day : 1;
+    int d_max = date.day ? date.day : 31;
+    for (int d = d_min; d <= d_max; ++d) {
+      fs::path logfile = root_;
+      logfile /= std::to_string(date.year);
+      logfile /= std::to_string(date.month);
+      logfile /= std::to_string(d);
+      logfile += ".pb";
+
+      std::unique_ptr<proto::DelimReader> reader;
+
+      if (fs::is_regular_file(logfile)) {
+        reader = std::make_unique<proto::DelimReader>(logfile.c_str());
+      } else {
+        logfile += ".br";
+        if (fs::is_regular_file(logfile))
+          reader = std::make_unique<proto::DelimReader>(proto::BrotliInputStream::FromFile(logfile.c_str()));
+        else
+          continue; // shouldn't happen
+      }
+
+      fmt->FormatDay(d_min != d_max, date.year, date.month, d);
+      while (reader->Read(&event))
+        fmt->FormatEvent(event);
+    }
     fmt->FormatFooter(date, prev, next);
 
     return true;

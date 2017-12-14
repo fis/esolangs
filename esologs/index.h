@@ -2,6 +2,7 @@
 #define ESOLOGS_INDEX_H_
 
 #include <chrono>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -53,6 +54,8 @@ class LogIndex {
     }
   }
 
+  bool Lookup(const YMD& date, std::optional<YMD>* prev, std::optional<YMD>* next) const noexcept;
+
   int default_year() const noexcept {
     if (dates_.empty())
       return 2002;  // arbitrary
@@ -66,8 +69,6 @@ class LogIndex {
     else
       return std::pair(dates_.front().year, dates_.back().year);
   }
-
-  std::pair<const YMD*, const YMD*> neighbors(const YMD& ymd) const noexcept;
 
  private:
   const std::string root_;
