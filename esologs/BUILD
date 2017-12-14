@@ -12,9 +12,9 @@ cc_binary(
         ":log_cc_proto",
         "@civetweb//:civetweb",
         "@com_googlesource_code_re2//:re2",
-        "@zemlib//base",
-        "@zemlib//proto:brotli",
-        "@zemlib//proto:delim",
+        "@fi_zem_bracket//base",
+        "@fi_zem_bracket//proto:brotli",
+        "@fi_zem_bracket//proto:delim",
     ],
     linkopts = ["-lstdc++fs"],
 )
@@ -24,8 +24,8 @@ cc_binary(
     srcs = ["logcat.cc"],
     deps = [
         ":log_cc_proto",
-        "@zemlib//proto:brotli",
-        "@zemlib//proto:delim",
+        "@fi_zem_bracket//proto:brotli",
+        "@fi_zem_bracket//proto:delim",
     ],
 )
 
@@ -35,7 +35,7 @@ cc_library(
     hdrs = ["writer.h"],
     deps = [
         ":log_cc_proto",
-        "@zemlib//proto:delim",
+        "@fi_zem_bracket//proto:delim",
     ],
     linkopts = ["-lstdc++fs"],
     visibility = ["//esobot:__pkg__"],

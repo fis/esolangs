@@ -10,11 +10,11 @@ cc_binary(
     deps = [
         ":config_cc_proto",
         "//esologs:writer",
-        "@zemlib//base",
-        "@zemlib//event",
-        "@zemlib//irc",
-        "@zemlib//irc:config_cc_proto",
-        "@zemlib//proto:util",
+        "@fi_zem_bracket//base",
+        "@fi_zem_bracket//event",
+        "@fi_zem_bracket//irc",
+        "@fi_zem_bracket//irc:config_cc_proto",
+        "@fi_zem_bracket//proto:util",
     ],
     linkopts = ["-lstdc++fs"],
 )
@@ -22,7 +22,7 @@ cc_binary(
 proto_library(
     name = "config_proto",
     srcs = ["config.proto"],
-    deps = ["@zemlib//irc:config_proto"],
+    deps = ["@fi_zem_bracket//irc:config_proto"],
 )
 
 cc_proto_library(

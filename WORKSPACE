@@ -1,12 +1,12 @@
 workspace(name = "esowiki")
 
 local_repository(
-    name = "zemlib",
-    path = "../zemlib",
+    name = "fi_zem_bracket",
+    path = "../bracket",
 )
 
-load("@zemlib//:repositories.bzl", "zemlib_repositories")
-zemlib_repositories()
+load("@fi_zem_bracket//:repositories.bzl", "bracket_repositories")
+bracket_repositories()
 
 new_http_archive(
     name = "civetweb",
