@@ -156,6 +156,7 @@ namespace internal {
 struct LogLine {
   enum Type {
     MESSAGE,
+    ACTION,
     JOIN,
     PART,
     QUIT,
@@ -173,6 +174,7 @@ struct LogLine {
 
 constexpr const char* kLineDescriptions[] = {
   /* MESSAGE: */ "?",
+  /* ACTION: */ "?",
   /* JOIN: */ "joined",
   /* PART: */ "left",
   /* QUIT: */ "quit",
@@ -249,10 +251,18 @@ void LogLineFormatter::FormatEvent(const LogEvent& event) {
       line.body += ' ';
     for (const auto& c : event.args(i)) {
       unsigned char v = c;
-      if (v < 2 || (v > 3 && v < 15) || (v > 15 && v < 29))
+      if (v < 1 || (v > 3 && v < 15) || (v > 15 && v < 29))
         continue;
       line.body += c;
     }
+  }
+
+  if (line.type == LogLine::MESSAGE
+      && line.body.size() >= 9
+      && line.body.substr(0, 8) == "\x01""ACTION "
+      && line.body[line.body.size()-1] == '\x01') {
+    line.type = LogLine::ACTION;
+    line.body = line.body.substr(8, line.body.size()-9);
   }
 
   FormatLine(line);
@@ -430,7 +440,9 @@ std::string HtmlEscape(const std::string& raw) {
 
   for (std::size_t i = 0; i < raw.size(); ++i) {
     char c = raw[i];
-    if ((unsigned char)c < 32) {
+    if (c == 1) {
+      cooked += "&lt;CTCP&gt;";
+    } else if ((unsigned char)c < 32) {
       if (!format.is_default())
         cooked += "</span>";
 
@@ -481,13 +493,17 @@ void HtmlLineFormatter::FormatLine(const LogLine& line) {
 
   std::string body = HtmlEscape(line.body);
 
-  if (line.type == LogLine::MESSAGE) {
+  if (line.type == LogLine::MESSAGE || line.type == LogLine::ACTION) {
+    bool act = line.type == LogLine::ACTION;
     mg_printf(
         conn_,
-        "<span class=\"ma h%u\"><a href=\"#l%s\">&lt;%s&gt;</a></span>"
+        "<span class=\"ma h%u\">"
+        "<a href=\"#l%s\">%s%s%s</a>"
+        "</span>"
         "<span class=\"s\"> </span>"
         "<span class=\"mb\">%s</span>",
-        NickHash(line.nick), id, line.nick.c_str(),
+        NickHash(line.nick),
+        id, act ? "* " : "&lt;", line.nick.c_str(), act ? "" : "&gt;",
         body.c_str());
   } else if (line.type != LogLine::ERROR) {
     mg_printf(
@@ -534,7 +550,9 @@ std::string UnFormat(const std::string& raw) {
   for (std::size_t i = 0; i < raw.size(); ++i) {
     char c = raw[i];
     if ((unsigned char)c < 32) {
-      if (c == 3)
+      if (c == 1)
+        cooked += "<CTCP>";
+      else if (c == 3)
         i = format.ParseColor(raw, i);
     } else {
       cooked += c;
@@ -550,6 +568,8 @@ void TextLineFormatter::FormatLine(const LogLine& line) {
   std::string body = UnFormat(line.body);
   if (line.type == LogLine::MESSAGE) {
     mg_printf(conn_, "<%s> %s\n", line.nick.c_str(), body.c_str());
+  } else if (line.type == LogLine::ACTION) {
+    mg_printf(conn_, "* %s %s\n", line.nick.c_str(), body.c_str());
   } else if (line.type != LogLine::ERROR) {
     mg_printf(conn_, "-!- %s has %s", line.nick.c_str(), kLineDescriptions[line.type]);
     if (!line.body.empty()) {
