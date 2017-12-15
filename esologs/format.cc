@@ -64,8 +64,8 @@ constexpr char kAboutText[] =
 
 } // unnamed namespace
 
-void FormatIndex(struct mg_connection* conn, const LogIndex& index, int y) {
-  web::Writer web(conn, kContentTypeHtml);
+void FormatIndex(web::Response* resp, const LogIndex& index, int y) {
+  web::Writer web(resp, kContentTypeHtml);
 
   bool all = y < 0;
   if (all)
@@ -132,9 +132,7 @@ void FormatIndex(struct mg_connection* conn, const LogIndex& index, int y) {
   WriteHtmlFooter(&web);
 }
 
-void FormatError(struct mg_connection* conn, int code, const char* fmt, ...) {
-  // TODO: use web::Writer?
-
+void FormatError(web::Response* resp, int code, const char* fmt, ...) {
   char text[512];
   {
     va_list args;
@@ -143,13 +141,8 @@ void FormatError(struct mg_connection* conn, int code, const char* fmt, ...) {
     va_end(args);
   }
 
-  mg_printf(
-      conn,
-      "HTTP/1.1 %d Error\r\n"
-      "Content-Type: text/plain; charset=utf-8\r\n"
-      "\r\n"
-      "%s\n",
-      code, text);
+  web::Writer web(resp, kContentTypeText, code);
+  web.Write(text);
 }
 
 namespace internal {
@@ -266,7 +259,7 @@ void LogLineFormatter::FormatEvent(const LogEvent& event) {
 
 struct HtmlLineFormatter : public LogLineFormatter {
   web::Writer web_;
-  HtmlLineFormatter(struct mg_connection* conn) : web_(conn, kContentTypeHtml) {}
+  HtmlLineFormatter(web::Response* resp) : web_(resp, kContentTypeHtml) {}
   void FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) override;
   void FormatDay(bool multiday, int year, int month, int day) override;
   void FormatLine(const LogLine& line) override;
@@ -496,7 +489,7 @@ void HtmlLineFormatter::FormatLine(const LogLine& line) {
 
 struct TextLineFormatter : public LogLineFormatter {
   web::Writer web_;
-  TextLineFormatter(struct mg_connection* conn) : web_(conn, kContentTypeText) {}
+  TextLineFormatter(web::Response* resp) : web_(resp, kContentTypeText) {}
   void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
   void FormatDay(bool multiday, int year, int month, int day) override;
   void FormatLine(const LogLine& line) override;
@@ -556,7 +549,7 @@ struct RawFormatter : public LogFormatter {
   web::Writer web_;
   unsigned long offset_s_;
 
-  RawFormatter(struct mg_connection* conn) : web_(conn, kContentTypeText), offset_s_(0) {}
+  RawFormatter(web::Response* resp) : web_(resp, kContentTypeText), offset_s_(0) {}
   void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
   void FormatDay(bool, int year, int month, int day) override;
   void FormatEvent(const LogEvent& event) override;
@@ -587,16 +580,16 @@ void RawFormatter::FormatEvent(const LogEvent& event) {
 
 } // namespace internal
 
-std::unique_ptr<LogFormatter> LogFormatter::CreateHTML(struct mg_connection* conn) {
-  return std::make_unique<internal::HtmlLineFormatter>(conn);
+std::unique_ptr<LogFormatter> LogFormatter::CreateHTML(web::Response* resp) {
+  return std::make_unique<internal::HtmlLineFormatter>(resp);
 }
 
-std::unique_ptr<LogFormatter> LogFormatter::CreateText(struct mg_connection* conn) {
-  return std::make_unique<internal::TextLineFormatter>(conn);
+std::unique_ptr<LogFormatter> LogFormatter::CreateText(web::Response* resp) {
+  return std::make_unique<internal::TextLineFormatter>(resp);
 }
 
-std::unique_ptr<LogFormatter> LogFormatter::CreateRaw(struct mg_connection* conn) {
-  return std::make_unique<internal::RawFormatter>(conn);
+std::unique_ptr<LogFormatter> LogFormatter::CreateRaw(web::Response* resp) {
+  return std::make_unique<internal::RawFormatter>(resp);
 }
 
 } // namespace esologs

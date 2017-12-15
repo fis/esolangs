@@ -11,7 +11,6 @@ cc_binary(
         ":config_cc_proto",
         ":log_cc_proto",
         "//web",
-        "@civetweb//:civetweb",
         "@com_googlesource_code_re2//:re2",
         "@fi_zem_bracket//base",
         "@fi_zem_bracket//proto:brotli",

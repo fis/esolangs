@@ -4,9 +4,17 @@ package(
 
 cc_library(
     name = "web",
-    srcs = ["writer.cc"],
-    hdrs = ["writer.h"],
+    srcs = [
+        "server.cc",
+        "writer.cc",
+    ],
+    hdrs = [
+        "response.h",
+        "server.h",
+        "writer.h",
+    ],
     deps = [
         "@civetweb//:civetweb",
+        "@fi_zem_bracket//base",
     ],
 )

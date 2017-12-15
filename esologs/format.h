@@ -6,19 +6,18 @@
 
 #include "esologs/index.h"
 #include "esologs/log.pb.h"
-
-#include "civetweb.h"
+#include "web/response.h"
 
 namespace esologs {
 
-void FormatIndex(struct mg_connection* conn, const LogIndex& index, int y);
+void FormatIndex(web::Response* resp, const LogIndex& index, int y);
 
-void FormatError(struct mg_connection* conn, int code, const char* fmt, ...);
+void FormatError(web::Response* resp, int code, const char* fmt, ...);
 
 struct LogFormatter {
-  static std::unique_ptr<LogFormatter> CreateHTML(struct mg_connection* conn);
-  static std::unique_ptr<LogFormatter> CreateText(struct mg_connection* conn);
-  static std::unique_ptr<LogFormatter> CreateRaw(struct mg_connection* conn);
+  static std::unique_ptr<LogFormatter> CreateHTML(web::Response* resp);
+  static std::unique_ptr<LogFormatter> CreateText(web::Response* resp);
+  static std::unique_ptr<LogFormatter> CreateRaw(web::Response* resp);
 
   virtual void FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) = 0;
   virtual void FormatDay(bool multiday, int year, int month, int day) = 0;

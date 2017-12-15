@@ -7,8 +7,6 @@
 #include <string>
 #include <thread>
 
-#include "CivetServer.h"
-#include "civetweb.h"
 #include "re2/re2.h"
 
 #include "base/log.h"
@@ -18,6 +16,7 @@
 #include "proto/brotli.h"
 #include "proto/delim.h"
 #include "proto/util.h"
+#include "web/server.h"
 
 extern "C" {
 #include <stdlib.h>
@@ -27,11 +26,11 @@ namespace esologs {
 
 namespace fs = std::experimental::filesystem;
 
-class Server : public CivetHandler {
+class Server : public web::RequestHandler {
  public:
   Server(const char* config_file);
 
-  bool handleGet(CivetServer* server, struct mg_connection* conn) override;
+  int HandleGet(const web::Request& req, web::Response* resp) override;
 
  private:
   fs::path root_;
@@ -43,7 +42,7 @@ class Server : public CivetHandler {
   const RE2 re_index_ = RE2("/(?:(\\d+|all)\\.html)?");
   const RE2 re_logfile_ = RE2("/(\\d+)-(\\d+)(?:-(\\d+))?(\\.html|\\.txt|-raw\\.txt)");
 
-  std::unique_ptr<CivetServer> web_server_;
+  std::unique_ptr<web::Server> web_server_;
 };
 
 Server::Server(const char* config_file) {
@@ -62,26 +61,20 @@ Server::Server(const char* config_file) {
 
   index_ = std::make_unique<LogIndex>(root_);
 
-  const char* options[] = {
-    "listening_ports", config.listen_port().c_str(),
-    "num_threads", "2",
-    nullptr
-  };
-  web_server_ = std::make_unique<CivetServer>(options);
-  web_server_->addHandler("/", this);
+  web_server_ = std::make_unique<web::Server>(config.listen_port());
+  web_server_->AddHandler("/", this);
 }
 
-bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
-  const struct mg_request_info* info = mg_get_request_info(conn);
-
-  if (!info->local_uri) {
-    FormatError(conn, 500, "local_uri missing");
-    return true;
+int Server::HandleGet(const web::Request& req, web::Response* resp) {
+  const char* uri = req.uri();
+  if (!uri) {
+    FormatError(resp, 500, "local_uri missing");
+    return 500;
   }
 
   std::string ys, ms, ds, format;
 
-  if (RE2::FullMatch(info->local_uri, re_index_, &ys)) {
+  if (RE2::FullMatch(uri, re_index_, &ys)) {
     int y;
 
     std::lock_guard<std::mutex> lock(index_lock_);
@@ -94,11 +87,11 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
     else
       y = std::stoi(ys);
 
-    FormatIndex(conn, *index_, y);
-    return true;
+    FormatIndex(resp, *index_, y);
+    return 200;
   }
 
-  if (RE2::FullMatch(info->local_uri, re_logfile_, &ys, &ms, &ds, &format)) {
+  if (RE2::FullMatch(uri, re_logfile_, &ys, &ms, &ds, &format)) {
     const YMD date(std::stoi(ys), std::stoi(ms), ds.empty() ? 0 : std::stoi(ds));
 
     bool found;
@@ -110,19 +103,19 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
 
     if (!found) {
       if (date.day != 0)
-        FormatError(conn, 404, "no logs for date: %04d-%02d-%02d", date.year, date.month, date.day);
+        FormatError(resp, 404, "no logs for date: %04d-%02d-%02d", date.year, date.month, date.day);
       else
-        FormatError(conn, 404, "no logs for month: %04d-%02d", date.year, date.month);
-      return true;
+        FormatError(resp, 404, "no logs for month: %04d-%02d", date.year, date.month);
+      return 404;
     }
 
     std::unique_ptr<LogFormatter> fmt;
     if (format == ".html")
-      fmt = LogFormatter::CreateHTML(conn);
+      fmt = LogFormatter::CreateHTML(resp);
     else if (format == ".txt")
-      fmt = LogFormatter::CreateText(conn);
+      fmt = LogFormatter::CreateText(resp);
     else
-      fmt = LogFormatter::CreateRaw(conn);
+      fmt = LogFormatter::CreateRaw(resp);
 
     LogEvent event;
     fmt->FormatHeader(date, prev, next);
@@ -154,11 +147,11 @@ bool Server::handleGet(CivetServer* server, struct mg_connection* conn) {
     }
     fmt->FormatFooter(date, prev, next);
 
-    return true;
+    return 200;
   }
 
-  FormatError(conn, 404, "unknown path: %s", info->local_uri);
-  return true;
+  FormatError(resp, 404, "unknown path: %s", uri);
+  return 404;
 }
 
 } // namespace esologs

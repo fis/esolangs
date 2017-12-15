@@ -5,13 +5,13 @@
 #include <string>
 #include <utility>
 
-#include "civetweb.h"
+#include "web/response.h"
 
 namespace web {
 
 class Writer {
  public:
-  Writer(struct mg_connection* conn, const char* content_type, int response_code=200);
+  Writer(Response* resp, const char* content_type, int response_code=200);
   ~Writer() { Flush(true); }
 
   template <typename... Args>
@@ -24,7 +24,7 @@ class Writer {
   static constexpr std::size_t kFlushAt = 8192;
 
   std::string buffer_;
-  struct mg_connection* conn_;
+  Response* resp_;
 
   template <typename Arg1, typename... Args>
   void DoWrite(Arg1&& arg1, Args&&... args) {
