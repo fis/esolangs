@@ -8,71 +8,20 @@
 
 #include "base/log.h"
 #include "esologs/format.h"
+#include "web/writer.h"
 
 namespace esologs {
 
-namespace web {
-
-class Writer {
- public:
-  Writer(struct mg_connection* conn, const char* content_type, int response_code=200);
-  ~Writer() { Flush(true); }
-
-  template <typename... Args>
-  void Write(Args&&... args) {
-    DoWrite(std::forward<Args>(args)...);
-    Flush();
-  }
-
- private:
-  static constexpr std::size_t kFlushAt = 8192;
-
-  std::string buffer_;
-  struct mg_connection* conn_;
-
-  template <typename Arg1, typename... Args>
-  void DoWrite(Arg1&& arg1, Args&&... args) {
-    Append(arg1);
-    DoWrite(std::forward<Args>(args)...);
-  }
-  void DoWrite() {}
-
-  void Append(const char* s) { buffer_ += s; }
-  void Append(const std::string& s) { buffer_ += s; }
-  void Append(const YMD& ymd) {
-    char buf[11];
-    if (ymd.month == 0)
-      std::snprintf(buf, sizeof buf, "%04d", ymd.year);
-    else if (ymd.day == 0)
-      std::snprintf(buf, sizeof buf, "%04d-%02d", ymd.year, ymd.month);
-    else
-      std::snprintf(buf, sizeof buf, "%04d-%02d-%02d", ymd.year, ymd.month, ymd.day);
-    buffer_ += buf;
-  }
-  // TODO: template:
-  void Append(int v) { buffer_ += std::to_string(v); }
-  void Append(unsigned v) { buffer_ += std::to_string(v); }
-  void Append(long v) { buffer_ += std::to_string(v); }
-  void Append(unsigned long v) { buffer_ += std::to_string(v); }
-
-  void Flush(bool force=false);
-};
-
-Writer::Writer(struct mg_connection* conn, const char* content_type, int response_code) : conn_(conn) {
-  Write(
-      "HTTP/1.1 ", response_code, " OK\r\n"
-      "Content-Type: ", content_type, "\r\n\r\n");
+void WebWrite(web::Writer* web, const esologs::YMD& ymd) {
+  char buf[11];
+  if (ymd.month == 0)
+    std::snprintf(buf, sizeof buf, "%04d", ymd.year);
+  else if (ymd.day == 0)
+    std::snprintf(buf, sizeof buf, "%04d-%02d", ymd.year, ymd.month);
+  else
+    std::snprintf(buf, sizeof buf, "%04d-%02d-%02d", ymd.year, ymd.month, ymd.day);
+  web->Write(buf);
 }
-
-void Writer::Flush(bool force) {
-  if (force ? !buffer_.empty() : buffer_.size() >= kFlushAt) {
-    mg_write(conn_, buffer_.data(), buffer_.size());
-    buffer_.clear();
-  }
-}
-
-} // namespace web
-
 
 namespace {
 

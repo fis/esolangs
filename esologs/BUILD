@@ -10,6 +10,7 @@ cc_binary(
     deps = [
         ":config_cc_proto",
         ":log_cc_proto",
+        "//web",
         "@civetweb//:civetweb",
         "@com_googlesource_code_re2//:re2",
         "@fi_zem_bracket//base",
