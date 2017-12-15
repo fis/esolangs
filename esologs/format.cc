@@ -533,9 +533,9 @@ void TextLineFormatter::FormatLine(const LogLine& line) {
     web_.Write("-!- ", line.nick, " has ", kLineDescriptions[line.type]);
     if (!line.body.empty()) {
       if (line.type == LogLine::PART || line.type == LogLine::QUIT)
-        web_.Write(" (", body, ')');
-      else if (line.type == LogLine::KICK)
-        web_.Write(body);
+        web_.Write(" (", body, ")");
+      else if (line.type == LogLine::NICK || line.type == LogLine::KICK)
+        web_.Write(" ", body);
       else if (line.type == LogLine::MODE || line.type == LogLine::TOPIC)
         web_.Write(": ", body);
     }
