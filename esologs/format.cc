@@ -257,12 +257,12 @@ void LogLineFormatter::FormatEvent(const LogEvent& event) {
     }
   }
 
-  if (line.type == LogLine::MESSAGE
-      && line.body.size() >= 9
-      && line.body.substr(0, 8) == "\x01""ACTION "
-      && line.body[line.body.size()-1] == '\x01') {
-    line.type = LogLine::ACTION;
-    line.body = line.body.substr(8, line.body.size()-9);
+  if (line.type == LogLine::MESSAGE) {
+    std::string_view body = line.body;
+    if (body.size() >= 9 && body.substr(0, 8) == "\x01""ACTION " && body[body.size()-1] == '\x01') {
+      line.type = LogLine::ACTION;
+      line.body = line.body.substr(8, line.body.size()-9);
+    }
   }
 
   FormatLine(line);
