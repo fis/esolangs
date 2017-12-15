@@ -6,40 +6,95 @@
 
 #include <date/date.h>
 
+#include "base/log.h"
 #include "esologs/format.h"
 
 namespace esologs {
 
-namespace {
+namespace web {
 
-void HeaderText(struct mg_connection* conn) {
-  mg_printf(
-      conn,
-      "HTTP/1.1 200 OK\r\n"
-      "Content-Type: text/plain; charset=utf-8\r\n"
-      "\r\n");
+class Writer {
+ public:
+  Writer(struct mg_connection* conn, const char* content_type, int response_code=200);
+  ~Writer() { Flush(true); }
+
+  template <typename... Args>
+  void Write(Args&&... args) {
+    DoWrite(std::forward<Args>(args)...);
+    Flush();
+  }
+
+ private:
+  static constexpr std::size_t kFlushAt = 8192;
+
+  std::string buffer_;
+  struct mg_connection* conn_;
+
+  template <typename Arg1, typename... Args>
+  void DoWrite(Arg1&& arg1, Args&&... args) {
+    Append(arg1);
+    DoWrite(std::forward<Args>(args)...);
+  }
+  void DoWrite() {}
+
+  void Append(const char* s) { buffer_ += s; }
+  void Append(const std::string& s) { buffer_ += s; }
+  void Append(const YMD& ymd) {
+    char buf[11];
+    if (ymd.month == 0)
+      std::snprintf(buf, sizeof buf, "%04d", ymd.year);
+    else if (ymd.day == 0)
+      std::snprintf(buf, sizeof buf, "%04d-%02d", ymd.year, ymd.month);
+    else
+      std::snprintf(buf, sizeof buf, "%04d-%02d-%02d", ymd.year, ymd.month, ymd.day);
+    buffer_ += buf;
+  }
+  // TODO: template:
+  void Append(int v) { buffer_ += std::to_string(v); }
+  void Append(unsigned v) { buffer_ += std::to_string(v); }
+  void Append(long v) { buffer_ += std::to_string(v); }
+  void Append(unsigned long v) { buffer_ += std::to_string(v); }
+
+  void Flush(bool force=false);
+};
+
+Writer::Writer(struct mg_connection* conn, const char* content_type, int response_code) : conn_(conn) {
+  Write(
+      "HTTP/1.1 ", response_code, " OK\r\n"
+      "Content-Type: ", content_type, "\r\n\r\n");
 }
 
-void HeaderHtml(struct mg_connection* conn, const char* title, const char* style) {
-  mg_printf(
-      conn,
-      "HTTP/1.1 200 OK\r\n"
-      "Content-Type: text/html; charset=utf-8\r\n"
-      "\r\n"
+void Writer::Flush(bool force) {
+  if (force ? !buffer_.empty() : buffer_.size() >= kFlushAt) {
+    mg_write(conn_, buffer_.data(), buffer_.size());
+    buffer_.clear();
+  }
+}
+
+} // namespace web
+
+
+namespace {
+
+template <typename... TitleArgs>
+void WriteHtmlHeader(web::Writer* web, const char* css, TitleArgs&&... title) {
+  web->Write(
       "<!DOCTYPE html>\n"
       "<html>\n"
       "<head>"
-      "<title>%s</title>"
-      "<link rel=\"stylesheet\" type=\"text/css\" href=\"%s\">"
+      "<title>", std::forward<TitleArgs>(title)..., "</title>"
+      "<link rel=\"stylesheet\" type=\"text/css\" href=\"", css, "\">"
       "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
       "</head>\n"
-      "<body>\n",
-      title, style);
+      "<body>\n");
 }
 
-void FooterHtml(struct mg_connection* conn) {
-  mg_printf(conn, "</body>\n</html>\n");
+void WriteHtmlFooter(web::Writer* web) {
+  web->Write("</body>\n</html>\n");
 }
+
+constexpr char kContentTypeText[] = "text/plain; charset=utf-8";
+constexpr char kContentTypeHtml[] = "text/html; charset=utf-8";
 
 constexpr char kAboutText[] =
     "<h1 id=\"about\">about</h1>\n"
@@ -61,30 +116,28 @@ constexpr char kAboutText[] =
 } // unnamed namespace
 
 void FormatIndex(struct mg_connection* conn, const LogIndex& index, int y) {
-  bool all = y < 0;
+  web::Writer web(conn, kContentTypeHtml);
 
-  char title[64];
+  bool all = y < 0;
   if (all)
-    std::strcpy(title, "#esoteric logs");
+    WriteHtmlHeader(&web, "index.css", "#esoteric logs");
   else
-    std::snprintf(title, sizeof title, "%04d - #esoteric logs", y);
-  HeaderHtml(conn, title, "index.css");
+    WriteHtmlHeader(&web, "index.css", YMD(y), " - #esoteric logs");
 
   auto [y_min, y_max] = index.bounds();
 
   if (!all) {
-    mg_printf(conn, "<h1>");
+    web.Write("<h1>");
     if (y > y_min)
-      mg_printf(conn, "<a href=\"%04d.html\">←%04d</a>", y-1, y-1);
+      web.Write("<a href=\"", YMD(y-1), ".html\">←", YMD(y-1), "</a>");
     else
-      mg_printf(conn, "<span class=\"d\">←%04d</span>", y-1);
-    mg_printf(conn, "  %04d  ", y);
+      web.Write("<span class=\"d\">←", YMD(y-1), "</span>");
+    web.Write("  ", YMD(y), "  ");
     if (y < y_max)
-      mg_printf(conn, "<a href=\"%04d.html\">%04d→</a>", y+1, y+1);
+      web.Write("<a href=\"", YMD(y+1), ".html\">", YMD(y+1), "→</a>");
     else
-      mg_printf(conn, "<span class=\"d\">%04d→</span>", y+1);
-    mg_printf(
-        conn,
+      web.Write("<span class=\"d\">", YMD(y+1), "→</span>");
+    web.Write(
         "  <a href=\"all.html\">↑all</a>"
         "  <a href=\"#about\">↓about</a>"
         "</h1>\n");
@@ -93,49 +146,46 @@ void FormatIndex(struct mg_connection* conn, const LogIndex& index, int y) {
 
   for (y = y_max; y >= y_min; --y) {
     if (all)
-      mg_printf(conn, "<h1><a href=\"%04d.html\">%04d</a></h1>", y, y);
-    mg_printf(conn, "<div id=\"b\">\n");
+      web.Write("<h1><a href=\"", YMD(y), ".html\">", YMD(y), "</a></h1>\n");
+    web.Write("<div id=\"b\">\n");
 
     int mh = 0;
-    index.For(y, [&conn, &mh](int y, int m, int d) {
+    index.For(y, [&web, &mh](int y, int m, int d) {
         if (m != mh) {
-          mg_printf(
-              conn,
-              "%s"
+          YMD ym(y, m);
+          web.Write(
+              mh ? "</ul>\n</div>\n" : "",
               "<div class=\"m\">"
-              "<h2>%04d-%02d</h2>\n"
+              "<h2>", ym, "</h2>\n"
               "<ul>\n"
               "<li class=\"m\">"
-              "<a href=\"%04d-%02d.html\">full month</a>"
-              " - <a href=\"%04d-%02d.txt\">text</a>"
-              " - <a href=\"%04d-%02d-raw.txt\">raw</a>",
-              mh ? "</ul>\n</div>\n" : "",
-              y, m, y, m, y, m, y, m);
+              "<a href=\"", ym, ".html\">full month</a>"
+              " - <a href=\"", ym, ".txt\">text</a>"
+              " - <a href=\"", ym, "-raw.txt\">raw</a>");
           mh = m;
         }
 
-        char ymd[16];
-        std::snprintf(ymd, sizeof ymd, "%04d-%02d-%02d", y, m, d);
-        mg_printf(
-            conn,
+        YMD ymd(y, m, d);
+        web.Write(
             "<li>"
-            "<a href=\"%s.html\">%s</a>"
-            " - <a href=\"%s.txt\">text</a>"
-            " - <a href=\"%s-raw.txt\">raw</a>"
-            "</li>\n",
-            ymd, ymd, ymd, ymd);
+            "<a href=\"", ymd, ".html\">", ymd, "</a>"
+            " - <a href=\"", ymd, ".txt\">text</a>"
+            " - <a href=\"", ymd, "-raw.txt\">raw</a>"
+            "</li>\n");
       });
     if (mh)
-      mg_printf(conn, "</ul>\n</div>\n");
+      web.Write("</ul>\n</div>\n");
 
-    mg_printf(conn, "</div>\n");
+    web.Write("</div>\n");
   }
 
-  mg_printf(conn, "%s", kAboutText);
-  FooterHtml(conn);
+  web.Write(kAboutText);
+  WriteHtmlFooter(&web);
 }
 
 void FormatError(struct mg_connection* conn, int code, const char* fmt, ...) {
+  // TODO: use web::Writer?
+
   char text[512];
   {
     va_list args;
@@ -188,12 +238,7 @@ constexpr const char* kLineDescriptions[] = {
 };
 
 struct LogLineFormatter : public LogFormatter {
-  struct mg_connection* conn_;
-
-  LogLineFormatter(struct mg_connection* conn) : conn_(conn) {}
-
   void FormatEvent(const LogEvent& event) override;
-
   virtual void FormatLine(const LogLine& line) = 0;
 };
 
@@ -271,7 +316,8 @@ void LogLineFormatter::FormatEvent(const LogEvent& event) {
 }
 
 struct HtmlLineFormatter : public LogLineFormatter {
-  using LogLineFormatter::LogLineFormatter;
+  web::Writer web_;
+  HtmlLineFormatter(struct mg_connection* conn) : web_(conn, kContentTypeHtml) {}
   void FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) override;
   void FormatDay(bool multiday, int year, int month, int day) override;
   void FormatLine(const LogLine& line) override;
@@ -284,69 +330,44 @@ struct HtmlLineFormatter : public LogLineFormatter {
 void HtmlLineFormatter::FormatNav(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) {
   bool month = date.day == 0;
 
-  mg_printf(conn_, "<div class=\"n\">");
+  web_.Write("<div class=\"n\">");
 
-  if (prev && month)
-    mg_printf(
-        conn_,
-        "<a href=\"%04d-%02d.html\">←%04d-%02d</a>",
-        prev->year, prev->month,
-        prev->year, prev->month);
-  else if (prev && !month)
-    mg_printf(
-        conn_,
-        "<a href=\"%04d-%02d-%02d.html\">←%04d-%02d-%02d</a>",
-        prev->year, prev->month, prev->day,
-        prev->year, prev->month, prev->day);
+  if (prev)
+    web_.Write("<a href=\"", *prev, ".html\">←", *prev, "</a>");
   else
-    mg_printf(conn_, "        %s", month ? "" : "   ");
+    web_.Write("        ", month ? "" : "   ");
 
-  if (month)
-    mg_printf(conn_, "  <span class=\"nc\">%04d-%02d</span>  ", date.year, date.month);
+  web_.Write("  <span class=\"nc\">", date, "</span>  ");
+
+  if (next)
+    web_.Write("<a href=\"", *next, "\">", *next, "→</a>");
   else
-    mg_printf(conn_, "  <span class=\"nc\">%04d-%02d-%02d</span>  ", date.year, date.month, date.day);
+    web_.Write("        ", month ? "" : "   ");
 
-  if (next && month)
-    mg_printf(
-        conn_,
-        "<a href=\"%04d-%02d.html\">%04d-%02d→</a>",
-        next->year, next->month,
-        next->year, next->month);
-  else if (next && !month)
-    mg_printf(
-        conn_,
-        "<a href=\"%04d-%02d-%02d.html\">%04d-%02d-%02d→</a>",
-        next->year, next->month, next->day,
-        next->year, next->month, next->day);
-  else
-    mg_printf(conn_, "        %s", month ? "" : "   ");
-
-  mg_printf(
-      conn_,
-      "  <a href=\"%04d.html\">↑%04d</a>"
+  web_.Write(
+      "  <a href=\"", YMD(date.year), ".html\">↑", YMD(date.year), "</a>"
       "  <a href=\"all.html\">↑all</a>"
-      "</div>\n",
-      date.year, date.year);
+      "</div>\n");
 }
 
 void HtmlLineFormatter::FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) {
-  char title[64];
-  std::snprintf(title, sizeof title, "%04d-%02d-%02d - #esoteric logs", date.year, date.month, date.day);
-  HeaderHtml(conn_, title, "log.css");
+  WriteHtmlHeader(&web_, "log.css", date, " - #esoteric logs");
   FormatNav(date, prev, next);
 }
 
 void HtmlLineFormatter::FormatFooter(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) {
   FormatNav(date, prev, next);
-  FooterHtml(conn_);
+  WriteHtmlFooter(&web_);
 }
 
 void HtmlLineFormatter::FormatDay(bool multiday, int year, int month, int day) {
   if (multiday)
-    mg_printf(
-        conn_,
-        "<div class=\"dh\"><a href=\"%04d-%02d-%02d.html\">%04d-%02d-%02d</a></div>\n",
-        year, month, day, year, month, day);
+    web_.Write(
+        "<div class=\"dh\">"
+        "<a href=\"", YMD(year, month, day), ".html\">",
+        YMD(year, month, day),
+        "</a>"
+        "</div\n");
 }
 
 void RowId(int id, char* p, std::size_t max_len) {
@@ -486,54 +507,48 @@ void HtmlLineFormatter::FormatLine(const LogLine& line) {
   char id[16];
   RowId(row_id_++, id, sizeof id);
 
-  mg_printf(
-      conn_,
-      "<div id=\"l%s\" class=\"r\">"
-      "<span class=\"t\">%s</span>"
-      "<span class=\"s\"> </span>",
-      id, line.tstamp.c_str());
+  web_.Write(
+      "<div id=\"l", id, "\" class=\"r\">"
+      "<span class=\"t\">", line.tstamp, "</span>"
+      "<span class=\"s\"> </span>");
 
   std::string body = HtmlEscape(line.body);
 
   if (line.type == LogLine::MESSAGE || line.type == LogLine::ACTION) {
     bool act = line.type == LogLine::ACTION;
-    mg_printf(
-        conn_,
-        "<span class=\"ma h%u\">"
-        "<a href=\"#l%s\">%s%s%s</a>"
+    web_.Write(
+        "<span class=\"ma h", NickHash(line.nick), "\">"
+        "<a href=\"#l", id, "\">", act ? "* " : "&lt;", line.nick, act ? "" : "&gt;", "</a>"
         "</span>"
         "<span class=\"s\"> </span>"
-        "<span class=\"mb\">%s</span>",
-        NickHash(line.nick),
-        id, act ? "* " : "&lt;", line.nick.c_str(), act ? "" : "&gt;",
-        body.c_str());
+        "<span class=\"mb\">", body, "</span>");
   } else if (line.type != LogLine::ERROR) {
-    mg_printf(
-        conn_,
-        "<span class=\"x\"><a href=\"#l%s\">-!-</a></span>"
+    web_.Write(
+        "<span class=\"x\"><a href=\"#l", id, "\">-!-</a></span>"
         "<span class=\"s\"> </span>"
-        "<span class=\"ed\"><span class=\"ea h%u\">%s</span> has %s",
-        id,
-        NickHash(line.nick), line.nick.c_str(), kLineDescriptions[line.type]);
+        "<span class=\"ed\">"
+        "<span class=\"ea h", NickHash(line.nick), "\">", line.nick, "</span>"
+        " has ", kLineDescriptions[line.type]);
     if (!body.empty()) {
       if (line.type == LogLine::PART || line.type == LogLine::QUIT)
-        mg_printf(conn_, " (<span class=\"eb\">%s</span>)", body.c_str());
+        web_.Write(" (<span class=\"eb\">", body, "</span>)");
       else if (line.type == LogLine::NICK || line.type == LogLine::KICK)
-        mg_printf(conn_, " <span class=\"ea h%u\">%s</span>", NickHash(body), body.c_str());
+        web_.Write(" <span class=\"ea h", NickHash(body), "\">", body, "</span>");
       else if (line.type == LogLine::MODE || line.type == LogLine::TOPIC)
-        mg_printf(conn_, ": <span class=\"eb\">%s</span>", body.c_str());
+        web_.Write(": <span class=\"eb\">", body, "</span>");
     }
-    mg_printf(conn_, ".</span>");
+    web_.Write(".</span>");
   } else {
-    mg_printf(conn_, "<span class=\"e\">unexpected log event :(</span>");
+    web_.Write("<span class=\"e\">unexpected log event :(</span>");
   }
 
-  mg_printf(conn_, "</div>\n");
+  web_.Write("</div>\n");
 }
 
 struct TextLineFormatter : public LogLineFormatter {
-  using LogLineFormatter::LogLineFormatter;
-  void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override { HeaderText(conn_); }
+  web::Writer web_;
+  TextLineFormatter(struct mg_connection* conn) : web_(conn, kContentTypeText) {}
+  void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
   void FormatDay(bool multiday, int year, int month, int day) override;
   void FormatLine(const LogLine& line) override;
   void FormatFooter(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
@@ -541,7 +556,7 @@ struct TextLineFormatter : public LogLineFormatter {
 
 void TextLineFormatter::FormatDay(bool multiday, int year, int month, int day) {
   if (multiday)
-    mg_printf(conn_, "\n%04d-%02d-%02d:\n\n", year, month, day);
+    web_.Write("\n", year, "-", month, "-", day, ":\n\n");
 }
 
 std::string UnFormat(const std::string& raw) {
@@ -565,34 +580,35 @@ std::string UnFormat(const std::string& raw) {
 }
 
 void TextLineFormatter::FormatLine(const LogLine& line) {
-  mg_printf(conn_, "%s ", line.tstamp.c_str());
+  web_.Write(line.tstamp, " ");
 
   std::string body = UnFormat(line.body);
   if (line.type == LogLine::MESSAGE) {
-    mg_printf(conn_, "<%s> %s\n", line.nick.c_str(), body.c_str());
+    web_.Write("<", line.nick, "> ", body, "\n");
   } else if (line.type == LogLine::ACTION) {
-    mg_printf(conn_, "* %s %s\n", line.nick.c_str(), body.c_str());
+    web_.Write("* ", line.nick, " ", body, "\n");
   } else if (line.type != LogLine::ERROR) {
-    mg_printf(conn_, "-!- %s has %s", line.nick.c_str(), kLineDescriptions[line.type]);
+    web_.Write("-!- ", line.nick, " has ", kLineDescriptions[line.type]);
     if (!line.body.empty()) {
       if (line.type == LogLine::PART || line.type == LogLine::QUIT)
-        mg_printf(conn_, " (%s)", body.c_str());
+        web_.Write(" (", body, ')');
       else if (line.type == LogLine::KICK)
-        mg_printf(conn_, "%s", body.c_str());
+        web_.Write(body);
       else if (line.type == LogLine::MODE || line.type == LogLine::TOPIC)
-        mg_printf(conn_, ": %s", body.c_str());
+        web_.Write(": ", body);
     }
-    mg_printf(conn_, ".\n");
+    web_.Write(".\n");
   } else {
-    mg_printf(conn_, "[unexpected log event :(]");
+    web_.Write("[unexpected log event :(]\n");
   }
 }
 
 struct RawFormatter : public LogFormatter {
-  struct mg_connection* conn_;
+  web::Writer web_;
   unsigned long offset_s_;
-  RawFormatter(struct mg_connection* conn) : conn_(conn), offset_s_(0) {}
-  void FormatHeader(const YMD& date, const std::optional<YMD>&, const std::optional<YMD>&) override { HeaderText(conn_); }
+
+  RawFormatter(struct mg_connection* conn) : web_(conn, kContentTypeText), offset_s_(0) {}
+  void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
   void FormatDay(bool, int year, int month, int day) override;
   void FormatEvent(const LogEvent& event) override;
   void FormatFooter(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
@@ -605,18 +621,19 @@ void RawFormatter::FormatDay(bool, int year, int month, int day) {
 
 void RawFormatter::FormatEvent(const LogEvent& event) {
   auto time_us = event.time_us();
-  mg_printf(
-      conn_,
-      "%c %lu %lu ",
-      event.direction() == LogEvent::SENT ? '>' : '<',
+  web_.Write(
+      event.direction() == LogEvent::SENT ? ">" : "<",
+      " ",
       offset_s_ + (unsigned long)(time_us / 1000000u),
-      (unsigned long)(time_us % 1000000u));
+      " ",
+      (unsigned long)(time_us % 1000000u),
+      " ");
   if (!event.prefix().empty())
-    mg_printf(conn_, ":%s ", event.prefix().c_str());
-  mg_printf(conn_, "%s", event.command().c_str());
+    web_.Write(":", event.prefix(), " ");
+  web_.Write(event.command());
   for (int i = 0, n = event.args_size(); i < n; ++i)
-    mg_printf(conn_, " %s%s", i == n - 1 ? ":" : "", event.args(i).c_str());
-  mg_printf(conn_, "\n");
+    web_.Write(i == n - 1 ? " :" : " ", event.args(i));
+  web_.Write("\n");
 }
 
 } // namespace internal

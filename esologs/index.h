@@ -13,7 +13,7 @@ struct YMD {
   int year;
   int month;
   int day;
-  YMD(int y, int m, int d) : year(y), month(m), day(d) {}
+  explicit YMD(int y, int m = 0, int d = 0) : year(y), month(m), day(d) {}
   friend bool operator==(const YMD& a, const YMD& b);
   friend bool operator!=(const YMD& a, const YMD& b);
   friend bool operator< (const YMD& a, const YMD& b);
