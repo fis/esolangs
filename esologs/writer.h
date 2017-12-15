@@ -2,8 +2,10 @@
 #define ESOLOGS_WRITER_H_
 
 #include <chrono>
+#include <cstdint>
 #include <string>
 
+#include <date/date.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 
 #include "esologs/log.pb.h"
@@ -17,21 +19,19 @@ class Writer {
   void Write(LogEvent* event);
 
  private:
-  using us = std::chrono::microseconds;
-
   const std::string dir_;
 
-  us current_day_us_;
+  date::sys_days current_day_;
   std::unique_ptr<proto::DelimWriter> current_log_;
 
-  std::pair<us, us> Now() {
-    using namespace std::chrono_literals;
-    us now_us = std::chrono::duration_cast<us>(std::chrono::system_clock::now().time_since_epoch());
-    us time_us = now_us % 86400000000us;
-    return std::pair(now_us - time_us, time_us);
+  std::pair<date::sys_days, std::uint64_t> Now() {
+    auto now = std::chrono::system_clock::now();
+    auto day = date::floor<date::days>(now);
+    auto time = date::floor<std::chrono::microseconds>(now - day);
+    return std::pair(day, time.count());
   }
 
-  void OpenLog(us day_us);
+  void OpenLog(date::sys_days day);
 };
 
 } // namespace esologs

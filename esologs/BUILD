@@ -15,6 +15,7 @@ cc_binary(
         "@fi_zem_bracket//base",
         "@fi_zem_bracket//proto:brotli",
         "@fi_zem_bracket//proto:delim",
+        "@hinnant_date//:date",
     ],
     linkopts = ["-lstdc++fs"],
 )
@@ -36,6 +37,7 @@ cc_library(
     deps = [
         ":log_cc_proto",
         "@fi_zem_bracket//proto:delim",
+        "@hinnant_date//:date",
     ],
     linkopts = ["-lstdc++fs"],
     visibility = ["//esobot:__pkg__"],

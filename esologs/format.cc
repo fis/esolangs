@@ -4,6 +4,8 @@
 #include <ctime>
 #include <functional>
 
+#include <date/date.h>
+
 #include "esologs/format.h"
 
 namespace esologs {
@@ -588,8 +590,8 @@ void TextLineFormatter::FormatLine(const LogLine& line) {
 
 struct RawFormatter : public LogFormatter {
   struct mg_connection* conn_;
-  google::protobuf::uint64 offset_us_;
-  RawFormatter(struct mg_connection* conn) : conn_(conn), offset_us_(0) {}
+  unsigned long offset_s_;
+  RawFormatter(struct mg_connection* conn) : conn_(conn), offset_s_(0) {}
   void FormatHeader(const YMD& date, const std::optional<YMD>&, const std::optional<YMD>&) override { HeaderText(conn_); }
   void FormatDay(bool, int year, int month, int day) override;
   void FormatEvent(const LogEvent& event) override;
@@ -597,20 +599,17 @@ struct RawFormatter : public LogFormatter {
 };
 
 void RawFormatter::FormatDay(bool, int year, int month, int day) {
-  std::tm tm = {0};
-  tm.tm_year = year - 1900;
-  tm.tm_mon = month - 1;
-  tm.tm_mday = day;
-  offset_us_ = google::protobuf::uint64(std::mktime(&tm)) * 1000000u;
+  date::sys_days d = date::year{year}/month/day;
+  offset_s_ = date::sys_seconds(d).time_since_epoch().count();
 }
 
 void RawFormatter::FormatEvent(const LogEvent& event) {
-  auto time_us = event.time_us() + offset_us_;
+  auto time_us = event.time_us();
   mg_printf(
       conn_,
       "%c %lu %lu ",
       event.direction() == LogEvent::SENT ? '>' : '<',
-      (unsigned long)(time_us / 1000000u),
+      offset_s_ + (unsigned long)(time_us / 1000000u),
       (unsigned long)(time_us % 1000000u));
   if (!event.prefix().empty())
     mg_printf(conn_, ":%s ", event.prefix().c_str());

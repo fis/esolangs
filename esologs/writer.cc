@@ -13,42 +13,40 @@ namespace esologs {
 namespace fs = std::experimental::filesystem;
 
 Writer::Writer(const std::string& dir) : dir_(dir) {
-  current_day_us_ = Now().first;
-  OpenLog(current_day_us_);
+  current_day_ = Now().first;
+  OpenLog(current_day_);
 }
 
 void Writer::Write(LogEvent* event) {
-  auto [day_us, time_us] = Now();
+  auto [day, time_us] = Now();
 
-  if (day_us != current_day_us_) {
-    current_day_us_ = day_us;
-    OpenLog(day_us);
+  if (day != current_day_) {
+    current_day_ = day;
+    OpenLog(day);
   }
 
-  event->set_time_us(time_us.count());
+  event->set_time_us(time_us);
   current_log_->Write(*event);
 };
 
-void Writer::OpenLog(us day_us) {
+void Writer::OpenLog(date::sys_days day) {
   if (current_log_)
     current_log_.reset();
 
-  using clock = std::chrono::system_clock;
-  std::time_t day = clock::to_time_t(clock::time_point(std::chrono::duration_cast<clock::duration>(day_us)));
-  std::tm* day_tm = std::gmtime(&day);
+  auto ymd = date::year_month_day{day};
 
   char buf[16];
 
   fs::path log_file = dir_;
 
-  std::snprintf(buf, sizeof buf, "%d", 1900 + day_tm->tm_year);
+  std::snprintf(buf, sizeof buf, "%d", (int)ymd.year());
   log_file /= buf;
-  std::snprintf(buf, sizeof buf, "%d", day_tm->tm_mon + 1);
+  std::snprintf(buf, sizeof buf, "%u", (unsigned)ymd.month());
   log_file /= buf;
 
   fs::create_directories(log_file);
 
-  std::snprintf(buf, sizeof buf, "%d.pb", day_tm->tm_mday);
+  std::snprintf(buf, sizeof buf, "%u.pb", (unsigned)ymd.day());
   log_file /= buf;
 
   current_log_ = std::make_unique<proto::DelimWriter>(log_file.c_str());
