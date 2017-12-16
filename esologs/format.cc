@@ -498,7 +498,7 @@ struct TextLineFormatter : public LogLineFormatter {
 
 void TextLineFormatter::FormatDay(bool multiday, int year, int month, int day) {
   if (multiday)
-    web_.Write("\n", year, "-", month, "-", day, ":\n\n");
+    web_.Write("\n", YMD(year, month, day), ":\n\n");
 }
 
 std::string UnFormat(const std::string& raw) {
