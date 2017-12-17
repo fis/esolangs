@@ -282,7 +282,7 @@ void HtmlLineFormatter::FormatNav(const YMD& date, const std::optional<YMD>& pre
   web_.Write("  <span class=\"nc\">", date, "</span>  ");
 
   if (next)
-    web_.Write("<a href=\"", *next, "\">", *next, "→</a>");
+    web_.Write("<a href=\"", *next, ".html\">", *next, "→</a>");
   else
     web_.Write("        ", month ? "" : "   ");
 
