@@ -98,6 +98,7 @@ int Server::HandleGet(const web::Request& req, web::Response* resp) {
     std::optional<YMD> prev, next;
     {
       std::lock_guard<std::mutex> lock(index_lock_);
+      index_->Refresh();
       found = index_->Lookup(date, &prev, &next);
     }
 
