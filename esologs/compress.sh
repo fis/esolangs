@@ -2,6 +2,8 @@
 
 # batch job to Brotli-compress old log files
 
+umask 0077
+
 cutoff="$(expr $(date +%s) - 172800)"
 
 find /home/esowiki/logs -name '*.pb' | while read logfile; do
