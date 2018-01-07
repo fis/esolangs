@@ -1,9 +1,17 @@
 workspace(name = "esowiki")
 
-local_repository(
+http_archive(
     name = "fi_zem_bracket",
-    path = "../bracket",
+    urls = ["https://github.com/fis/bracket/archive/118269834b2160dd27495c9076674b75dd4317b7.zip"],
+    strip_prefix = "bracket-118269834b2160dd27495c9076674b75dd4317b7",
+    sha256 = "6dacd44f20dac460c8f58ca9b6ad0cad5a1fa5c112553a98e6c7bbbc4dfd69ae",
 )
+
+# For development use:
+#local_repository(
+#    name = "fi_zem_bracket",
+#    path = "../bracket",
+#)
 
 load("@fi_zem_bracket//:repositories.bzl", "bracket_repositories")
 bracket_repositories()
