@@ -89,25 +89,35 @@ void LogIndex::Scan(bool full) {
 }
 
 bool LogIndex::Lookup(const YMD& date, std::optional<YMD>* prev, std::optional<YMD>* next) const noexcept {
+  bool monthly = date.day == 0;
+
   auto pos = std::lower_bound(dates_.begin(), dates_.end(), date);
   if (pos == dates_.end()
       || pos->year != date.year
       || pos->month != date.month
-      || (date.day != 0 && pos->day != date.day))
+      || (!monthly && pos->day != date.day))
     return false;
 
-  if (pos != dates_.begin())
+  if (pos != dates_.begin()) {
     *prev = std::optional(*(pos-1));
-  else
+    if (monthly)
+      (*prev)->day = 0;
+  } else {
     *prev = std::optional<YMD>();
+  }
 
-  while (pos != dates_.end() && pos->year && date.year && pos->month == date.month && (date.day == 0 || pos->day == date.day))
-    ++pos;
+  ++pos;
+  if (monthly)
+    while (pos != dates_.end() && pos->year == date.year && pos->month == date.month)
+      ++pos;
 
-  if (pos != dates_.end())
+  if (pos != dates_.end()) {
     *next = std::optional(*pos);
-  else
+    if (monthly)
+      (*next)->day = 0;
+  } else {
     *next = std::optional<YMD>();
+  }
 
   return true;
 }
