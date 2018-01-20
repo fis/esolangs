@@ -61,6 +61,13 @@ constexpr char kAboutText[] =
     "<a href=\"http://tunes.org/~nef/logs/esoteric/?C=M;O=D\">tunes.org</a>."
     "</p>\n";
 
+constexpr char kAnnouncement[] =
+    // "<h1 class=\"ann\">newsflash</h1>\n"
+    // "<p>"
+    // "Insert announcement text here."
+    // "</p>\n"
+    "";
+
 } // unnamed namespace
 
 void FormatIndex(web::Response* resp, const LogIndex& index, int y) {
@@ -71,6 +78,9 @@ void FormatIndex(web::Response* resp, const LogIndex& index, int y) {
     WriteHtmlHeader(&web, "index.css", "#esoteric logs");
   else
     WriteHtmlHeader(&web, "index.css", YMD(y), " - #esoteric logs");
+
+  if (*kAnnouncement)
+    web.Write(kAnnouncement);
 
   auto [y_min, y_max] = index.bounds();
 
