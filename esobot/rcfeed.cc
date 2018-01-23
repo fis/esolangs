@@ -14,11 +14,10 @@ extern "C" {
 
 namespace esobot {
 
-constexpr char kUdpPort[] = "8147";
 constexpr int kMaxLen = 400;
 
-RcFeedReader::RcFeedReader(event::Loop* loop, RcFeedListener* listener)
-    : listener_(listener), socket_ready_callback_(this) {
+RcFeed::RcFeed(const RcFeedConfig& config, irc::bot::PluginHost* host)
+    : channel_(config.channel()), host_(host), socket_ready_callback_(this) {
 
   struct addrinfo hints;
   std::memset(&hints, 0, sizeof hints);
@@ -37,7 +36,7 @@ RcFeedReader::RcFeedReader(event::Loop* loop, RcFeedListener* listener)
   AddrinfoPtr addrs;
   {
     struct addrinfo *a;
-    int ret = getaddrinfo("localhost", kUdpPort, &hints, &a);
+    int ret = getaddrinfo("localhost", config.port().c_str(), &hints, &a);
     if (ret != 0) {
       std::string error = "getaddrinfo: ";
       error += gai_strerror(ret);
@@ -55,10 +54,14 @@ RcFeedReader::RcFeedReader(event::Loop* loop, RcFeedListener* listener)
 
   addrs.release();
 
-  loop->ReadFd(socket_, &socket_ready_callback_);
+  host_->loop()->ReadFd(socket_, &socket_ready_callback_);
 }
 
-void RcFeedReader::SocketReady(int) {
+RcFeed::~RcFeed() {
+  host_->loop()->ReadFd(socket_);
+}
+
+void RcFeed::SocketReady(int) {
   char msg[4096];
 
   ssize_t got = recv(socket_, msg, sizeof msg - 1, 0);
@@ -85,7 +88,8 @@ void RcFeedReader::SocketReady(int) {
   if (!*msg)
     return;
 
-  listener_->RecentChange(msg);
+  LOG(INFO) << "Wiki message: " << msg;
+  host_->Send({ "PRIVMSG", channel_.c_str(), msg });
 }
 
 } // namespace esobot

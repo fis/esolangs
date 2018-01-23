@@ -2,21 +2,19 @@
 #include <chrono>
 #include <cstdio>
 #include <ctime>
-#include <experimental/filesystem>
 #include <string>
 
 #include "esobot/logger.h"
+#include "esobot/config.pb.h"
 #include "esologs/log.pb.h"
 #include "esologs/writer.h"
-#include "irc/config.pb.h"
-#include "irc/connection.h"
-#include "irc/message.h"
+#include "irc/bot/plugin.h"
 
 namespace esobot {
 
-namespace fs = std::experimental::filesystem;
-
-Logger::Logger(const std::string& channel, const std::string& dir) : channel_(channel), log_(dir) {}
+Logger::Logger(const LoggerConfig& config, irc::bot::PluginHost*)
+    : channel_(config.channel()), log_(config.log_path())
+{}
 
 void Logger::Log(const irc::Message& msg, bool sent) {
   bool logged =

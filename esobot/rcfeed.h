@@ -1,26 +1,25 @@
 #ifndef ESOBOT_RCFEED_H_
 #define ESOBOT_RCFEED_H_
 
+#include "esobot/config.pb.h"
 #include "event/loop.h"
+#include "irc/bot/plugin.h"
 
 namespace esobot {
 
-struct RcFeedListener {
-  virtual void RecentChange(const char* message) = 0;
-  virtual ~RcFeedListener() = default;
-};
-
-class RcFeedReader {
+class RcFeed : public irc::bot::Plugin {
  public:
-  RcFeedReader(event::Loop* loop, RcFeedListener* listener);
+  RcFeed(const RcFeedConfig& config, irc::bot::PluginHost* host);
+  ~RcFeed();
 
  private:
-  RcFeedListener* listener_;
+  const std::string channel_;
+  irc::bot::PluginHost* host_;
   int socket_;
 
   void SocketReady(int);
 
-  event::FdReaderM<RcFeedReader, &RcFeedReader::SocketReady> socket_ready_callback_;
+  event::FdReaderM<RcFeed, &RcFeed::SocketReady> socket_ready_callback_;
 };
 
 } // namespace esobot
