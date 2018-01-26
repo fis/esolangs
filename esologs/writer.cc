@@ -107,9 +107,8 @@ void Writer::OpenLog(date::sys_days day) {
 
   current_line_ = 0;
   if (fs::exists(log_file)) {
-    LogEvent event; // TODO: support 'skip' in DelimReader
     proto::DelimReader reader(log_file.c_str());
-    while (reader.Read(&event))
+    while (reader.Skip())
       ++current_line_;
   }
 
