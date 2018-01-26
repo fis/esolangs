@@ -8,21 +8,34 @@
 #include <date/date.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 
+#include "base/common.h"
 #include "esologs/log.pb.h"
+#include "event/loop.h"
 #include "proto/delim.h"
 
 namespace esologs {
 
 class Writer {
  public:
-  Writer(const std::string& dir);
+  Writer(const std::string& config_file, event::Loop* loop);
+  ~Writer();
+
   void Write(LogEvent* event);
 
+  DISALLOW_COPY(Writer);
+
  private:
-  const std::string dir_;
+  class Stalker;
+
+  event::Loop* loop_;
+
+  std::string dir_;
 
   date::sys_days current_day_;
   std::unique_ptr<proto::DelimWriter> current_log_;
+  std::uint64_t current_line_;  // index of next line to be written
+
+  std::unique_ptr<Stalker> stalker_;
 
   std::pair<date::sys_days, std::uint64_t> Now() {
     auto now = std::chrono::system_clock::now();

@@ -2,15 +2,44 @@ syntax = "proto3";
 
 package esologs;
 
+// Unique identifier for a log event, based on its position in the logs.
+message LogEventId {
+  // Count of days, with 0 denoting January 1st, 1970.
+  int64 day = 1;
+  // Log event index within the day, with 0 denoting the first event.
+  uint64 line = 2;
+}
+
+// IRC log event.
 message LogEvent {
+  // Time of the event, as an offset from midnight in microseconds.
   uint64 time_us = 1;
+
+  // Position of the event in the logs.
+  //
+  // This field is not stored in the log files, as it's implicit. It's populated
+  // whenever sending around events in a context where the logfile they came
+  // from is not known.
+  LogEventId event_id = 6;
+
+  // Prefix of the IRC message, without the leading ':'.
   bytes prefix = 2;
+
+  // The command or the numeric portion.
   bytes command = 3;
+
+  // The command parameters. Whether the last parameter had a leading ':' is not
+  // indicated, though if it contains any space characters, it must have had.
   repeated bytes args = 4;
 
+  // Direction type for log events.
   enum Direction {
+    // Received by the client. Default value.
     RECEIVED = 0;
+    // Sent by the client.
     SENT = 1;
   }
+
+  // Direction of the event (received or sent, from the client's perspective).
   Direction direction = 5;
 }

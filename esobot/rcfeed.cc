@@ -88,7 +88,7 @@ void RcFeed::SocketReady(int) {
   if (!*msg)
     return;
 
-  LOG(INFO) << "Wiki message: " << msg;
+  LOG(INFO) << "wiki message: " << msg;
   host_->Send({ "PRIVMSG", channel_.c_str(), msg });
 }
 

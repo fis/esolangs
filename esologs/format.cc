@@ -26,13 +26,18 @@ void WebWrite(web::Writer* web, const esologs::YMD& ymd) {
 namespace {
 
 template <typename... TitleArgs>
-void WriteHtmlHeader(web::Writer* web, const char* css, TitleArgs&&... title) {
+void WriteHtmlHeader(web::Writer* web, const char* css, const char* js, TitleArgs&&... title) {
   web->Write(
       "<!DOCTYPE html>\n"
       "<html>\n"
       "<head>"
       "<title>", std::forward<TitleArgs>(title)..., "</title>"
-      "<link rel=\"stylesheet\" type=\"text/css\" href=\"", css, "\">"
+      "<link rel=\"stylesheet\" type=\"text/css\" href=\"", css, "\">");
+
+  if (js)
+    web->Write("<script defer=\"true\" type=\"text/javascript\" src=\"", js, "\"></script>");
+
+  web->Write(
       "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
       "</head>\n"
       "<body>\n");
@@ -44,6 +49,9 @@ void WriteHtmlFooter(web::Writer* web) {
 
 constexpr char kContentTypeText[] = "text/plain; charset=utf-8";
 constexpr char kContentTypeHtml[] = "text/html; charset=utf-8";
+
+constexpr char kCssIndex[] = "index.css";
+constexpr char kCssLog[] = "log.css";
 
 constexpr char kAboutText[] =
     "<h1 id=\"about\">about</h1>\n"
@@ -75,9 +83,9 @@ void FormatIndex(web::Response* resp, const LogIndex& index, int y) {
 
   bool all = y < 0;
   if (all)
-    WriteHtmlHeader(&web, "index.css", "#esoteric logs");
+    WriteHtmlHeader(&web, kCssIndex, nullptr, "#esoteric logs");
   else
-    WriteHtmlHeader(&web, "index.css", YMD(y), " - #esoteric logs");
+    WriteHtmlHeader(&web, kCssIndex, nullptr, YMD(y), " - #esoteric logs");
 
   if (*kAnnouncement)
     web.Write(kAnnouncement);
@@ -170,6 +178,8 @@ struct LogLine {
     ERROR,
   };
   Type type;
+  std::int64_t day;
+  std::uint64_t line;
   std::string tstamp;
   std::string nick;
   std::string body;
@@ -191,6 +201,8 @@ constexpr const char* kLineDescriptions[] = {
 struct LogLineFormatter : public LogFormatter {
   void FormatEvent(const LogEvent& event) override;
   virtual void FormatLine(const LogLine& line) = 0;
+ private:
+  std::uint64_t line_counter_ = 0;
 };
 
 void LogLineFormatter::FormatEvent(const LogEvent& event) {
@@ -212,14 +224,23 @@ void LogLineFormatter::FormatEvent(const LogEvent& event) {
 
   LogLine line;
 
-  auto time_us = event.time_us();
+  auto time_us = event.time_us() % 86400000000u;
+
   line.tstamp.resize(8);
   std::snprintf(
       line.tstamp.data(), 9,
       "%02d:%02d:%02d",
-      (int)(time_us / 3600000000),
-      (int)(time_us / 60000000 % 60),
-      (int)(time_us / 1000000 % 60));
+      (int)(time_us / 3600000000u),
+      (int)(time_us / 60000000u % 60u),
+      (int)(time_us / 1000000u % 60u));
+
+  if (event.has_event_id()) {
+    line.day = event.event_id().day();
+    line.line = event.event_id().line();
+  } else {
+    line.day = 0;
+    line.line = line_counter_++;
+  }
 
   if (event.direction() == LogEvent::SENT) {
     line.nick = "esowiki";  // TODO: configure?
@@ -270,11 +291,13 @@ struct HtmlLineFormatter : public LogLineFormatter {
   web::Writer web_;
   HtmlLineFormatter(web::Response* resp) : web_(resp, kContentTypeHtml) {}
   void FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) override;
-  void FormatDay(bool multiday, int year, int month, int day) override;
-  void FormatLine(const LogLine& line) override;
   void FormatFooter(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) override;
+  void FormatStalkerHeader(int year) override;
+  void FormatStalkerFooter() override;
+  void FormatDay(bool multiday, int year, int month, int day) override;
+  void FormatElision() override;
+  void FormatLine(const LogLine& line) override;
  private:
-  int row_id_ = 0;
   void FormatNav(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next);
 };
 
@@ -302,12 +325,27 @@ void HtmlLineFormatter::FormatNav(const YMD& date, const std::optional<YMD>& pre
 }
 
 void HtmlLineFormatter::FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) {
-  WriteHtmlHeader(&web_, "log.css", date, " - #esoteric logs");
+  WriteHtmlHeader(&web_, kCssLog, nullptr, date, " - #esoteric logs");
   FormatNav(date, prev, next);
 }
 
 void HtmlLineFormatter::FormatFooter(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) {
   FormatNav(date, prev, next);
+  WriteHtmlFooter(&web_);
+}
+
+void HtmlLineFormatter::FormatStalkerHeader(int year) {
+  WriteHtmlHeader(&web_, kCssLog, "stalker.js", "#esoteric logs - stalker mode");
+  web_.Write(
+      "<div class=\"n\">"
+      "<span class=\"nc\">stalker mode</span>"
+      "  <a href=\"", year, ".html\">↑", year, "</a>"
+      "  <a href=\"all.html\">↑all</a>"
+      "</div>\n");
+}
+
+void HtmlLineFormatter::FormatStalkerFooter() {
+  web_.Write("<div id=\"eof\" class=\"n\"></div>\n");
   WriteHtmlFooter(&web_);
 }
 
@@ -321,19 +359,25 @@ void HtmlLineFormatter::FormatDay(bool multiday, int year, int month, int day) {
         "</div\n");
 }
 
-void RowId(int id, char* p, std::size_t max_len) {
+void HtmlLineFormatter::FormatElision() {
+  web_.Write(
+      "<div class=\"r\">"
+      "<span class=\"t\">        </span>"
+      "<span class=\"s\"> </span>"
+      "<span class=\"x\">   </span>"
+      "<span class=\"s\"> </span>"
+      "<span class=\"ed\">[...]</span>"
+      "</div>\n");
+}
+
+void RowId(std::uint64_t id, std::string* str) {
   static constexpr char alphabet[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   static constexpr std::size_t kAlphabetSize = sizeof alphabet - 1;
 
-  if (!max_len) return;
-
-  while (id > 0 && max_len > 1) {
-    *p = alphabet[id % kAlphabetSize];
+  while (id > 0) {
+    *str += alphabet[id % kAlphabetSize];
     id /= kAlphabetSize;
-    ++p;
-    --max_len;
   }
-  *p = 0;
 }
 
 unsigned NickHash(const std::string& nick) {
@@ -455,11 +499,23 @@ std::string HtmlEscape(const std::string& raw) {
 }
 
 void HtmlLineFormatter::FormatLine(const LogLine& line) {
-  char id[16];
-  RowId(row_id_++, id, sizeof id);
+  std::string id;
+  std::string link;
+
+  if (line.day) {
+    YMD ymd{date::sys_days{date::days{line.day}}};
+    id = "";
+    // TODO: wrap this sort of thing
+    link.resize(10);
+    std::snprintf(link.data(), 11, "%04u-%02u-%02u", (unsigned) ymd.year % 10000, (unsigned) ymd.month % 100, (unsigned) ymd.day % 100);
+    link += ".html#l"; RowId(line.line, &link);
+  } else {
+    id = " id=\"l"; RowId(line.line, &id); id += '"';
+    link = "#l"; RowId(line.line, &link);
+  }
 
   web_.Write(
-      "<div id=\"l", id, "\" class=\"r\">"
+      "<div", id, " class=\"r\">"
       "<span class=\"t\">", line.tstamp, "</span>"
       "<span class=\"s\"> </span>");
 
@@ -469,13 +525,13 @@ void HtmlLineFormatter::FormatLine(const LogLine& line) {
     bool act = line.type == LogLine::ACTION;
     web_.Write(
         "<span class=\"ma h", NickHash(line.nick), "\">"
-        "<a href=\"#l", id, "\">", act ? "* " : "&lt;", line.nick, act ? "" : "&gt;", "</a>"
+        "<a href=\"", link, "\">", act ? "* " : "&lt;", line.nick, act ? "" : "&gt;", "</a>"
         "</span>"
         "<span class=\"s\"> </span>"
         "<span class=\"mb\">", body, "</span>");
   } else if (line.type != LogLine::ERROR) {
     web_.Write(
-        "<span class=\"x\"><a href=\"#l", id, "\">-!-</a></span>"
+        "<span class=\"x\"><a href=\"", link, "\">-!-</a></span>"
         "<span class=\"s\"> </span>"
         "<span class=\"ed\">"
         "<span class=\"ea h", NickHash(line.nick), "\">", line.nick, "</span>"
@@ -500,14 +556,21 @@ struct TextLineFormatter : public LogLineFormatter {
   web::Writer web_;
   TextLineFormatter(web::Response* resp) : web_(resp, kContentTypeText) {}
   void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
-  void FormatDay(bool multiday, int year, int month, int day) override;
-  void FormatLine(const LogLine& line) override;
   void FormatFooter(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
+  void FormatStalkerHeader(int) override {}
+  void FormatStalkerFooter() override {}
+  void FormatDay(bool multiday, int year, int month, int day) override;
+  void FormatElision() override;
+  void FormatLine(const LogLine& line) override;
 };
 
 void TextLineFormatter::FormatDay(bool multiday, int year, int month, int day) {
   if (multiday)
     web_.Write("\n", YMD(year, month, day), ":\n\n");
+}
+
+void TextLineFormatter::FormatElision() {
+  web_.Write("[...]\n");
 }
 
 std::string UnFormat(const std::string& raw) {
@@ -560,9 +623,12 @@ struct RawFormatter : public LogFormatter {
 
   RawFormatter(web::Response* resp) : web_(resp, kContentTypeText), offset_s_(0) {}
   void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
-  void FormatDay(bool, int year, int month, int day) override;
-  void FormatEvent(const LogEvent& event) override;
   void FormatFooter(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
+  void FormatStalkerHeader(int) override {}
+  void FormatStalkerFooter() override {}
+  void FormatDay(bool, int year, int month, int day) override;
+  void FormatElision() override {}
+  void FormatEvent(const LogEvent& event) override;
 };
 
 void RawFormatter::FormatDay(bool, int year, int month, int day) {

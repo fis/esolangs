@@ -12,7 +12,7 @@ message Config {
 
 message LoggerConfig {
   string channel = 1;
-  string log_path = 2;
+  string config_file = 2;
 }
 
 message RcFeedConfig {

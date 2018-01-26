@@ -1,7 +1,6 @@
 #include <chrono>
 #include <cstdio>
 #include <cstring>
-#include <experimental/filesystem>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -13,6 +12,8 @@
 #include "esologs/config.pb.h"
 #include "esologs/format.h"
 #include "esologs/index.h"
+#include "esologs/stalker.h"
+#include "event/loop.h"
 #include "proto/brotli.h"
 #include "proto/delim.h"
 #include "proto/util.h"
@@ -24,28 +25,30 @@ extern "C" {
 
 namespace esologs {
 
-namespace fs = std::experimental::filesystem;
-
 class Server : public web::RequestHandler {
  public:
-  Server(const char* config_file);
+  Server(const char* config_file, event::Loop* loop);
 
   int HandleGet(const web::Request& req, web::Response* resp) override;
 
  private:
-  fs::path root_;
+  event::Loop* loop_;
+
   std::string nick_;
 
   std::unique_ptr<LogIndex> index_;
-  std::mutex index_lock_;
+  std::unique_ptr<Stalker> stalker_;
 
   const RE2 re_index_ = RE2("/(?:(\\d+|all)\\.html)?");
   const RE2 re_logfile_ = RE2("/(\\d+)-(\\d+)(?:-(\\d+))?(\\.html|\\.txt|-raw\\.txt)");
+  const RE2 re_stalker_ = RE2("/stalker(\\.html|\\.txt|-raw\\.txt)");
 
   std::unique_ptr<web::Server> web_server_;
+
+  static std::unique_ptr<LogFormatter> CreateFormatter(const std::string& format, web::Response* resp);
 };
 
-Server::Server(const char* config_file) {
+Server::Server(const char* config_file, event::Loop* loop) : loop_(loop) {
   Config config;
   proto::ReadText(config_file, &config);
 
@@ -56,10 +59,12 @@ Server::Server(const char* config_file) {
   if (config.nick().empty())
     throw base::Exception("missing required setting: nick");
 
-  root_ = config.log_path();
   nick_ = config.nick();
 
-  index_ = std::make_unique<LogIndex>(root_);
+  index_ = std::make_unique<LogIndex>(config.log_path());
+
+  if (!config.stalker_socket().empty())
+    stalker_ = std::make_unique<Stalker>(config, loop_, index_.get());
 
   web_server_ = std::make_unique<web::Server>(config.listen_port());
   web_server_->AddHandler("/", this);
@@ -77,7 +82,7 @@ int Server::HandleGet(const web::Request& req, web::Response* resp) {
   if (RE2::FullMatch(uri, re_index_, &ys)) {
     int y;
 
-    std::lock_guard<std::mutex> lock(index_lock_);
+    std::lock_guard<std::mutex> lock(*index_->lock());
     index_->Refresh();
 
     if (ys.empty())
@@ -97,7 +102,7 @@ int Server::HandleGet(const web::Request& req, web::Response* resp) {
     bool found;
     std::optional<YMD> prev, next;
     {
-      std::lock_guard<std::mutex> lock(index_lock_);
+      std::lock_guard<std::mutex> lock(*index_->lock());
       index_->Refresh();
       found = index_->Lookup(date, &prev, &next);
     }
@@ -110,13 +115,7 @@ int Server::HandleGet(const web::Request& req, web::Response* resp) {
       return 404;
     }
 
-    std::unique_ptr<LogFormatter> fmt;
-    if (format == ".html")
-      fmt = LogFormatter::CreateHTML(resp);
-    else if (format == ".txt")
-      fmt = LogFormatter::CreateText(resp);
-    else
-      fmt = LogFormatter::CreateRaw(resp);
+    auto fmt = CreateFormatter(format, resp);
 
     LogEvent event;
     fmt->FormatHeader(date, prev, next);
@@ -124,23 +123,9 @@ int Server::HandleGet(const web::Request& req, web::Response* resp) {
     int d_min = date.day ? date.day : 1;
     int d_max = date.day ? date.day : 31;
     for (int d = d_min; d <= d_max; ++d) {
-      fs::path logfile = root_;
-      logfile /= std::to_string(date.year);
-      logfile /= std::to_string(date.month);
-      logfile /= std::to_string(d);
-      logfile += ".pb";
-
-      std::unique_ptr<proto::DelimReader> reader;
-
-      if (fs::is_regular_file(logfile)) {
-        reader = std::make_unique<proto::DelimReader>(logfile.c_str());
-      } else {
-        logfile += ".br";
-        if (fs::is_regular_file(logfile))
-          reader = std::make_unique<proto::DelimReader>(proto::BrotliInputStream::FromFile(logfile.c_str()));
-        else
-          continue; // shouldn't happen
-      }
+      auto reader = index_->Open(date.year, date.month, d);
+      if (!reader)
+        continue; // shouldn't happen
 
       fmt->FormatDay(d_min != d_max, date.year, date.month, d);
       while (reader->Read(&event))
@@ -151,8 +136,23 @@ int Server::HandleGet(const web::Request& req, web::Response* resp) {
     return 200;
   }
 
+  if (stalker_ && RE2::FullMatch(uri, re_stalker_, &format)) {
+    auto fmt = CreateFormatter(format, resp);
+    stalker_->Format(fmt.get());
+    return 200;
+  }
+
   FormatError(resp, 404, "unknown path: %s", uri);
   return 404;
+}
+
+std::unique_ptr<LogFormatter> Server::CreateFormatter(const std::string& format, web::Response* resp) {
+  if (format == ".html")
+    return LogFormatter::CreateHTML(resp);
+  else if (format == ".txt")
+    return LogFormatter::CreateText(resp);
+  else
+    return LogFormatter::CreateRaw(resp);
 }
 
 } // namespace esologs
@@ -163,10 +163,11 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  setenv("TZ", "UTC", 1);
-  esologs::Server server(argv[1]);
+  setenv("TZ", "UTC", 1);  // no-op, for safety
+  event::Loop loop;
+  esologs::Server server(argv[1], &loop);
   LOG(INFO) << "server started";
 
-  while (true)  // TODO: event loop for background tasks
-    std::this_thread::sleep_for(std::chrono::hours(1));
+  loop.Run();
+  return 0;
 }

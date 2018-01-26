@@ -5,6 +5,7 @@
 
 #include "base/log.h"
 #include "esologs/index.h"
+#include "proto/brotli.h"
 
 namespace esologs {
 
@@ -98,28 +99,50 @@ bool LogIndex::Lookup(const YMD& date, std::optional<YMD>* prev, std::optional<Y
       || (!monthly && pos->day != date.day))
     return false;
 
-  if (pos != dates_.begin()) {
-    *prev = std::optional(*(pos-1));
-    if (monthly)
-      (*prev)->day = 0;
-  } else {
-    *prev = std::optional<YMD>();
+  if (prev) {
+    if (pos != dates_.begin()) {
+      *prev = std::optional(*(pos-1));
+      if (monthly)
+        (*prev)->day = 0;
+    } else {
+      *prev = std::optional<YMD>();
+    }
   }
 
-  ++pos;
-  if (monthly)
-    while (pos != dates_.end() && pos->year == date.year && pos->month == date.month)
-      ++pos;
-
-  if (pos != dates_.end()) {
-    *next = std::optional(*pos);
+  if (next) {
+    ++pos;
     if (monthly)
-      (*next)->day = 0;
-  } else {
-    *next = std::optional<YMD>();
+      while (pos != dates_.end() && pos->year == date.year && pos->month == date.month)
+        ++pos;
+
+    if (pos != dates_.end()) {
+      *next = std::optional(*pos);
+      if (monthly)
+        (*next)->day = 0;
+    } else {
+      *next = std::optional<YMD>();
+    }
   }
 
   return true;
+}
+
+std::unique_ptr<proto::DelimReader> LogIndex::Open(int y, int m, int d) {
+  fs::path logfile = root_;
+  logfile /= std::to_string(y);
+  logfile /= std::to_string(m);
+  logfile /= std::to_string(d);
+  logfile += ".pb";
+
+  if (fs::is_regular_file(logfile)) {
+    return std::make_unique<proto::DelimReader>(logfile.c_str());
+  } else {
+    logfile += ".br";
+    if (fs::is_regular_file(logfile))
+      return std::make_unique<proto::DelimReader>(proto::BrotliInputStream::FromFile(logfile.c_str()));
+  }
+
+  return nullptr;
 }
 
 } // namespace esologs

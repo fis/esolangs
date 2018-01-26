@@ -2,10 +2,15 @@
 #define ESOLOGS_INDEX_H_
 
 #include <chrono>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include <date/date.h>
+
+#include "proto/delim.h"
 
 namespace esologs {
 
@@ -13,7 +18,15 @@ struct YMD {
   int year;
   int month;
   int day;
+
   explicit YMD(int y, int m = 0, int d = 0) : year(y), month(m), day(d) {}
+  explicit YMD(date::sys_days d) {
+    auto date = date::year_month_day{d};
+    year = (int) date.year();
+    month = (unsigned) date.month();
+    day = (unsigned) date.day();
+  }
+
   friend bool operator==(const YMD& a, const YMD& b);
   friend bool operator!=(const YMD& a, const YMD& b);
   friend bool operator< (const YMD& a, const YMD& b);
@@ -54,7 +67,11 @@ class LogIndex {
     }
   }
 
-  bool Lookup(const YMD& date, std::optional<YMD>* prev, std::optional<YMD>* next) const noexcept;
+  bool Lookup(const YMD& date, std::optional<YMD>* prev = nullptr, std::optional<YMD>* next = nullptr) const noexcept;
+
+  std::unique_ptr<proto::DelimReader> Open(int y, int m, int d);
+
+  std::mutex* lock() { return &lock_; }
 
   int default_year() const noexcept {
     if (dates_.empty())
@@ -74,6 +91,8 @@ class LogIndex {
   const std::string root_;
   std::vector<YMD> dates_;
   std::chrono::steady_clock::time_point last_scan_;
+
+  std::mutex lock_;
 
   void Scan(bool full = false);
 };
