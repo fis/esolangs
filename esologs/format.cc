@@ -356,7 +356,7 @@ void HtmlLineFormatter::FormatDay(bool multiday, int year, int month, int day) {
         "<a href=\"", YMD(year, month, day), ".html\">",
         YMD(year, month, day),
         "</a>"
-        "</div\n");
+        "</div>\n");
 }
 
 void HtmlLineFormatter::FormatElision() {
