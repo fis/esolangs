@@ -2,27 +2,16 @@ workspace(name = "esowiki")
 
 http_archive(
     name = "fi_zem_bracket",
-    urls = ["https://github.com/fis/bracket/archive/118269834b2160dd27495c9076674b75dd4317b7.zip"],
-    strip_prefix = "bracket-118269834b2160dd27495c9076674b75dd4317b7",
-    sha256 = "6dacd44f20dac460c8f58ca9b6ad0cad5a1fa5c112553a98e6c7bbbc4dfd69ae",
+    urls = ["https://github.com/fis/bracket/archive/4800b17b173bb7be07b07286147f7cc97c51bde7.zip"],
+    strip_prefix = "bracket-4800b17b173bb7be07b07286147f7cc97c51bde7",
+    sha256 = "ef4b54a41047fe9dc5aa584e30d3098cf99d30f13cdff37132985ee14e1fccbb",
 )
 
 # For development use:
-#local_repository(
-#    name = "fi_zem_bracket",
-#    path = "../bracket",
-#)
+#local_repository(name = "fi_zem_bracket", path = "../bracket")
 
 load("@fi_zem_bracket//:repositories.bzl", "bracket_repositories")
 bracket_repositories()
-
-new_http_archive(
-    name = "civetweb",
-    urls = ["https://github.com/civetweb/civetweb/archive/v1.9.1.tar.gz"],
-    strip_prefix = "civetweb-1.9.1",
-    sha256 = "880d741724fd8de0ebc77bc5d98fa673ba44423dc4918361c3cd5cf80955e36d",
-    build_file = "//tools:BUILD.civetweb",
-)
 
 http_archive(
     name = "com_googlesource_code_re2",

@@ -7,6 +7,7 @@
 
 #include <date/date.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <prometheus/registry.h>
 
 #include "base/common.h"
 #include "esologs/log.pb.h"
@@ -17,7 +18,7 @@ namespace esologs {
 
 class Writer {
  public:
-  Writer(const std::string& config_file, event::Loop* loop);
+  Writer(const std::string& config_file, event::Loop* loop, prometheus::Registry* metric_registry = nullptr);
   ~Writer();
 
   void Write(LogEvent* event);
@@ -36,6 +37,8 @@ class Writer {
   std::uint64_t current_line_;  // index of next line to be written
 
   std::unique_ptr<Stalker> stalker_;
+
+  prometheus::Gauge* metric_last_written_;
 
   std::pair<date::sys_days, std::uint64_t> Now() {
     auto now = std::chrono::system_clock::now();

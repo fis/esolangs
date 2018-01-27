@@ -21,6 +21,7 @@ proto_library(
     srcs = ["config.proto"],
     deps = [
         "@fi_zem_bracket//irc:config_proto",
+        "@fi_zem_bracket//irc/bot:config_proto",
     ],
 )
 

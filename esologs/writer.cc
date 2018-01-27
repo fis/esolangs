@@ -50,7 +50,9 @@ class Writer::Stalker : public event::Socket::Watcher, public event::Timed {
   void Connect();
 };
 
-Writer::Writer(const std::string& config_path, event::Loop* loop) : loop_(loop) {
+Writer::Writer(const std::string& config_path, event::Loop* loop, prometheus::Registry* metric_registry)
+    : loop_(loop)
+{
   Config config;
   proto::ReadText(config_path, &config);
 
@@ -61,6 +63,14 @@ Writer::Writer(const std::string& config_path, event::Loop* loop) : loop_(loop) 
 
   if (!config.stalker_socket().empty())
     stalker_ = std::make_unique<Stalker>(config.stalker_socket(), loop);
+
+  if (metric_registry) {
+    metric_last_written_ = &prometheus::BuildGauge()
+        .Name("esologs_writer_last_message_time")
+        .Help("When was the last log message written?")
+        .Register(*metric_registry)
+        .Add({});
+  }
 }
 
 Writer::~Writer() {}
@@ -83,6 +93,9 @@ void Writer::Write(LogEvent* event) {
     event_id->set_line(current_line_ - 1);
     stalker_->Write(*event);
   }
+
+  if (metric_last_written_)
+    metric_last_written_->SetToCurrentTime();
 };
 
 void Writer::OpenLog(date::sys_days day) {
