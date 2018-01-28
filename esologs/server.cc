@@ -26,11 +26,12 @@ extern "C" {
 
 namespace esologs {
 
-class Server : public web::RequestHandler {
+class Server : public web::RequestHandler, public web::WebsocketHandler {
  public:
   Server(const char* config_file, event::Loop* loop);
 
   int HandleGet(const web::Request& req, web::Response* resp) override;
+  web::WebsocketClientHandler* HandleWebsocketClient(const char* uri, const char* protocol) override;
 
  private:
   event::Loop* loop_;
@@ -69,6 +70,8 @@ Server::Server(const char* config_file, event::Loop* loop) : loop_(loop) {
 
   web_server_ = std::make_unique<web::Server>(config.listen_port());
   web_server_->AddHandler("/", this);
+  if (stalker_)
+    web_server_->AddWebsocketHandler("/api/stalker.ws", this);
 }
 
 int Server::HandleGet(const web::Request& req, web::Response* resp) {
@@ -124,6 +127,8 @@ int Server::HandleGet(const web::Request& req, web::Response* resp) {
     int d_min = date.day ? date.day : 1;
     int d_max = date.day ? date.day : 31;
     for (int d = d_min; d <= d_max; ++d) {
+      // TODO: force UTF-8 (with fallback) for non-raw formats
+
       auto reader = index_->Open(date.year, date.month, d);
       if (!reader)
         continue; // shouldn't happen
@@ -138,9 +143,14 @@ int Server::HandleGet(const web::Request& req, web::Response* resp) {
   }
 
   if (stalker_ && RE2::FullMatch(uri, re_stalker_, &format)) {
-    auto fmt = CreateFormatter(format, resp);
-    stalker_->Format(fmt.get());
-    return 200;
+    if (stalker_->loaded()) {
+      auto fmt = CreateFormatter(format, resp);
+      stalker_->Format(fmt.get());
+      return 200;
+    } else {
+      FormatError(resp, 500, "stalker server temporarily unavailable, try again in a minute");
+      return 500;
+    }
   }
 
 #if !defined(NDEBUG)
@@ -166,6 +176,22 @@ int Server::HandleGet(const web::Request& req, web::Response* resp) {
 
   FormatError(resp, 404, "unknown path: %s", uri);
   return 404;
+}
+
+web::WebsocketClientHandler* Server::HandleWebsocketClient(const char* uri, const char* protocol) {
+  CHECK(stalker_);
+
+  if (std::strcmp(uri, "/api/stalker.ws") != 0) {
+    LOG(WARNING) << "unexpected websocket request uri: " << uri;
+    return nullptr;
+  }
+
+  if (!protocol || std::strcmp(protocol, "v1.stalker.logs.esolangs.org") != 0) {
+    LOG(WARNING) << "unexpected websocket protocol: " << (protocol ? protocol : "(none)");
+    return nullptr;
+  }
+
+  return stalker_->AddClient();
 }
 
 std::unique_ptr<LogFormatter> Server::CreateFormatter(const std::string& format, web::Response* resp) {

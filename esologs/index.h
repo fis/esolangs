@@ -15,6 +15,9 @@
 namespace esologs {
 
 struct YMD {
+  struct day_number_tag { explicit day_number_tag() = default; };
+  static inline constexpr day_number_tag day_number = day_number_tag();
+
   int year;
   int month;
   int day;
@@ -26,6 +29,7 @@ struct YMD {
     month = (unsigned) date.month();
     day = (unsigned) date.day();
   }
+  YMD(day_number_tag, std::int64_t day) : YMD(date::sys_days{date::days{day}}) {}
 
   friend bool operator==(const YMD& a, const YMD& b);
   friend bool operator!=(const YMD& a, const YMD& b);

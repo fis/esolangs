@@ -2,9 +2,9 @@ workspace(name = "esowiki")
 
 http_archive(
     name = "fi_zem_bracket",
-    urls = ["https://github.com/fis/bracket/archive/4800b17b173bb7be07b07286147f7cc97c51bde7.zip"],
-    strip_prefix = "bracket-4800b17b173bb7be07b07286147f7cc97c51bde7",
-    sha256 = "ef4b54a41047fe9dc5aa584e30d3098cf99d30f13cdff37132985ee14e1fccbb",
+    urls = ["https://github.com/fis/bracket/archive/e48ccd2aec2bde0f3ac1e901244c897a0dd05742.zip"],
+    strip_prefix = "bracket-e48ccd2aec2bde0f3ac1e901244c897a0dd05742",
+    sha256 = "8809a6b133936b405732482ac627be05d57ee9db829f5e9301002ee7cb6460fd",
 )
 
 # For development use:

@@ -1,13 +1,146 @@
 #include <date/date.h>
 
 #include "esologs/stalker.h"
+#include "web/server.h"
 
 namespace esologs {
+
+class Stalker::Client : public web::WebsocketClientHandler {
+ public:
+  Client(Stalker* stalker) : stalker_(stalker) {}
+
+  bool Send(const LogEvent& event);
+  void Close();
+
+  bool registered() const noexcept { return socket_ && sent_day_; }
+
+  bool has_event(const LogEvent& event) const noexcept {
+    const LogEventId& id = event.event_id();
+    return id.day() < sent_day_ || (id.day() == sent_day_ && id.line() <= sent_line_);
+  }
+
+  void WebsocketReady(web::Websocket* socket) override;
+  web::Websocket::Result WebsocketData(web::Websocket* socket, web::Websocket::Type type, const unsigned char* buf, std::size_t size) override;
+  void WebsocketClose(web::Websocket* socket) override;
+
+ private:
+  Stalker* const stalker_;
+  web::Websocket* socket_ = nullptr;
+
+  std::int64_t sent_day_ = 0;
+  std::uint64_t sent_line_ = 0;
+
+  std::string buffer_;
+  std::unique_ptr<LogFormatter> fmt_ = LogFormatter::CreateHTML(&buffer_);
+};
+
+bool Stalker::Client::Send(const LogEvent& event) {
+  const LogEventId& id = event.event_id();
+  std::int64_t day = id.day();
+  std::uint64_t line = id.line();
+
+  std::optional<std::size_t> wrote;
+
+  // TODO: add DataView-style helper methods in base/buffer.h
+  {
+    unsigned char buf[8];
+    buf[0] = day; buf[1] = day >> 8; buf[2] = day >> 16; buf[3] = day >> 24;
+    buf[4] = line; buf[5] = line >> 8; buf[6] = line >> 16; buf[7] = line >> 24;
+    wrote = socket_->Write(web::Websocket::Type::kBinary, buf, sizeof buf);
+    if (!wrote || *wrote != sizeof buf) {
+      LOG(WARNING) << "stalker websocket: header write failed";
+      return false;
+    }
+  }
+
+  if (day > sent_day_) {
+    YMD ymd(YMD::day_number, day);
+    fmt_->FormatDay(true, ymd.year, ymd.month, ymd.day);
+  }
+  fmt_->FormatEvent(event);
+
+  std::size_t body_size = buffer_.size();
+  wrote = socket_->Write(web::Websocket::Type::kText, buffer_.data(), body_size);
+  buffer_.clear();
+
+  if (!wrote || *wrote != body_size) {
+    LOG(WARNING) << "stalker websocket: body write failed";
+    return false;
+  }
+
+  sent_day_ = day;
+  sent_line_ = line;
+  return true;
+}
+
+void Stalker::Client::Close() {
+  if (socket_)
+    socket_->Close();
+}
+
+void Stalker::Client::WebsocketReady(web::Websocket* socket) {
+  std::lock_guard<std::mutex> lock(stalker_->clients_lock_);
+  socket_ = socket;
+}
+
+web::Websocket::Result Stalker::Client::WebsocketData(web::Websocket* socket, web::Websocket::Type type, const unsigned char* buf, std::size_t size) {
+  if (type != web::Websocket::Type::kBinary) {
+    LOG(WARNING) << "stalker websocket: unexpected non-binary message";
+    socket->Close(web::Websocket::Status::kInvalidData);
+    return web::Websocket::Result::kClose;
+  }
+
+  if (size != 8) {
+    LOG(WARNING) << "stalker websocket: unexpected size, size = " << size;
+    socket->Close(web::Websocket::Status::kProtocolError);
+    return web::Websocket::Result::kClose;
+  }
+
+  auto msg_day =
+      (std::int32_t) buf[0]
+      | (std::int32_t) buf[1] << 8
+      | (std::int32_t) buf[2] << 16
+      | (std::int32_t) buf[3] << 24;
+  auto msg_line =
+      (std::uint32_t) buf[4]
+      | (std::uint32_t) buf[5] << 8
+      | (std::uint32_t) buf[6] << 16
+      | (std::uint32_t) buf[7] << 24;
+
+  {
+    std::lock_guard<std::mutex> lock(stalker_->clients_lock_);
+    if (!sent_day_)
+      LOG(INFO) << "stalker: new websocket (" << msg_day << ", " << msg_line << ")";
+    sent_day_ = msg_day;
+    sent_line_ = msg_line;
+    stalker_->clients_active_ = true;
+  }
+
+  stalker_->UpdateClients();
+  return web::Websocket::Result::kKeepOpen;
+}
+
+void Stalker::Client::WebsocketClose(web::Websocket* socket) {
+  std::lock_guard<std::mutex> lock(stalker_->clients_lock_);
+
+  stalker_->clients_.erase(this);  // self-destruct
+
+  bool active = false;
+  for (Client* client : stalker_->clients_) {
+    if (client->registered()) {
+      active = true;
+      break;
+    }
+  }
+  stalker_->clients_active_ = active;
+}
 
 Stalker::Stalker(const Config& config, event::Loop* loop, LogIndex* index) : loop_(loop), index_(index) {
   server_ = event::ListenUnix(loop, this, config.stalker_socket(), event::Socket::SEQPACKET);
   LOG(INFO) << "stalker server listening at: " << config.stalker_socket();
 }
+
+Stalker::~Stalker() {}
 
 void Stalker::Format(LogFormatter* fmt) {
   std::int64_t day = 0;
@@ -26,8 +159,7 @@ void Stalker::Format(LogFormatter* fmt) {
 
     if (event_day > day) {
       day = event_day;
-      date::sys_days date{date::days{day}};
-      YMD ymd{date};
+      YMD ymd(YMD::day_number, day);
       fmt->FormatDay(true, ymd.year, ymd.month, ymd.day);
 
       if (event_line > 0)
@@ -38,6 +170,30 @@ void Stalker::Format(LogFormatter* fmt) {
   }
 
   fmt->FormatStalkerFooter();
+}
+
+void Stalker::UpdateClients() {
+  std::scoped_lock<std::mutex, std::mutex> lock(clients_lock_, events_lock_);
+
+  for (Client* client : clients_) {
+    if (!client->registered())
+      continue;
+
+    auto event = events_.end();
+    while (event != events_.begin() && !client->has_event(*(event-1)))
+      --event;
+    for (; event != events_.end(); ++event) {
+      if (!client->Send(*event)) {
+        client->Close();
+        break;
+      }
+    }
+  }
+}
+
+web::WebsocketClientHandler* Stalker::AddClient() {
+  std::lock_guard<std::mutex> lock(clients_lock_);
+  return clients_.emplace(this);
 }
 
 void Stalker::Accepted(std::unique_ptr<event::Socket> socket) {
@@ -55,8 +211,6 @@ void Stalker::Accepted(std::unique_ptr<event::Socket> socket) {
 
 void Stalker::CanRead() {
   CHECK(writer_);
-
-  // TODO: handle read errors (and EOF) without bringing down the logs server
 
   std::size_t size;
   try {
@@ -92,9 +246,10 @@ void Stalker::CanRead() {
 
     if (events_.size() > kQueueSize)
       events_.pop_front();
-
-    // TODO: signal to active stalkers
   }
+
+  if (clients_active_)
+    UpdateClients();
 }
 
 void Stalker::Backfill() {

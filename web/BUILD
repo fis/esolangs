@@ -9,8 +9,10 @@ cc_library(
         "writer.cc",
     ],
     hdrs = [
+        "request.h",
         "response.h",
         "server.h",
+        "websocket.h",
         "writer.h",
     ],
     deps = [

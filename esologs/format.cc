@@ -350,7 +350,15 @@ void HtmlLineFormatter::FormatStalkerHeader(int year) {
 }
 
 void HtmlLineFormatter::FormatStalkerFooter() {
-  web_.Write("<div id=\"eof\" class=\"n\"></div>\n");
+  web_.Write(
+      "<div id=\"s\" data-stalker-day=\"", last_day_, "\" data-stalker-line=\"", last_line_, "\"></div>\n"
+      "<div id=\"eof\" class=\"n\">"
+      "<span id=\"smsg\">"
+      "To update automatically, stalker mode requires a reasonably modern browser with scripts enabled. "
+      "If this message does not disappear, it's either because of that or a bug. Feel free to get in "
+      "touch on channel for debugging. Or just work around the issue by manually reloading."
+      "</span>"
+      "</div>\n");
   WriteHtmlFooter(&web_);
 }
 

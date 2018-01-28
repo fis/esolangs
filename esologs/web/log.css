@@ -2,58 +2,84 @@ body {
     font-family: monospace;
 }
 
-div.r {
-    display: flex;
-}
+/* navigation and day headers */
 
-span.mb, span.ed {
-    flex: 1;
-}
-
-span.ma, span.x {
-    flex: 0 1 20ex;
-    text-align: right;
-}
-
-span.s {
-    flex: 0 1 2ex;
-}
-
-div.n, span.mb, span.eb, span.s {
-    white-space: pre-wrap;
-}
-
-span.x, span.ed {
-    color: #808080;
-}
-
-span.nc, span.ma, span.x, span.ea {
-    font-weight: bold;
-}
-
-span.eb {
-    color: black;
-}
-
-div.n {
+div.n { /* top and bottom navigation bars */
     margin: 0.5rem 0 0.5rem 0;
 }
-div.dh {
+
+div.dh { /* day header in a multi-day log */
     margin: 0.5rem 0 0.5rem 0;
     font-weight: bold;
     background-color: #ddd;
 }
 
-span.ma > a, span.x > a {
+/* log data */
+
+div.r { /* row container */
+    display: flex;
+}
+
+span.s { /* timestamp */
+    flex: 0 1 2ex;
+}
+
+span.ma, span.x { /* message author, -!- event marker */
+    flex: 0 1 20ex;
+    text-align: right;
+}
+
+span.mb, span.ed { /* message body, non-message event description */
+    flex: 1;
+}
+
+div.n, span.mb, span.eb, span.s { /* white-space sensitive fields */
+    white-space: pre-wrap;
+}
+
+span.x, span.ed { /* de-emphasize non-message event marker and description */
+    color: #808080;
+}
+
+span.nc, span.ma, span.x, span.ea { /* emphasize nicks and nick-like fields */
+    font-weight: bold;
+}
+
+span.eb { /* non-message event body (e.g. quit message) */
+    color: black;
+}
+
+/* permalinks to individual rows & highlighting */
+
+span.ma > a, span.x > a { /* message/event permalinks from nicknames */
     text-decoration: none;
     color: inherit;
 }
+
 div.r:target {
     background-color: #ddf;
 }
 div.r:target > span.t {
     font-weight: bold;
 }
+
+/* stalker mode styling */
+
+span.note { /* stalker mode status message */
+    color: #a50;
+    font-weight: bold;
+}
+
+span.err { /* stalker mode error message */
+    color: #a00;
+    font-weight: bold;
+}
+
+span.act { /* extra styling when the message has an attached action */
+    cursor: pointer;
+}
+
+/* nick name hash colors */
 
 span.h0 { color: #536771; }
 span.h1 { color: #0f3c5a; }
@@ -65,6 +91,8 @@ span.h6 { color: #7e5f37; }
 span.h7 { color: #7f3f00; }
 span.h8 { color: #65596b; }
 span.h9 { color: #351e4d; }
+
+/* IRC formatting */
 
 span.fb { font-weight: bold; }
 span.fi { font-style: italic; }
@@ -104,6 +132,8 @@ span.fg12 { background-color: #55f; }
 span.fg13 { background-color: #e0e; }
 span.fg14 { background-color: #888; }
 span.fg15 { background-color: #ccc; }
+
+/* go single-column on narrow screens */
 
 @media (max-width: 640px) {
     div.r {
