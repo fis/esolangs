@@ -18,6 +18,7 @@
 #include "proto/delim.h"
 #include "proto/util.h"
 #include "web/server.h"
+#include "web/writer.h"
 
 extern "C" {
 #include <stdlib.h>
@@ -141,6 +142,27 @@ int Server::HandleGet(const web::Request& req, web::Response* resp) {
     stalker_->Format(fmt.get());
     return 200;
   }
+
+#if !defined(NDEBUG)
+  if (RE2::FullMatch(uri, "/(?:index|log|stalker)\\.(css|js)", &format)) {
+    std::string path("esologs/web"); path += uri;
+    std::FILE* f = std::fopen(path.c_str(), "rb");
+    if (f) {
+      web::Writer w(resp, format == "css" ? "text/css" : "text/javascript", 200);
+      std::string buffer;
+      constexpr std::size_t kBufferSize = 65536;
+      while (true) {
+        buffer.resize(kBufferSize);
+        std::size_t got = std::fread(buffer.data(), 1, kBufferSize, f);
+        if (got == 0)
+          break;
+        buffer.resize(got);
+        w.Write(buffer);
+      }
+      return 200;
+    }
+  }
+#endif // !defined(NDEBUG)
 
   FormatError(resp, 404, "unknown path: %s", uri);
   return 404;
