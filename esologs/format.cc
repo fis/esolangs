@@ -198,7 +198,8 @@ constexpr const char* kLineDescriptions[] = {
   /* ERROR: */ "?",
 };
 
-struct LogLineFormatter : public LogFormatter {
+class LogLineFormatter : public LogFormatter {
+ public:
   void FormatEvent(const LogEvent& event) override;
   virtual void FormatLine(const LogLine& line) = 0;
  private:
@@ -287,9 +288,10 @@ void LogLineFormatter::FormatEvent(const LogEvent& event) {
   FormatLine(line);
 }
 
-struct HtmlLineFormatter : public LogLineFormatter {
-  web::Writer web_;
+class HtmlLineFormatter : public LogLineFormatter {
+ public:
   HtmlLineFormatter(web::Response* resp) : web_(resp, kContentTypeHtml) {}
+  HtmlLineFormatter(std::string* buffer) : web_(buffer) {}
   void FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) override;
   void FormatFooter(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) override;
   void FormatStalkerHeader(int year) override;
@@ -298,6 +300,9 @@ struct HtmlLineFormatter : public LogLineFormatter {
   void FormatElision() override;
   void FormatLine(const LogLine& line) override;
  private:
+  web::Writer web_;
+  std::int64_t last_day_ = 0;
+  std::uint64_t last_line_ = 0;
   void FormatNav(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next);
 };
 
@@ -396,18 +401,10 @@ struct IrcFormat {
 
   void AppendClass(std::string* out) {
     const char* sep = "";
-    if (bold) {
-      *out += sep; *out += "fb"; sep = " ";
-    }
-    if (italic) {
-      *out += sep; *out += "fi"; sep = " ";
-    }
-    if (underline) {
-      *out += sep; *out += "fu"; sep = " ";
-    }
-    if (strikethrough) {
-      *out += sep; *out += "fs"; sep = " ";
-    }
+    if (bold) { *out += sep; *out += "fb"; sep = " "; }
+    if (italic) { *out += sep; *out += "fi"; sep = " "; }
+    if (underline) { *out += sep; *out += "fu"; sep = " "; }
+    if (strikethrough) { *out += sep; *out += "fs"; sep = " "; }
     if (fg != -1) {
       *out += sep; *out += "fc"; *out += std::to_string(fg); sep = " ";
     }
@@ -509,6 +506,9 @@ void HtmlLineFormatter::FormatLine(const LogLine& line) {
     link.resize(10);
     std::snprintf(link.data(), 11, "%04u-%02u-%02u", (unsigned) ymd.year % 10000, (unsigned) ymd.month % 100, (unsigned) ymd.day % 100);
     link += ".html#l"; RowId(line.line, &link);
+
+    last_day_ = line.day;
+    last_line_ = line.line;
   } else {
     id = " id=\"l"; RowId(line.line, &id); id += '"';
     link = "#l"; RowId(line.line, &link);
@@ -552,8 +552,8 @@ void HtmlLineFormatter::FormatLine(const LogLine& line) {
   web_.Write("</div>\n");
 }
 
-struct TextLineFormatter : public LogLineFormatter {
-  web::Writer web_;
+class TextLineFormatter : public LogLineFormatter {
+ public:
   TextLineFormatter(web::Response* resp) : web_(resp, kContentTypeText) {}
   void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
   void FormatFooter(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
@@ -562,6 +562,8 @@ struct TextLineFormatter : public LogLineFormatter {
   void FormatDay(bool multiday, int year, int month, int day) override;
   void FormatElision() override;
   void FormatLine(const LogLine& line) override;
+ private:
+  web::Writer web_;
 };
 
 void TextLineFormatter::FormatDay(bool multiday, int year, int month, int day) {
@@ -617,10 +619,8 @@ void TextLineFormatter::FormatLine(const LogLine& line) {
   }
 }
 
-struct RawFormatter : public LogFormatter {
-  web::Writer web_;
-  unsigned long offset_s_;
-
+class RawFormatter : public LogFormatter {
+ public:
   RawFormatter(web::Response* resp) : web_(resp, kContentTypeText), offset_s_(0) {}
   void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
   void FormatFooter(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
@@ -629,6 +629,9 @@ struct RawFormatter : public LogFormatter {
   void FormatDay(bool, int year, int month, int day) override;
   void FormatElision() override {}
   void FormatEvent(const LogEvent& event) override;
+ private:
+  web::Writer web_;
+  unsigned long offset_s_;
 };
 
 void RawFormatter::FormatDay(bool, int year, int month, int day) {
@@ -657,6 +660,10 @@ void RawFormatter::FormatEvent(const LogEvent& event) {
 
 std::unique_ptr<LogFormatter> LogFormatter::CreateHTML(web::Response* resp) {
   return std::make_unique<internal::HtmlLineFormatter>(resp);
+}
+
+std::unique_ptr<LogFormatter> LogFormatter::CreateHTML(std::string* buffer) {
+  return std::make_unique<internal::HtmlLineFormatter>(buffer);
 }
 
 std::unique_ptr<LogFormatter> LogFormatter::CreateText(web::Response* resp) {

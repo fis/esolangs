@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <optional>
+#include <string>
 
 #include "esologs/index.h"
 #include "esologs/log.pb.h"
@@ -16,6 +17,7 @@ void FormatError(web::Response* resp, int code, const char* fmt, ...);
 
 struct LogFormatter {
   static std::unique_ptr<LogFormatter> CreateHTML(web::Response* resp);
+  static std::unique_ptr<LogFormatter> CreateHTML(std::string* buffer);
   static std::unique_ptr<LogFormatter> CreateText(web::Response* resp);
   static std::unique_ptr<LogFormatter> CreateRaw(web::Response* resp);
 

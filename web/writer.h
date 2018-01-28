@@ -2,6 +2,7 @@
 #define WEB_WRITER_H_
 
 #include <cstdlib>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -11,7 +12,11 @@ namespace web {
 
 class Writer {
  public:
+  /** Writer for a web response. */
   Writer(Response* resp, const char* content_type, int response_code=200);
+  /** Writer to an external buffer. */
+  Writer(std::string* buffer) : buffer_(buffer) {}
+
   ~Writer() { Flush(true); }
 
   template <typename... Args>
@@ -23,8 +28,10 @@ class Writer {
  private:
   static constexpr std::size_t kFlushAt = 8192;
 
-  std::string buffer_;
-  Response* resp_;
+  Response* resp_ = nullptr;
+
+  std::unique_ptr<std::string> owned_buffer_;
+  std::string* buffer_;
 
   template <typename Arg1, typename... Args>
   void DoWrite(Arg1&& arg1, Args&&... args) {
@@ -33,12 +40,12 @@ class Writer {
   }
   void DoWrite() {}
 
-  void Append(const char* s) { buffer_ += s; }
-  void Append(const std::string& s) { buffer_ += s; }
+  void Append(const char* s) { *buffer_ += s; }
+  void Append(const std::string& s) { *buffer_ += s; }
 
   template <typename Number>
   auto Append(Number n) -> decltype((void)std::to_string(n), void()) {
-    buffer_ += std::to_string(n);
+    *buffer_ += std::to_string(n);
   }
 
   template <typename T>
