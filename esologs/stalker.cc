@@ -212,6 +212,7 @@ void Stalker::Accepted(std::unique_ptr<event::Socket> socket) {
     std::lock_guard<std::mutex> lock(events_lock_);
     if (events_.empty())
       Backfill();
+    events_loaded_ = true;
   }
 
   writer_ = std::move(socket);

@@ -53,11 +53,11 @@ class Stalker : public event::ServerSocket::Watcher, public event::Socket::Watch
 
   std::deque<LogEvent> events_;
   std::mutex events_lock_;
-  std::atomic<bool> events_loaded_;
+  std::atomic<bool> events_loaded_ = false;
 
   base::owner_set<Client> clients_;
   std::mutex clients_lock_;
-  std::atomic<bool> clients_active_;
+  std::atomic<bool> clients_active_ = false;
 
   std::int64_t last_day_;
   std::uint64_t last_line_;
