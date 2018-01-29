@@ -24,6 +24,8 @@
             lastLine = parseInt(sNode.dataset.stalkerLine);
             if (!lastDay)
                 throw 'missing index of last message';
+
+            window.setTimeout(scrollToBottom, 100);
         } catch (err) {
             disable(err);
             return;
@@ -85,10 +87,13 @@
                 if (!nextDay)
                     throw 'missing header';
                 if (nextDay > lastDay || (nextDay == lastDay && nextLine > lastLine)) {
+                    var scroll = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 10;
                     var div = document.createElement('div');
                     div.innerHTML = event.data;
                     while (div.firstChild)
                         sNode.appendChild(div.firstChild);
+                    if (scroll)
+                        scrollToBottom();
                     lastDay = nextDay; lastLine = nextLine;
                     retryAttempt = 0;  // reset retry counter
                 }
@@ -172,6 +177,10 @@
             }
             eofNode.style.display = 'block';
         }
+    }
+
+    function scrollToBottom() {
+        window.scrollTo(0, document.documentElement.scrollHeight);
     }
 
     document.addEventListener('DOMContentLoaded', init);
