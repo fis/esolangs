@@ -1,5 +1,6 @@
 #include <date/date.h>
 
+#include "base/buffer.h"
 #include "esologs/stalker.h"
 #include "web/server.h"
 
@@ -41,13 +42,12 @@ bool Stalker::Client::Send(const LogEvent& event) {
 
   std::optional<std::size_t> wrote;
 
-  // TODO: add DataView-style helper methods in base/buffer.h
   {
-    unsigned char buf[8];
-    buf[0] = day; buf[1] = day >> 8; buf[2] = day >> 16; buf[3] = day >> 24;
-    buf[4] = line; buf[5] = line >> 8; buf[6] = line >> 16; buf[7] = line >> 24;
-    wrote = socket_->Write(web::Websocket::Type::kBinary, buf, sizeof buf);
-    if (!wrote || *wrote != sizeof buf) {
+    base::byte_array<8> buf;
+    base::write_i32(day, buf, 0);
+    base::write_u32(day, buf, 4);
+    wrote = socket_->Write(web::Websocket::Type::kBinary, buf.data(), buf.size());
+    if (!wrote || *wrote != buf.size()) {
       LOG(WARNING) << "stalker websocket: header write failed";
       return false;
     }
@@ -96,16 +96,8 @@ web::Websocket::Result Stalker::Client::WebsocketData(web::Websocket* socket, we
     return web::Websocket::Result::kClose;
   }
 
-  auto msg_day =
-      (std::int32_t) buf[0]
-      | (std::int32_t) buf[1] << 8
-      | (std::int32_t) buf[2] << 16
-      | (std::int32_t) buf[3] << 24;
-  auto msg_line =
-      (std::uint32_t) buf[4]
-      | (std::uint32_t) buf[5] << 8
-      | (std::uint32_t) buf[6] << 16
-      | (std::uint32_t) buf[7] << 24;
+  auto msg_day = base::read_i32(buf, 0);
+  auto msg_line = base::read_u32(buf, 4);
 
   {
     std::lock_guard<std::mutex> lock(stalker_->clients_lock_);
