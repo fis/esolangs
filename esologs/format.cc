@@ -116,7 +116,7 @@ void FormatIndex(web::Response* resp, const LogIndex& index, int y) {
       web.Write("<h1><a href=\"", YMD(y), ".html\">", YMD(y), "</a></h1>\n");
 
     if (y == y_last)
-      web.Write("<ul class=\"s\"><li class=\"m\"><a href=\"stalker.html\">stalker mode</a></li></ul>\n");
+      web.Write("<ul class=\"s\"><li class=\"m\"><a href=\"stalker.html#eof\">stalker mode</a></li></ul>\n");
 
     web.Write("<div class=\"b\">\n");
 
