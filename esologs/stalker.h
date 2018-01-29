@@ -6,6 +6,7 @@
 #include <mutex>
 
 #include <date/date.h>
+#include <prometheus/registry.h>
 
 #include "base/owner_set.h"
 #include "esologs/config.pb.h"
@@ -20,7 +21,7 @@ namespace esologs {
 
 class Stalker : public event::ServerSocket::Watcher, public event::Socket::Watcher {
  public:
-  Stalker(const Config& config, event::Loop* loop, LogIndex* index);
+  Stalker(const Config& config, event::Loop* loop, LogIndex* index, prometheus::Registry* metric_registry = nullptr);
   ~Stalker();
 
   void Format(LogFormatter* fmt);
@@ -60,6 +61,9 @@ class Stalker : public event::ServerSocket::Watcher, public event::Socket::Watch
 
   std::int64_t last_day_;
   std::uint64_t last_line_;
+
+  prometheus::Gauge* metric_clients_ = nullptr;
+  prometheus::Gauge* metric_last_received_ = nullptr;
 
   void Backfill();
 };

@@ -20,6 +20,7 @@ cc_binary(
         "@fi_zem_bracket//proto:delim",
         "@fi_zem_bracket//proto:util",
         "@hinnant_date//:date",
+        "@prometheus_cpp//:prometheus_cpp",
     ],
     linkopts = ["-lstdc++fs"],
 )

@@ -7,4 +7,5 @@ message Config {
   string log_path = 2;
   string nick = 3;
   string stalker_socket = 4;
+  string metrics_addr = 5;
 }

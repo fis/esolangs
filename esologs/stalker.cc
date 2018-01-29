@@ -124,6 +124,8 @@ void Stalker::Client::WebsocketClose(web::Websocket* socket) {
   std::lock_guard<std::mutex> lock(stalker_->clients_lock_);
 
   stalker_->clients_.erase(this);  // self-destruct
+  if (stalker_->metric_clients_)
+    stalker_->metric_clients_->Set(stalker_->clients_.size());
 
   bool active = false;
   for (Client* client : stalker_->clients_) {
@@ -135,7 +137,21 @@ void Stalker::Client::WebsocketClose(web::Websocket* socket) {
   stalker_->clients_active_ = active;
 }
 
-Stalker::Stalker(const Config& config, event::Loop* loop, LogIndex* index) : loop_(loop), index_(index) {
+Stalker::Stalker(const Config& config, event::Loop* loop, LogIndex* index, prometheus::Registry* metric_registry)
+    : loop_(loop), index_(index) {
+  if (metric_registry) {
+    metric_clients_ = &prometheus::BuildGauge()
+        .Name("esologs_stalker_active_clients")
+        .Help("How many websocket stalker clients are currently active?")
+        .Register(*metric_registry)
+        .Add({});
+    metric_last_received_ = &prometheus::BuildGauge()
+        .Name("esologs_stalker_last_message_time")
+        .Help("When was the last log message received from the stalker feed?")
+        .Register(*metric_registry)
+        .Add({});
+  }
+
   server_ = event::ListenUnix(loop, this, config.stalker_socket(), event::Socket::SEQPACKET);
   LOG(INFO) << "stalker server listening at: " << config.stalker_socket();
 }
@@ -193,7 +209,10 @@ void Stalker::UpdateClients() {
 
 web::WebsocketClientHandler* Stalker::AddClient() {
   std::lock_guard<std::mutex> lock(clients_lock_);
-  return clients_.emplace(this);
+  auto* handler = clients_.emplace(this);
+  if (metric_clients_)
+    metric_clients_->Set(clients_.size());
+  return handler;
 }
 
 void Stalker::Accepted(std::unique_ptr<event::Socket> socket) {
@@ -247,6 +266,9 @@ void Stalker::CanRead() {
     if (events_.size() > kQueueSize)
       events_.pop_front();
   }
+
+  if (metric_last_received_)
+    metric_last_received_->SetToCurrentTime();
 
   if (clients_active_)
     UpdateClients();

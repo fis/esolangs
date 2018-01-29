@@ -6,6 +6,8 @@
 #include <string>
 #include <thread>
 
+#include <prometheus/exposer.h>
+#include <prometheus/registry.h>
 #include "re2/re2.h"
 
 #include "base/log.h"
@@ -41,6 +43,9 @@ class Server : public web::RequestHandler, public web::WebsocketHandler {
   std::unique_ptr<LogIndex> index_;
   std::unique_ptr<Stalker> stalker_;
 
+  std::unique_ptr<prometheus::Exposer> metric_exposer_;
+  std::shared_ptr<prometheus::Registry> metric_registry_;
+
   const RE2 re_index_ = RE2("/(?:(\\d+|all)\\.html)?");
   const RE2 re_logfile_ = RE2("/(\\d+)-(\\d+)(?:-(\\d+))?(\\.html|\\.txt|-raw\\.txt)");
   const RE2 re_stalker_ = RE2("/stalker(\\.html|\\.txt|-raw\\.txt)");
@@ -61,12 +66,18 @@ Server::Server(const char* config_file, event::Loop* loop) : loop_(loop) {
   if (config.nick().empty())
     throw base::Exception("missing required setting: nick");
 
+  if (!config.metrics_addr().empty()) {
+    metric_exposer_ = std::make_unique<prometheus::Exposer>(config.metrics_addr());
+    metric_registry_ = std::make_shared<prometheus::Registry>();
+    metric_exposer_->RegisterCollectable(metric_registry_);
+  }
+
   nick_ = config.nick();
 
   index_ = std::make_unique<LogIndex>(config.log_path());
 
   if (!config.stalker_socket().empty())
-    stalker_ = std::make_unique<Stalker>(config, loop_, index_.get());
+    stalker_ = std::make_unique<Stalker>(config, loop_, index_.get(), metric_registry_.get());
 
   web_server_ = std::make_unique<web::Server>(config.listen_port());
   web_server_->AddHandler("/", this);
