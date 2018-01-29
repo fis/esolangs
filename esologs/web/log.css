@@ -33,7 +33,7 @@ span.mb, span.ed { /* message body, non-message event description */
     flex: 1;
 }
 
-div.n, span.mb, span.eb, span.s { /* white-space sensitive fields */
+div.n, span.t, span.mb, span.eb, span.s { /* white-space sensitive fields */
     white-space: pre-wrap;
 }
 
