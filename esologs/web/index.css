@@ -24,6 +24,9 @@ ul {
     margin: 0.5rem 0 0.5rem 0;
     padding: 0 2rem 0 2rem;
 }
+ul.s {
+    margin-top: 1rem;
+}
 li {
     white-space: pre;
 }
@@ -31,7 +34,7 @@ li.m {
     margin: 0.5rem 0 0.5rem 0;
 }
 
-div#b {
+div.b {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;

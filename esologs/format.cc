@@ -91,6 +91,7 @@ void FormatIndex(web::Response* resp, const LogIndex& index, int y) {
     web.Write(kAnnouncement);
 
   auto [y_min, y_max] = index.bounds();
+  int y_last = y_max;
 
   if (!all) {
     web.Write("<h1>");
@@ -113,7 +114,11 @@ void FormatIndex(web::Response* resp, const LogIndex& index, int y) {
   for (y = y_max; y >= y_min; --y) {
     if (all)
       web.Write("<h1><a href=\"", YMD(y), ".html\">", YMD(y), "</a></h1>\n");
-    web.Write("<div id=\"b\">\n");
+
+    if (y == y_last)
+      web.Write("<ul class=\"s\"><li class=\"m\"><a href=\"stalker.html\">stalker mode</a></li></ul>\n");
+
+    web.Write("<div class=\"b\">\n");
 
     int mh = 0;
     index.For(y, [&web, &mh](int y, int m, int d) {
