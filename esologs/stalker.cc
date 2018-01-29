@@ -45,7 +45,7 @@ bool Stalker::Client::Send(const LogEvent& event) {
   {
     base::byte_array<8> buf;
     base::write_i32(day, buf, 0);
-    base::write_u32(day, buf, 4);
+    base::write_u32(line, buf, 4);
     wrote = socket_->Write(web::Websocket::Type::kBinary, buf.data(), buf.size());
     if (!wrote || *wrote != buf.size()) {
       LOG(WARNING) << "stalker websocket: header write failed";
