@@ -139,7 +139,7 @@ std::unique_ptr<proto::DelimReader> LogIndex::Open(int y, int m, int d) {
   } else {
     logfile += ".br";
     if (fs::is_regular_file(logfile))
-      return std::make_unique<proto::DelimReader>(proto::BrotliInputStream::FromFile(logfile.c_str()));
+      return std::make_unique<proto::DelimReader>(base::own(proto::BrotliInputStream::FromFile(logfile.c_str())));
   }
 
   return nullptr;

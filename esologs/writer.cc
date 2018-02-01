@@ -142,7 +142,7 @@ void Writer::Stalker::ConnectionFailed(const std::string& error) {
   CHECK(state_ == kConnecting);
   state_ = kWaiting;
   socket_.reset();
-  loop_->Delay(kReconnectDelay, this);
+  loop_->Delay(kReconnectDelay, base::borrow(this));
 }
 
 void Writer::Stalker::CanRead() {
@@ -152,7 +152,7 @@ void Writer::Stalker::CanRead() {
   LOG(WARNING) << "stalker connection broken";
   state_ = kWaiting;
   socket_.reset();
-  loop_->Delay(kReconnectDelay, this);
+  loop_->Delay(kReconnectDelay, base::borrow(this));
 }
 
 void Writer::Stalker::Write(const LogEvent& event) {
@@ -173,7 +173,7 @@ void Writer::Stalker::Write(const LogEvent& event) {
     LOG(WARNING) << "stalker write failed: " << socket_path_ << ": " << err.what();
     state_ = kWaiting;
     socket_.reset();
-    loop_->Delay(kReconnectDelay, this);
+    loop_->Delay(kReconnectDelay, base::borrow(this));
   }
 }
 

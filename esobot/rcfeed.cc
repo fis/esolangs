@@ -54,7 +54,7 @@ RcFeed::RcFeed(const RcFeedConfig& config, irc::bot::PluginHost* host)
 
   addrs.release();
 
-  host_->loop()->ReadFd(socket_, &socket_ready_callback_);
+  host_->loop()->ReadFd(socket_, base::borrow(&socket_ready_callback_));
 }
 
 RcFeed::~RcFeed() {
