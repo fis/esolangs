@@ -47,7 +47,7 @@ for fname in sorted(glob.glob('tmp/codu/*-raw.txt')):
             if prefix:
                 event.prefix = prefix
             event.command = cmd
-            if direction == '>':
+            if direction == b'>':
                 event.direction = log_pb2.LogEvent.SENT
 
             while args:
