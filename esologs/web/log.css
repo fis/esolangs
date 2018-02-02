@@ -31,6 +31,8 @@ span.ma, span.x { /* message author, -!- event marker */
 
 span.mb, span.ed { /* message body, non-message event description */
     flex: 1;
+    word-wrap: break-word;
+    min-width: 50%;
 }
 
 div.n, span.t, span.mb, span.eb, span.s { /* white-space sensitive fields */
