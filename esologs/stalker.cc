@@ -44,8 +44,8 @@ bool Stalker::Client::Send(const LogEvent& event) {
 
   {
     base::byte_array<8> buf;
-    base::write_i32(day, buf, 0);
-    base::write_u32(line, buf, 4);
+    base::write_i32(day, &buf[0]);
+    base::write_u32(line, &buf[4]);
     wrote = socket_->Write(web::Websocket::Type::kBinary, buf.data(), buf.size());
     if (!wrote || *wrote != buf.size()) {
       LOG(WARNING) << "stalker websocket: header write failed";
@@ -96,8 +96,8 @@ web::Websocket::Result Stalker::Client::WebsocketData(web::Websocket* socket, we
     return web::Websocket::Result::kClose;
   }
 
-  auto msg_day = base::read_i32(buf, 0);
-  auto msg_line = base::read_u32(buf, 4);
+  auto msg_day = base::read_i32(&buf[0]);
+  auto msg_line = base::read_u32(&buf[4]);
 
   {
     std::lock_guard<std::mutex> lock(stalker_->clients_lock_);
@@ -144,7 +144,10 @@ Stalker::Stalker(const Config& config, event::Loop* loop, LogIndex* index, prome
         .Add({});
   }
 
-  server_ = event::ListenUnix(loop, this, config.stalker_socket(), event::Socket::SEQPACKET);
+  auto server = event::ListenUnix(loop, this, config.stalker_socket(), event::Socket::SEQPACKET);
+  if (!server.ok())
+    throw base::Exception(*server.error());
+  server_ = server.ptr();
   LOG(INFO) << "stalker server listening at: " << config.stalker_socket();
 }
 
@@ -221,19 +224,25 @@ void Stalker::Accepted(std::unique_ptr<event::Socket> socket) {
   LOG(INFO) << "stalker client connected";
 }
 
+void Stalker::AcceptError(std::unique_ptr<base::error> error) {
+  LOG(WARNING) << "stalker client accept failed: " << *error;
+}
+
 void Stalker::CanRead() {
   CHECK(writer_);
 
   std::size_t size;
-  try {
-    size = writer_->Read(read_buffer_.data(), read_buffer_.size());
-    if (size == 0)
+  {
+    auto ret = writer_->Read(read_buffer_.data(), read_buffer_.size());
+    if (!ret.ok()) {
+      LOG(WARNING) << "stalker event read failed: " << *ret.error();
+      writer_.reset();
       return;
-  } catch (const event::Socket::Exception& err) {
-    LOG(WARNING) << "stalker event read failed: " << err.what();
-    writer_.reset();
-    return;
+    }
+    size = ret.size();
   }
+  if (size == 0)
+    return;
 
   writer_->StartRead();
 

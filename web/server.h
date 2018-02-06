@@ -10,7 +10,7 @@
 #include "civetweb.h"
 
 #include "base/common.h"
-#include "base/owner_set.h"
+#include "base/unique_set.h"
 #include "web/request.h"
 #include "web/response.h"
 #include "web/websocket.h"
@@ -40,7 +40,7 @@ class Server {
 
   struct mg_context* civet_ctx_;
   std::vector<WebsocketHandlerRecord> websocket_handlers_;
-  base::owner_set<CivetWebsocket> websocket_clients_;
+  base::unique_set<CivetWebsocket> websocket_clients_;
 
   static int CivetRequestHandler(struct mg_connection* conn, void* cb);
   static int CivetWebsocketConnectHandler(const struct mg_connection* conn, void* cb);

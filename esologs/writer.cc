@@ -5,6 +5,7 @@
 #include <experimental/filesystem>
 #include <string>
 
+#include "base/exc.h"
 #include "esologs/config.pb.h"
 #include "esologs/log.pb.h"
 #include "esologs/writer.h"
@@ -23,7 +24,7 @@ class Writer::Stalker : public event::Socket::Watcher, public event::Timed {
   { Connect(); }
 
   void ConnectionOpen() override;
-  void ConnectionFailed(const std::string& error) override;
+  void ConnectionFailed(std::unique_ptr<base::error> error) override;
   void CanRead() override;
   void CanWrite() override {}
 
@@ -136,8 +137,8 @@ void Writer::Stalker::ConnectionOpen() {
   socket_->StartRead();  // monitor readability for detecting disconnect early
 }
 
-void Writer::Stalker::ConnectionFailed(const std::string& error) {
-  LOG(WARNING) << "stalker connect failed: " << socket_path_ << ": " << error;
+void Writer::Stalker::ConnectionFailed(std::unique_ptr<base::error> error) {
+  LOG(WARNING) << "stalker connect failed: " << socket_path_ << ": " << *error;
 
   CHECK(state_ == kConnecting);
   state_ = kWaiting;
@@ -161,19 +162,24 @@ void Writer::Stalker::Write(const LogEvent& event) {
 
   CHECK(socket_);
 
-  try {
-    if (event.SerializeToString(&write_buffer_)) {
-      auto wrote = socket_->Write(write_buffer_.data(), write_buffer_.length());
-      if (wrote < write_buffer_.length())
-        LOG(WARNING) << "stalker write truncated: " << wrote << " < " << write_buffer_.length();
-    } else {
-      LOG(WARNING) << "stalker event serialization failed";
-    }
-  } catch (const event::Socket::Exception& err) {
-    LOG(WARNING) << "stalker write failed: " << socket_path_ << ": " << err.what();
+  if (!event.SerializeToString(&write_buffer_)) {
+    LOG(WARNING) << "stalker event serialization failed";
+    return;
+  }
+
+  auto wrote = socket_->Write(write_buffer_.data(), write_buffer_.length());
+
+  if (wrote.failed()) {
+    LOG(WARNING) << "stalker write failed: " << socket_path_ << ": " << *wrote.error();
     state_ = kWaiting;
     socket_.reset();
     loop_->Delay(kReconnectDelay, base::borrow(this));
+    return;
+  }
+
+  if (wrote.size() < write_buffer_.length()) {
+    LOG(WARNING) << "stalker write truncated: " << wrote.size() << " < " << write_buffer_.length();
+    return;
   }
 }
 
@@ -182,13 +188,18 @@ void Writer::Stalker::Connect() {
   CHECK(!socket_);
 
   state_ = kConnecting;
-  socket_ = event::Socket::Builder()
+  auto maybe_socket = event::Socket::Builder()
       .loop(loop_)
       .watcher(this)
       .unix(socket_path_)
       .kind(event::Socket::SEQPACKET)
       .Build();
-  socket_->Start();
+  if (maybe_socket.ok()) {
+    socket_ = maybe_socket.ptr();
+    socket_->Start();
+  } else {
+    ConnectionFailed(maybe_socket.error());
+  }
 }
 
 } // namespace esologs

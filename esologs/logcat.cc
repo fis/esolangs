@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
       {
         std::string_view arg(argv[i]);
         if (arg.size() >= 6 && arg.substr(arg.size() - 6) == ".pb.br") {
-          reader = std::make_unique<proto::DelimReader>(proto::BrotliInputStream::FromFile(argv[i]));
+          reader = std::make_unique<proto::DelimReader>(base::own(proto::BrotliInputStream::FromFile(argv[i])));
         } else if (arg.size() >= 3 && arg.substr(arg.size() - 3) == ".pb") {
           reader = std::make_unique<proto::DelimReader>(argv[i]);
         } else {

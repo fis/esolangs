@@ -8,7 +8,8 @@
 #include <date/date.h>
 #include <prometheus/registry.h>
 
-#include "base/owner_set.h"
+#include "base/exc.h"
+#include "base/unique_set.h"
 #include "esologs/config.pb.h"
 #include "esologs/format.h"
 #include "esologs/index.h"
@@ -32,10 +33,11 @@ class Stalker : public event::ServerSocket::Watcher, public event::Socket::Watch
   bool loaded() { return events_loaded_; }
 
   void Accepted(std::unique_ptr<event::Socket> socket) override;
+  void AcceptError(std::unique_ptr<base::error> error) override;
   void CanRead() override;
 
   void ConnectionOpen() override {}
-  void ConnectionFailed(const std::string& error) override {}
+  void ConnectionFailed(std::unique_ptr<base::error> error) override {}
   void CanWrite() override {}
 
  private:
@@ -55,7 +57,7 @@ class Stalker : public event::ServerSocket::Watcher, public event::Socket::Watch
   std::mutex events_lock_;
   std::atomic<bool> events_loaded_ = false;
 
-  base::owner_set<Client> clients_;
+  base::unique_set<Client> clients_;
   std::mutex clients_lock_;
   std::atomic<bool> clients_active_ = false;
 
