@@ -27,3 +27,6 @@ new_http_archive(
     sha256 = "1449fa9355340fe3f5bac103d0ec28f49172a7e6c91bf6611b4e8e2e4ac6dcd0",
     build_file = "//tools:hinnant_date.BUILD",
 )
+
+load("@esowiki//webgen:closure.bzl", "closure_compiler_repository")
+closure_compiler_repository()
