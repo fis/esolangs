@@ -1,0 +1,70 @@
+/* global styles */
+
+body {
+    padding-top: 70px;
+}
+
+@import '_open-iconic';
+
+/* about page */
+
+p#joustResult {
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+textarea#code {
+    font-family: monospace;
+}
+
+/* scores page */
+
+.sorticon {
+    font-size: x-small;
+    padding: 3px;
+    cursor: pointer;
+}
+.sortactive {
+    color: #a00;
+}
+
+.extracolumns button {
+    margin-right: 4px;
+}
+
+/* matrix page */
+
+div#matrix { padding-bottom: 20px; }
+
+table.matrix {
+    th, td { padding: 2px; }
+    th { font-size: small; font-weight: normal; text-align: center; }
+    td.progname { font-size: small; padding-left: 8px; white-space: nowrap; word-break: keep-all; }
+
+    th.hov, td.hov { font-weight: bold; background-color: #ccc; }
+}
+
+.me { background-color: #bbb; }
+.mt { background-color: rgb(213,213,213); }
+.mt > a { color: black; }
+
+/* breakdown page */
+
+a.view { font-size: small; }
+span.result { font-weight: bold; font-family: monospace; font-size: large; white-space: pre; }
+span.loss { color: #0000fc; }
+span.tie { color: #888888; }
+span.win { color: #d20000; }
+span.winner { font-weight: bold; }
+
+/* game page */
+
+#ejForm textarea {
+    margin-top: 2ex;
+    font-family: monospace;
+}
+#ejForm input[type=button] {
+    margin-top: 2ex;
+}

@@ -1,0 +1,11 @@
+---
+name: mathjax
+scripts:
+- :name: mathjax
+---
+<script type="text/x-mathjax-config">
+	MathJax.Hub.Config({
+		TeX: { Macros: { mat: ["{\\bf #1}", 1] } },
+		tex2jax: { inlineMath: [ ['$','$'], ["\\(","\\)"] ] }
+	});
+</script>

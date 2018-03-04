@@ -1,0 +1,52 @@
+---
+name: content
+path: index
+scripts:
+- src: js/submit.js
+---
+<h3>Introduction</h3>
+<p>
+	This is the home of a <strong>esolangs.org</strong> BF Joust hill running on the <code>#esoteric</code> IRC channel in freenode.
+</p>
+<p>
+	For more details on the game, see the <a href="http://esolangs.org/wiki/BF_Joust">BF Joust</a> and <a href="http://esolangs.org/wiki/BF_Joust_strategies">BF Joust strategies</a> pages at the <a href="http://esolangs.org/">esolangs wiki</a>.
+</p>
+<h3>Current scores</h3>
+<p>
+	The <a href="scores.html">score table</a> and <a href="matrix.html">result matrix</a>, as well as a <a href="breakdown.html">breakdown report</a> and a <a href="game.html">game viewer</a>, are available &mdash; if your browser is compatible enough with the client-side fanciness.
+	If not (or if you prefer a more austere view), the old-fashioned <a href="report.txt">report.txt</a> and <a href="breakdown.txt">breakdown.txt</a> files are also an option.
+</p>
+<h3>How to participate?</h3>
+<p>
+	For serious use, consider joining the <code>#esoteric</code> IRC channel (on freenode).
+	The command to use is <code>!bfjoust program_name program_code</code>.
+	If your program is larger than what comfortably fits in an IRC message, write an URL in place of the code.
+	The <code>esowiki</code> bot should respond and tell you how things went.
+</p>
+<p>
+	If you want to tune your program before submitting, the <code>!bftest name code</code> command is available.
+	It is otherwise identical to <code>!bfjoust</code>, except does not really submit your program.
+	You can do this by private message to <code>esowiki</code> if you want.
+</p>
+<p>
+    You can also try the game out using the form below (if it works), but then you won't get your name on the leaderboards &mdash; all submissions via the form are considered to be owned by user <code>web</code>.
+</p>
+<hr>
+<form role="form">
+	<div class="form-group">
+		<label for="prog">Program name</label>
+		<input type="text" class="form-control" id="prog" placeholder="e.g. my_fancy_program" maxlength="48">
+	</div>
+	<div class="form-group">
+		<label for="code">BF Joust code</label>
+		<textarea class="form-control" id="code" rows="8"></textarea>
+	</div>
+	<div class="form-group">
+		<button type="button" id="submitTest" class="btn btn-primary">Test</button>
+		<button type="button" id="submitReal" class="btn btn-danger" style="margin-left: 2ex;">Submit for real</button>
+	</div>
+	<div class="form-group">
+		<label>Result</label>
+		<p class="form-control-static" id="joustResult">&nbsp;</p>
+	</div>
+</form>

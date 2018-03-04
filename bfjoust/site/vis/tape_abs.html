@@ -1,0 +1,14 @@
+---
+name: content
+path: vis tape_abs
+title: Tape absolute value map - Plots
+scripts:
+- src: js/vis.tape_abs.js
+---
+<%=
+	render(@plot,
+		title: 'Per-program absolute tape value map',
+		desc: 'This plot shows the absolute value (distance from 0) left on the tape at the end of the match.',
+		:tape => true
+	)
+%>

@@ -1,0 +1,50 @@
+---
+name: default
+styles:
+- href: css/main.css
+---
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<title><%= "#{@content['title']} - " if @content['title'] %>zem.fi BF Joust hill</title>
+		<%= styles %>
+	</head>
+	<body>
+		<div class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark" role="navigation">
+			<a class="navbar-brand" href="index.html">esolangs.org hill</a>
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarItems" aria-controls="navbarItems" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarItems">
+				<ul class="navbar-nav mr-auto">
+					<%
+						[['index', 'About'],
+						 ['scores', 'Scores'],
+						 ['matrix', 'Matrix'],
+						 ['breakdown', 'Breakdown'],
+						 ['game', 'Games'],
+						 ['vis', 'Plots'],
+						 ['internals', 'Internals']].each do |item|
+							id, label = item
+							active = @content['path'].split[0] == id
+							%>
+							<li class="nav-item<%= ' active' if active %>">
+								<a class="nav-link" href="<%= id %>.html"><%= label %></a>
+							</li>
+							<%
+						end
+					%>
+				</ul>
+			</div>
+		</div>
+
+		<div class="container">
+			<%= render @content %>
+		</div>
+
+		<%= render @mathjax if @mathjax %>
+		<%= scripts %>
+	</body>
+</html>

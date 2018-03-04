@@ -1,0 +1,16 @@
+---
+name: plot
+scripts:
+- :name: d3
+  :order: 50
+- src: data/meta.js
+  :order: 51
+---
+<h3>
+	<a href="vis.html"><span class="oi oi-chevron-left" aria-hidden="true"></span></a>
+	<%= args[:title] %>
+</h3>
+<p><%= args[:desc] %></p>
+<%= render @plot_tape if args[:tape] %>
+<div id="plot-controls"></div>
+<div id="plot-canvas"></div>

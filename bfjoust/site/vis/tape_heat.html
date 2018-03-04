@@ -1,0 +1,14 @@
+---
+name: content
+path: vis tape_heat
+title: Tape position heatmap - Plots
+scripts:
+- src: js/vis.tape_heat.js
+---
+<%=
+	render(@plot,
+		:title => 'Per-program tape position heatmap',
+		:desc => 'This plot shows the number of cycles a particular program spent on different tape cells during the tournament.',
+		:tape => true
+	)
+%>
