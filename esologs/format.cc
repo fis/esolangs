@@ -181,6 +181,7 @@ struct LogLine {
     MODE,
     TOPIC,
     ERROR,
+    IGNORED,
   };
   Type type;
   std::int64_t day;
@@ -201,6 +202,7 @@ constexpr const char* kLineDescriptions[] = {
   /* MODE: */ "set channel mode",
   /* TOPIC: */ "set topic",
   /* ERROR: */ "?",
+  /* IGNORED: */ "",
 };
 
 class LogLineFormatter : public LogFormatter {
@@ -225,10 +227,24 @@ void LogLineFormatter::FormatEvent(const LogEvent& event) {
     {"KICK", LogLine::KICK},
     {"MODE", LogLine::MODE},
     {"TOPIC", LogLine::TOPIC},
+    {"NAMES", LogLine::IGNORED},
   };
   static constexpr std::size_t kLineTypeCount = sizeof kLineTypes / sizeof *kLineTypes;
 
   LogLine line;
+
+  const std::string& cmd = event.command();
+  std::size_t line_type = 0;
+  for (; line_type < kLineTypeCount; ++line_type) {
+    if (cmd == kLineTypes[line_type].cmd) {
+      line.type = kLineTypes[line_type].type;
+      break;
+    }
+  }
+  if (line_type == kLineTypeCount)
+    line.type = LogLine::ERROR;
+  else if (line.type == LogLine::IGNORED)
+    return;
 
   auto time_us = event.time_us() % 86400000000u;
 
@@ -258,17 +274,6 @@ void LogLineFormatter::FormatEvent(const LogEvent& event) {
     else
       line.nick = "?unknown?";
   }
-
-  const std::string& cmd = event.command();
-  std::size_t line_type = 0;
-  for (; line_type < kLineTypeCount; ++line_type) {
-    if (cmd == kLineTypes[line_type].cmd) {
-      line.type = kLineTypes[line_type].type;
-      break;
-    }
-  }
-  if (line_type == kLineTypeCount)
-    line.type = LogLine::ERROR;
 
   int body_arg = (line.type == LogLine::QUIT || line.type == LogLine::NICK) ? 0 : 1;
   for (int i = body_arg; i < event.args_size(); ++i) {
