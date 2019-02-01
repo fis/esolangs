@@ -134,7 +134,7 @@ void Writer::Stalker::ConnectionOpen() {
 
   CHECK(state_ == kConnecting);
   state_ = kConnected;
-  socket_->StartRead();  // monitor readability for detecting disconnect early
+  socket_->WantRead(true);  // monitor readability for detecting disconnect early
 }
 
 void Writer::Stalker::ConnectionFailed(std::unique_ptr<base::error> error) {

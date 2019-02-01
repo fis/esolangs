@@ -220,7 +220,7 @@ void Stalker::Accepted(std::unique_ptr<event::Socket> socket) {
 
   writer_ = std::move(socket);
   writer_->SetWatcher(this);
-  writer_->StartRead();
+  writer_->WantRead(true);
   LOG(INFO) << "stalker client connected";
 }
 
@@ -243,8 +243,6 @@ void Stalker::CanRead() {
   }
   if (size == 0)
     return;
-
-  writer_->StartRead();
 
   {
     std::lock_guard<std::mutex> lock(events_lock_);

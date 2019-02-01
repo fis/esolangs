@@ -1,10 +1,12 @@
 workspace(name = "esowiki")
 
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 http_archive(
     name = "fi_zem_bracket",
-    urls = ["https://github.com/fis/bracket/archive/212d4c83a2fa7ebd85ae04120971b4f4220a4210.zip"],
-    strip_prefix = "bracket-212d4c83a2fa7ebd85ae04120971b4f4220a4210",
-    sha256 = "74255f71699ae9a3924106f36662fb897cf02f580646a523befc92e25f52b11e",
+    urls = ["https://github.com/fis/bracket/archive/ffcfbcc940457bf9db39ac92e212d1917736f8b6.zip"],
+    strip_prefix = "bracket-ffcfbcc940457bf9db39ac92e212d1917736f8b6",
+    sha256 = "2d7925e6c253e164dff69fcc732108a336ddf123b86199dd2a30c970dab50e3a",
 )
 
 # For development use:
@@ -20,7 +22,7 @@ http_archive(
     sha256 = "62797e7cd7cc959419710cd25b075b5f5b247da0e8214d47bf5af9b32128fb0d",
 )
 
-new_http_archive(
+http_archive(
     name = "hinnant_date",
     urls = ["https://github.com/HowardHinnant/date/archive/0af76547641987bc736d659b4eaf7cd720028288.zip"],
     strip_prefix = "date-0af76547641987bc736d659b4eaf7cd720028288",
