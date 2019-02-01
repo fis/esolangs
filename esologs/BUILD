@@ -23,6 +23,7 @@ cc_binary(
         "@prometheus_cpp//:prometheus_cpp",
     ],
     linkopts = ["-lstdc++fs"],
+    features = ["fully_static_link"],
 )
 
 cc_binary(

@@ -14,6 +14,7 @@ cc_binary(
         "@fi_zem_bracket//irc",
         "@fi_zem_bracket//irc/bot",
     ],
+    features = ["fully_static_link"],
 )
 
 proto_library(
