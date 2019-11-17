@@ -19,7 +19,7 @@ cur.execute('SET search_path TO logs')
 
 cur.execute('''
 SELECT
-  e.tstamp, e.type,
+  e.tstamp at time zone 'UTC', e.type,
   n.name, u.user, u.host,
   o.name,
   body
@@ -28,7 +28,10 @@ FROM
   LEFT JOIN nick n ON n.id = e.nick
   LEFT JOIN uhost u ON u.id = e.uhost
   LEFT JOIN nick o ON o.id = e.other
-WHERE e.target = 2
+WHERE
+  e.target = 2
+  AND e.tstamp >= timestamp '2019-05-28 00:00:00' at time zone 'UTC'
+  and e.tstamp < timestamp '2019-06-04 00:00:00' at time zone 'UTC'
 ORDER BY e.idx ASC
 ''')
 
@@ -49,16 +52,16 @@ def time_us(time):
     return time.hour * 3600000000 + time.minute * 60000000 + time.second * 1000000 + time.microsecond
 
 events = {
-    'msg':    ('PRIVMSG', ['chan', 'body']),
-    'notice': ('PRIVMSG', ['chan', 'body']),
-    'act':    ('PRIVMSG', ['chan', 'act']),
-    'join':   ('JOIN',    ['chan']),
-    'part':   ('PART',    ['chan', 'body']),
-    'quit':   ('QUIT',    ['body']),
-    'nick':   ('NICK',    ['nick']),
-    'kick':   ('KICK',    ['chan', 'nick']),
-    'topic':  ('TOPIC',   ['chan', 'body']),
-    'mode':   ('MODE',    'mode'),
+    'msg':    (b'PRIVMSG', ['chan', 'body']),
+    'notice': (b'PRIVMSG', ['chan', 'body']),
+    'act':    (b'PRIVMSG', ['chan', 'act']),
+    'join':   (b'JOIN',    ['chan']),
+    'part':   (b'PART',    ['chan', 'body']),
+    'quit':   (b'QUIT',    ['body']),
+    'nick':   (b'NICK',    ['nick']),
+    'kick':   (b'KICK',    ['chan', 'nick']),
+    'topic':  (b'TOPIC',   ['chan', 'body']),
+    'mode':   (b'MODE',    'mode'),
 }
 # act, mode
 
@@ -70,6 +73,9 @@ while True:
     if nick is None:
         continue
 
+    if body is not None: body = body.encode('utf-8')
+    if othernick is not None: othernick = othernick.encode('utf-8')
+
     if tstamp.date() != cur_date:
         if cur_log:
             write_log(cur_date, cur_log)
@@ -78,7 +84,7 @@ while True:
 
     event = log_pb2.LogEvent()
     event.time_us = time_us(tstamp.time())
-    event.prefix = nick + '!' + (user or '?') + '@' + (host or '?')
+    event.prefix = (nick + '!' + (user or '?') + '@' + (host or '?')).encode('utf-8')
 
     cmd, args = events[etype]
     event.command = cmd
@@ -94,10 +100,10 @@ while True:
             event.args.append(body)
     else:
         for arg in args:
-            if   arg == 'chan': event.args.append('#esoteric')
-            elif arg == 'body': event.args.append(body or '')
-            elif arg == 'act':  event.args.append('\x01ACTION ' + (body or '') + '\x01')
-            elif arg == 'nick': event.args.append(othernick or '?unknown?')
+            if   arg == 'chan': event.args.append(b'#esoteric')
+            elif arg == 'body': event.args.append(body or b'')
+            elif arg == 'act':  event.args.append(b'\x01ACTION ' + (body or b'') + b'\x01')
+            elif arg == 'nick': event.args.append(othernick or b'?unknown?')
 
     event = event.SerializeToString()
     cur_log += encoder._VarintBytes(len(event))
