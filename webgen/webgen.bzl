@@ -147,7 +147,7 @@ def website(name, srcs, preview_data=None, preview_redir={}):
 
     Due to genrule trickery, you should avoid putting too special
     characters in the map. In particular, the characters ' ^ ` must
-    not be used. Also remember to double \ characters in strings.
+    not be used. Also remember to double backslashes in strings.
 
     Args:
       name: base name for generated targets.

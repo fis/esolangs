@@ -4,9 +4,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "fi_zem_bracket",
-    urls = ["https://github.com/fis/bracket/archive/c21d7bc5e468a4ab7b9285b2060277db766930bc.zip"],
-    strip_prefix = "bracket-c21d7bc5e468a4ab7b9285b2060277db766930bc",
-    sha256 = "74aba681308c6815cc0f0e37a9132e2b3ca4be04ed695b6f13f2c137fa45e2fd",
+    urls = ["https://github.com/fis/bracket/archive/e2de41e9ae26d3fe9ec47e4c448b82c01931b051.zip"],
+    strip_prefix = "bracket-e2de41e9ae26d3fe9ec47e4c448b82c01931b051",
+    sha256 = "e2b741a223df9a71505f4746811aa2cd9a9910fc348cea382c3ef087e2ec3c03",
 )
 
 # For development use:
@@ -14,6 +14,9 @@ http_archive(
 
 load("@fi_zem_bracket//:repositories.bzl", "bracket_repositories")
 bracket_repositories()
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+protobuf_deps()
 
 http_archive(
     name = "com_googlesource_code_re2",

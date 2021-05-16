@@ -1,4 +1,5 @@
 #include <date/date.h>
+#include <prometheus/gauge.h>
 
 #include "base/buffer.h"
 #include "esologs/stalker.h"

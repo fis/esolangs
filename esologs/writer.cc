@@ -5,6 +5,8 @@
 #include <experimental/filesystem>
 #include <string>
 
+#include <prometheus/gauge.h>
+
 #include "base/exc.h"
 #include "esologs/config.pb.h"
 #include "esologs/log.pb.h"
