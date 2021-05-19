@@ -10,7 +10,7 @@ find /home/esowiki/logs -name '*.pb' | while read logfile; do
     if [[ "$logfile" =~ ^/home/esowiki/logs/([0-9]+)/([0-9]+)/([0-9]+)\.pb$ ]]; then
         logtime="$(TZ=UTC0 date --date="${BASH_REMATCH[1]}-${BASH_REMATCH[2]}-${BASH_REMATCH[3]}" +%s)"
         if (( logtime < cutoff )); then
-            brotli --quality 11 < "$logfile" > "${logfile}.br"
+            brotli --quality=11 < "$logfile" > "${logfile}.br"
             if diff -q "$logfile" <(brotli --decompress < "${logfile}.br"); then
                 rm "$logfile"
             else
