@@ -1,5 +1,17 @@
+load("@fi_zem_bracket//tools:gtest.bzl", "cc_gtest")
+
 cc_binary(
     name = "esologs",
+    srcs = ["esologs.cc"],
+    deps = [
+        ":server",
+        "@fi_zem_bracket//event",
+        "@fi_zem_bracket//proto:util",
+    ],
+)
+
+cc_library(
+    name = "server",
     srcs = [
         "format.cc",
         "format.h",
@@ -8,6 +20,9 @@ cc_binary(
         "server.cc",
         "stalker.cc",
         "stalker.h",
+    ],
+    hdrs = [
+        "server.h",
     ],
     deps = [
         ":config_cc_proto",
@@ -18,22 +33,22 @@ cc_binary(
         "@fi_zem_bracket//event",
         "@fi_zem_bracket//proto:brotli",
         "@fi_zem_bracket//proto:delim",
-        "@fi_zem_bracket//proto:util",
         "@hinnant_date//:date",
         "@com_github_jupp0r_prometheus_cpp//core",
         "@com_github_jupp0r_prometheus_cpp//pull",
     ],
     linkopts = ["-lstdc++fs"],
-    features = ["fully_static_link"],
 )
 
-cc_binary(
-    name = "logcat",
-    srcs = ["logcat.cc"],
+cc_gtest(
+    name = "server_test",
     deps = [
-        ":log_cc_proto",
-        "@fi_zem_bracket//proto:brotli",
-        "@fi_zem_bracket//proto:delim",
+        ":server",
+        "@com_github_yhirose_cpp_httplib//:httplib",
+    ],
+    data = [
+        "//testdata:golden_esologs",
+        "//testdata:test_logs",
     ],
 )
 
@@ -53,6 +68,16 @@ cc_library(
     ],
     linkopts = ["-lstdc++fs"],
     visibility = ["//esobot:__pkg__"],
+)
+
+cc_binary(
+    name = "logcat",
+    srcs = ["logcat.cc"],
+    deps = [
+        ":log_cc_proto",
+        "@fi_zem_bracket//proto:brotli",
+        "@fi_zem_bracket//proto:delim",
+    ],
 )
 
 proto_library(

@@ -23,6 +23,8 @@ class Server {
   ~Server();
   DISALLOW_COPY(Server);
 
+  int port() const;
+
   void AddHandler(const char* path, RequestHandler* handler);
   void AddWebsocketHandler(const char* path, WebsocketHandler* handler);
 

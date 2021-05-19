@@ -14,11 +14,11 @@
 #include "esologs/config.pb.h"
 #include "esologs/format.h"
 #include "esologs/index.h"
+#include "esologs/server.h"
 #include "esologs/stalker.h"
 #include "event/loop.h"
 #include "proto/brotli.h"
 #include "proto/delim.h"
-#include "proto/util.h"
 #include "web/server.h"
 #include "web/writer.h"
 
@@ -28,37 +28,7 @@ extern "C" {
 
 namespace esologs {
 
-class Server : public web::RequestHandler, public web::WebsocketHandler {
- public:
-  Server(const char* config_file, event::Loop* loop);
-
-  int HandleGet(const web::Request& req, web::Response* resp) override;
-  web::WebsocketClientHandler* HandleWebsocketClient(const char* uri, const char* protocol) override;
-
- private:
-  event::Loop* loop_;
-
-  std::string nick_;
-
-  std::unique_ptr<LogIndex> index_;
-  std::unique_ptr<Stalker> stalker_;
-
-  std::unique_ptr<prometheus::Exposer> metric_exposer_;
-  std::shared_ptr<prometheus::Registry> metric_registry_;
-
-  const RE2 re_index_ = RE2("/(?:(\\d+|all)\\.html)?");
-  const RE2 re_logfile_ = RE2("/(\\d+)-(\\d+)(?:-(\\d+))?(\\.html|\\.txt|-raw\\.txt)");
-  const RE2 re_stalker_ = RE2("/stalker(\\.html|\\.txt|-raw\\.txt)");
-
-  std::unique_ptr<web::Server> web_server_;
-
-  static std::unique_ptr<LogFormatter> CreateFormatter(const std::string& format, web::Response* resp);
-};
-
-Server::Server(const char* config_file, event::Loop* loop) : loop_(loop) {
-  Config config;
-  proto::ReadText(config_file, &config);
-
+Server::Server(const Config& config, event::Loop* loop) : loop_(loop) {
   if (config.listen_port().empty())
     throw base::Exception("missing required setting: listen_port");
   if (config.log_path().empty())
@@ -215,18 +185,3 @@ std::unique_ptr<LogFormatter> Server::CreateFormatter(const std::string& format,
 }
 
 } // namespace esologs
-
-int main(int argc, char* argv[]) {
-  if (argc != 2) {
-    LOG(ERROR) << "usage: " << argv[0] << " <esologs.config>";
-    return 1;
-  }
-
-  setenv("TZ", "UTC", 1);  // no-op, for safety
-  event::Loop loop;
-  esologs::Server server(argv[1], &loop);
-  LOG(INFO) << "server started";
-
-  loop.Run();
-  return 0;
-}

@@ -98,6 +98,13 @@ Server::~Server() {
   mg_stop(civet_ctx_);
 }
 
+int Server::port() const {
+  struct mg_server_port port_info;
+  if (mg_get_server_ports(civet_ctx_, 1, &port_info) != 1)
+    throw base::Exception("civetweb listen port unknown");
+  return port_info.port;
+}
+
 void Server::AddHandler(const char* path, RequestHandler* handler) {
   mg_set_request_handler(civet_ctx_, path, CivetRequestHandler, handler);
 }

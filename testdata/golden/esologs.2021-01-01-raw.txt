@@ -1,0 +1,252 @@
+< 1609459220 237797 :fizzie!fis@unaffiliated/fizzie PRIVMSG #esoteric :BBC stream is a bit late too.
+< 1609459229 433197 :fizzie!fis@unaffiliated/fizzie PRIVMSG #esoteric :More than a minute, less than two.
+< 1609459230 968429 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :happy new year UK, Portugal, Iceland, and everyone in UTC+0
+< 1609459425 427618 :fizzie!fis@unaffiliated/fizzie PRIVMSG #esoteric :They're doing a drone show instead of the traditional fireworks.
+< 1609459448 377319 :fizzie!fis@unaffiliated/fizzie PRIVMSG #esoteric :It kinda leaked out early because they had to do an aviation traffic thingie to fly 300 drones in formation.
+< 1609459535 413439 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :wait what? isn't that a Marvel movie plot?
+< 1609459564 929761 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :with the bad buy controlling the drones
+< 1609459570 185527 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :and much more than 300
+< 1609459589 97133 :fizzie!fis@unaffiliated/fizzie PRIVMSG #esoteric :Mmaybe? But they've been doing these for a while now in reality too.
+< 1609459591 552800 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :how large drones?
+< 1609459600 256479 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :I mean how long battery time
+< 1609459613 520875 :fizzie!fis@unaffiliated/fizzie PRIVMSG #esoteric :I don't know, but this show takes just 10 minutes or so.
+< 1609459640 352975 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :10 minutes. but with, I assume, brighter than usual led lighting.
+< 1609459649 670563 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :that shouldn't be too heavy
+< 1609459650 481358 :fizzie!fis@unaffiliated/fizzie PRIVMSG #esoteric :They're really just one of those RGB LED screens, except you can move the pixels around.
+< 1609459661 427376 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :right
+< 1609459777 521711 :Arcorann!~awych@159-196-65-46.9fc441.mel.nbn.aussiebb.net JOIN :#esoteric
+< 1609459778 192458 :fizzie!fis@unaffiliated/fizzie PRIVMSG #esoteric :Looks like they're doing a little bit of regular fireworks too, just not as much as usual, and with no spectators around.
+< 1609459963 507483 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :not sure what my city's doing tonight
+< 1609462066 702019 :rain1!~My_user_n@unaffiliated/rain1 QUIT :Quit: WeeChat 3.0
+< 1609462518 986267 :user24!~user24@2a02:810a:1440:7304:787d:6506:a6fb:dbc0 QUIT :Quit: Leaving
+< 1609462857 811493 :b4er!~b5er_@91.193.4.138 QUIT :Ping timeout: 260 seconds
+< 1609465036 772393 :olsner!~salparot@c83-249-186-43.bredband.comhem.se QUIT :Ping timeout: 256 seconds
+< 1609465553 45211 :ArthurStrong!~ArthurStr@188.163.100.177 JOIN :#esoteric
+< 1609465577 970147 :ArthurStrong!~ArthurStr@188.163.100.177 PRIVMSG #esoteric :Happy New Year!
+< 1609465589 446913 :ArthurStrong!~ArthurStr@188.163.100.177 PRIVMSG #esoteric :Let this shitty 2020 end.
+> 1609465601 550281 PRIVMSG #esoteric :14[[07SELENE.14]]4 M10 02https://esolangs.org/w/index.php?diff=79755&oldid=79746 5* 03Tetrapyronia 5* (+18) 10year
+< 1609465719 183725 :olsner!~salparot@c83-249-186-43.bredband.comhem.se JOIN :#esoteric
+> 1609468130 43242 PRIVMSG #esoteric :14[[07User:Digital Hunter14]]4 M10 02https://esolangs.org/w/index.php?diff=79756&oldid=75412 5* 03Digital Hunter 5* (+24) 10/* About me */
+< 1609469258 53198 :pikhq!sid394595@gateway/web/irccloud.com/x-bumsakqbscfytjaf PRIVMSG #esoteric :Indeed
+< 1609471046 425492 :craigo!~craigo@144.136.206.168 JOIN :#esoteric
+> 1609473764 336763 PRIVMSG #esoteric :14[[07Talk:SELENE.14]]4 N10 02https://esolangs.org/w/index.php?oldid=79757 5* 03Quintopia 5* (+486) 10Q's
+< 1609477161 285573 :zzo38!~zzo38@host-24-207-14-22.public.eastlink.ca PRIVMSG #esoteric :Do you have feature requests for Free Hero Mesh or any of my other software projects?
+< 1609477441 512163 :outing!~uid235373@152.179.12.86 QUIT :Ping timeout: 246 seconds
+< 1609477611 329086 :zzo38!~zzo38@host-24-207-14-22.public.eastlink.ca PRIVMSG #esoteric :Does analog television work with the common hobbyist level SDR sticks?
+> 1609479189 179555 PRIVMSG #esoteric :14[[07SELENE.14]]4 M10 02https://esolangs.org/w/index.php?diff=79758&oldid=79755 5* 03Tetrapyronia 5* (+285) 10(hopefully?) fixed specifications
+< 1609479397 233766 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :zzo38: no, I don't think so. standard NTSC has a 6 MHz bandwidth, PAL is about the same, and the RTL-SDR sticks max out around 2.4 MHz
+< 1609479401 792190 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :maybe you could use two
+< 1609479559 883705 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :the chip they use is actually a digital TV tuner chip (https://www.realtek.com/en/products/communications-network-ics/item/rtl2832u)
+< 1609479597 211651 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :but the raw I/Q output mode, which enables its myriad hobbyist uses as a cheap SDR receiver, doesn't support the full bandwidth of a TV signal
+< 1609479661 181742 :zzo38!~zzo38@host-24-207-14-22.public.eastlink.ca PRIVMSG #esoteric :O, OK. Do you know if any SDR has a hardware switch to disable transmit in case you want to receive only, even if it is capable to transmit if you activate that switch?
+< 1609479666 782264 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :maybe due to USB limitations, I'm not sure
+< 1609479725 844599 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :in the original use case for the chip, the I/Q mode is used for audio broadcast reception (FM/DAB)
+< 1609479735 450041 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :zzo38: I don't know
+< 1609479747 285722 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :but many of them have separate ports for transmit and receive
+< 1609479754 123095 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :for example my bladeRF has
+< 1609479795 26259 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :so if you want to disable transmit, you could leave the TX port open or, ideally, attach an impedance-matched dummy load
+< 1609479814 863064 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :although, dummy loads aren't perfectly shielded and a very nearby radio might still be able to hear it
+< 1609479863 550984 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :I don't know if any SDR has a hardware switch to disable the TX frontend, although it seems like a good thing to have and should also be easy to do
+< 1609479901 882936 :zzo38!~zzo38@host-24-207-14-22.public.eastlink.ca PRIVMSG #esoteric :OK
+< 1609479971 880794 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :the output power of the bladeRF is low to begin with (6 dBm, or about 4 mW)
+< 1609479996 431164 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :in many cases you would feed that into an external amplifier, and could effectively disable transmit by disconnecting or removing power from that
+< 1609480234 176096 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :then again, people manage to send signals around the globe on milliwatts
+< 1609480255 16631 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :with the right combination of good antenna, good conditions, and very slow data rate
+< 1609480553 826358 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :QRSS is a fairly esoteric idea
+< 1609480580 545967 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :sending/receiving morse code at a speed where a single dot takes 1-5 minutes
+< 1609480749 342805 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :generally not done by hand/ear!
+< 1609480758 531469 :kmc!~beehive@unaffiliated/kmcallister PRIVMSG #esoteric :would require quite a bit of patience
+< 1609481096 363085 :craigo!~craigo@144.136.206.168 QUIT :Ping timeout: 240 seconds
+< 1609481173 594750 :zzo38!~zzo38@host-24-207-14-22.public.eastlink.ca PRIVMSG #esoteric :I haven't heard of that before now (unless I did and I had forgot)
+< 1609481414 805279 :craigo!~craigo@144.136.206.168 JOIN :#esoteric
+< 1609481863 898562 :nfd9001!~nfd9001@c-67-183-38-33.hsd1.wa.comcast.net QUIT :Ping timeout: 260 seconds
+< 1609482717 920017 :MDude!~MDude@71.50.47.112 QUIT :Quit: Going offline, see ya! (www.adiirc.com)
+< 1609482788 793629 :craigo!~craigo@144.136.206.168 QUIT :Ping timeout: 256 seconds
+< 1609488122 498219 :galactic__!~galactic@99-43-0-95.lightspeed.sndgca.sbcglobal.net JOIN :#esoteric
+< 1609488265 42939 :galactic_!~galactic@99-43-0-95.lightspeed.sndgca.sbcglobal.net QUIT :Ping timeout: 240 seconds
+< 1609488678 579241 :Taneb!~Taneb@2001:41c8:51:10d:aaaa:0:aaaa:0 PRIVMSG #esoteric :ACTION is thinking about making an OEIS account
+< 1609488923 108045 :moony!moony@hellomouse/dev/moony PRIVMSG #esoteric :Fixing to obtain a Propeller 1
+< 1609488924 814573 :moony!moony@hellomouse/dev/moony PRIVMSG #esoteric :should be fun
+< 1609488941 197408 :moony!moony@hellomouse/dev/moony PRIVMSG #esoteric :it's successor resembles an esoteric CPU. but it isn't and it's amazing
+< 1609489291 693058 :Taneb!~Taneb@2001:41c8:51:10d:aaaa:0:aaaa:0 PRIVMSG #esoteric :The sequence I want to add to OEIS begins "15, 353, 143, 323, 899, 1763, 3599"
+< 1609489399 373927 :craigo!~craigo@144.136.206.168 JOIN :#esoteric
+< 1609489768 142567 :imode!~linear@unaffiliated/imode QUIT :Quit: WeeChat 2.9
+< 1609489785 513974 :imode!~linear@unaffiliated/imode JOIN :#esoteric
+> 1609490153 172685 PRIVMSG #esoteric :14[[07Talk:SELENE.14]]4 10 02https://esolangs.org/w/index.php?diff=79759&oldid=79757 5* 03Quintopia 5* (+144) 10question
+< 1609492135 106811 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :it's actually 2021. can you beleive it?
+< 1609492158 168728 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :`datei
+< 1609492159 497768 :HackEso!~h@unaffiliated/fizzie/bot/hackeso PRIVMSG #esoteric :2021-01-01 09:09:18.881 +0000 UTC January 1 Friday 2020-W53-5
+< 1609492169 7980 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :`` TZ=Europe/Paris datei
+< 1609492169 968749 :HackEso!~h@unaffiliated/fizzie/bot/hackeso PRIVMSG #esoteric :2021-01-01 10:09:29.470 +0100 CET January 1 Friday 2020-W53-5
+< 1609492825 43822 :delta23!~deltaepsi@d179-68-39-184.evv.wideopenwest.com QUIT :Ping timeout: 240 seconds
+< 1609492905 985915 :delta23!~deltaepsi@d179-68-39-184.evv.wideopenwest.com JOIN :#esoteric
+< 1609493588 787505 :moony!moony@hellomouse/dev/moony PRIVMSG #esoteric :b_jonas: install sdate, run `sdate -e 2020-12`, and be revealed the truth: it's dec 32nd
+> 1609494061 6431 PRIVMSG #esoteric :14[[07Special:Log/newusers14]]4 create10 02 5* 03TehChar1337 5*  10New user account
+< 1609494352 7241 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :also the Wiener Philharmoniker new year concert is going to start in half an hour. I'm preparing so I can watch it uninterrupted.
+< 1609494360 365702 :rain1!~My_user_n@unaffiliated/rain1 JOIN :#esoteric
+< 1609494471 111070 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :moony: what  is sdate?
+< 1609494472 878832 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :`sdate
+< 1609494473 605175 :HackEso!~h@unaffiliated/fizzie/bot/hackeso PRIVMSG #esoteric :sdate? No such file or directory
+< 1609494639 585685 :moony!moony@hellomouse/dev/moony PRIVMSG #esoteric :https://github.com/df7cb/sdate
+> 1609494850 883662 PRIVMSG #esoteric :14[[07Esolang:Introduce yourself14]]4 10 02https://esolangs.org/w/index.php?diff=79760&oldid=79716 5* 03TehChar1337 5* (+467) 10/* Introductions */
+< 1609495738 655147 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :concert starting RSN
+< 1609495756 553089 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :TV is now broadcasting ads before it
+< 1609495810 977521 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :and right now I'm trying to make sure that I've got the FM radio set up correctly as a fallback in case there's a problem with the internet TV
+< 1609495830 362177 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :but they're just playing music so it's hard to tell that it's the right channel
+< 1609495898 471156 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :conveniently the internet TV will be delayed a bit, so if it fails, I can quickly switch to the radio and, in theory, not miss anything, though of course it's not nice to have music interrupted that way
+> 1609496052 857570 PRIVMSG #esoteric :14[[07SELENE.14]]4 M10 02https://esolangs.org/w/index.php?diff=79761&oldid=79758 5* 03Tetrapyronia 5* (-2) 10
+< 1609496059 171663 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :yes, radio is correct
+< 1609496114 287312 :imode!~linear@unaffiliated/imode QUIT :Quit: WeeChat 2.9
+> 1609496125 177948 PRIVMSG #esoteric :14[[07SELENE.14]]4 M10 02https://esolangs.org/w/index.php?diff=79762&oldid=79761 5* 03Tetrapyronia 5* (+0) 10
+< 1609496129 50756 :imode!~linear@unaffiliated/imode JOIN :#esoteric
+< 1609496133 278381 :rain1!~My_user_n@unaffiliated/rain1 PRIVMSG #esoteric :https://www.youtube.com/watch?v=fUb7eJttOPg
+> 1609496134 985092 PRIVMSG #esoteric :14[[07Talk:SELENE.14]]4 M10 02https://esolangs.org/w/index.php?diff=79763&oldid=79759 5* 03Tetrapyronia 5* (+183) 10
+< 1609496136 929308 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :anyone wants to guess what the very last ad before the concert will be?
+< 1609496140 325331 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :or was
+< 1609496147 200669 :rain1!~My_user_n@unaffiliated/rain1 PRIVMSG #esoteric :hand sanitizre
+< 1609496157 293053 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :it was a very short ad for cheese
+< 1609496166 63845 :rain1!~My_user_n@unaffiliated/rain1 PRIVMSG #esoteric :brunost?
+< 1609496174 518605 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :Parenyica
+< 1609496179 444650 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :(may be spelled different)
+< 1609496186 579492 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :concert is starting!
+< 1609496225 536539 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :ah yes, and there's an ad within the concert, copied from the stream from Wien:
+< 1609496238 464500 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :an overlay of "presented by: Rolex"
+< 1609496328 982947 :imode!~linear@unaffiliated/imode QUIT :Client Quit
+< 1609496338 166186 :imode!linear@unaffiliated/imode JOIN :#esoteric
+< 1609496519 550802 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :that was a weird waltz that I've never heard before, but its style matches my expectations for this concert 
+< 1609496532 15210 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :empty concert hall is so weird
+< 1609496539 526217 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :would never expect that for this concert
+< 1609496569 447146 :imode!linear@unaffiliated/imode QUIT :Client Quit
+< 1609496574 619199 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :stage is still very crowded with musicians
+< 1609496578 514156 :imode!~linear@unaffiliated/imode JOIN :#esoteric
+< 1609496584 809577 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :looks like they'd need a bit larger stage
+< 1609496603 480475 :imode!~linear@unaffiliated/imode QUIT :Client Quit
+< 1609496608 162582 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :I mean crowded even for pre-2020 standards
+< 1609496613 44521 :imode!~linear@unaffiliated/imode JOIN :#esoteric
+< 1609496679 543117 :imode!~linear@unaffiliated/imode QUIT :Client Quit
+< 1609496688 331160 :imode!linear@unaffiliated/imode JOIN :#esoteric
+< 1609496724 674965 :imode!linear@unaffiliated/imode QUIT :Client Quit
+< 1609496733 347236 :imode!~linear@unaffiliated/imode JOIN :#esoteric
+< 1609496770 823367 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :video is showing old automated music instruments in operation, I failed to catch which museum they're from
+< 1609496779 430073 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :care to guess which castle the ballet will be in this time?
+< 1609496809 946522 :imode!~linear@unaffiliated/imode QUIT :Client Quit
+< 1609496818 976545 :imode!~linear@unaffiliated/imode JOIN :#esoteric
+< 1609496907 622810 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :must be that one big museum featured on that youtube channel, there probably aren't many that have this large a collection
+< 1609496930 484972 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :and that weird four-violin automatic violin player setup in particular
+< 1609496967 67608 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :with four violins inside the rotating circular bow, each violin pressed into it when the corresponding string is supposed to play
+< 1609496998 825167 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :I don't recall what city that museum is in but I'll look it up on youtube later
+< 1609497069 663006 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :I think it was in Köln or nearby
+< 1609497087 51285 :imode!~linear@unaffiliated/imode QUIT :Client Quit
+< 1609497096 521789 :imode!linear@unaffiliated/imode JOIN :#esoteric
+< 1609497164 301528 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :nope!
+< 1609497169 330025 :imode!linear@unaffiliated/imode QUIT :Client Quit
+< 1609497176 792138 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :dubbing announcer says museum in Wien
+< 1609497177 889416 :imode!linear@unaffiliated/imode JOIN :#esoteric
+< 1609497203 876416 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :the Techniches Museum even. I've been to that museum, there's no way it has these automated instruments
+< 1609497208 378312 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :I'll have to look these up
+< 1609497231 950045 :imode!linear@unaffiliated/imode QUIT :Client Quit
+< 1609497240 888092 :imode!void@unaffiliated/imode JOIN :#esoteric
+< 1609497461 565747 :imode!void@unaffiliated/imode QUIT :Client Quit
+< 1609497471 939520 :imode!void@unaffiliated/imode JOIN :#esoteric
+< 1609497495 466400 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :hehe, nice moving moire pattern as the moving camera in the far end of the hall shows the organ with its rhythm of vertical pipes
+< 1609497511 744708 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :(might be visible only in low res)
+< 1609497572 751390 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :anyone else watching or listening live?
+< 1609497583 729240 :int-e!~noone@int-e.eu PRIVMSG #esoteric :no
+< 1609497678 927129 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :I wish TVs didn't insist on having an always visible channel logo overlay. It made sense back in the analog TV days so you can easily tell which channel you tuned in, but these days with digital and internet TV it's rather redundant, they always put the channel name as meta-information anyway
+< 1609497732 3120 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :there's probably even a standard to send the logo as meta-info so the TV can display the list of channels in one of these silly icon mosic formats
+< 1609497755 865001 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :I've no idea, I almost never watch actual TV
+< 1609497777 791355 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :I don't even have a TV tuner of any sort
+< 1609497849 684414 :Sgeo!~Sgeo@ool-18b98aa4.dyn.optonline.net QUIT :Read error: Connection reset by peer
+< 1609497865 715411 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :(maybe someone is watching, but not paying attention to IRC at the same time)
+< 1609497976 716969 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :look, the stage is so crowded that some musicians are sitting in these shallow cubbies right next to the wall. isn't that actually bad for accoustics?
+< 1609497992 890864 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :like, not terribad, but something they'd avoid in sucha high quality professional concert
+< 1609498084 485499 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :standing, rather then sitting, because they're playing the double bass
+< 1609498153 945261 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :recess!
+< 1609498456 108571 :imode!void@unaffiliated/imode QUIT :Quit: WeeChat 2.9
+< 1609498479 348888 :imode!void@unaffiliated/imode JOIN :#esoteric
+< 1609498578 5071 :imode!void@unaffiliated/imode QUIT :Client Quit
+< 1609498653 888359 :imode!void@unaffiliated/imode JOIN :#esoteric
+< 1609498878 837471 :imode!void@unaffiliated/imode QUIT :Client Quit
+< 1609498888 977594 :imode!~imode@unaffiliated/imode JOIN :#esoteric
+< 1609499019 584987 :imode!~imode@unaffiliated/imode QUIT :Client Quit
+< 1609499116 768576 :imode!~imode@unaffiliated/imode JOIN :#esoteric
+< 1609500005 331373 :ArthurStrong!~ArthurStr@188.163.100.177 QUIT :Remote host closed the connection
+< 1609501629 866802 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :it's also eerie how, as there's no audience, there's very little applause between the tracks, only the musicians applaud
+< 1609501655 247788 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :I can't imagine how the Radetzky march will go without audience applause
+< 1609501713 155962 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :ballet is present, I didn't catch the location, but maybe they'll announce it afterwards
+< 1609501737 506534 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :it's in a "small" castle
+< 1609501939 961193 :int-e!~noone@int-e.eu PRIVMSG #esoteric :fungot: are we all there?
+< 1609501940 133901 :fungot!~fungot@unaffiliated/fizzie/bot/fungot PRIVMSG #esoteric :int-e: oh. arcus! ' til the last moments... it seems that
+< 1609502540 35586 :nfd!~nfd9001@c-67-183-38-33.hsd1.wa.comcast.net JOIN :#esoteric
+< 1609502797 825388 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :I approve of the choice of music after the recess
+< 1609503201 261171 :b4er!~b5er_@91.193.4.138 JOIN :#esoteric
+< 1609503453 449629 :b4er!~b5er_@91.193.4.138 QUIT :Client Quit
+< 1609503460 893540 :b4er!~b5er_@91.193.4.138 JOIN :#esoteric
+< 1609503632 355332 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :encores starting
+< 1609503710 192509 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :ooh! they're playing audience applaud sounds right now, the dub announcer says they're from people who submitted and sent the applause in advance
+< 1609503722 6074 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :and showing photos of those viewers who sent them in
+< 1609503739 780940 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :(also musicians' approval obviously)
+< 1609503913 699294 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :whoa
+< 1609503924 619317 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :conductor is talking in English
+< 1609503996 958636 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :pity they're dubbing it over
+< 1609504016 493246 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :(I'm watching in Hungarian television; will try to get the original ORF stream later)
+< 1609504038 237078 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :he's giving a rather long speech
+< 1609504084 695693 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :the dubbing is bad btw, the announcer isn't a reporter but not an interpreter and so translating it bad
+< 1609504811 934795 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :what is the red pin badge on the conductor's lapel?
+< 1609504843 562796 :imode!~imode@unaffiliated/imode QUIT :Quit: WeeChat 2.9
+< 1609505020 54790 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :the concert was good, high quality as usual, I enjoyed it,
+< 1609505036 470178 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :but the ending was a downer because they had to play the Radetzky marsh without audience applause
+< 1609505738 194781 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :internet answers that the location of the ballet was https://de.wikipedia.org/wiki/Palais_Liechtenstein_(F%C3%BCrstengasse)
+< 1609505742 554703 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :(and its garden)
+< 1609507236 553132 :deltaepsilon23!~deltaepsi@d179-68-39-184.evv.wideopenwest.com JOIN :#esoteric
+< 1609507267 445306 :delta23!~deltaepsi@d179-68-39-184.evv.wideopenwest.com QUIT :Disconnected by services
+< 1609507271 418296 :deltaepsilon23!~deltaepsi@d179-68-39-184.evv.wideopenwest.com NICK :delta23
+< 1609508160 790630 :MDude!~MDude@71.50.47.112 JOIN :#esoteric
+< 1609508660 362922 :MDead!~MDude@71.50.47.112 JOIN :#esoteric
+< 1609508798 817364 :MDude!~MDude@71.50.47.112 QUIT :Ping timeout: 256 seconds
+< 1609508805 337353 :MDead!~MDude@71.50.47.112 NICK :MDude
+> 1609510015 976311 PRIVMSG #esoteric :14[[07Hot14]]4 N10 02https://esolangs.org/w/index.php?oldid=79764 5* 03Hakerh400 5* (+2854) 10+[[Hot]]
+> 1609510021 38119 PRIVMSG #esoteric :14[[07Language list14]]4 10 02https://esolangs.org/w/index.php?diff=79765&oldid=79747 5* 03Hakerh400 5* (+10) 10+[[Hot]]
+> 1609510078 422888 PRIVMSG #esoteric :14[[07Hot14]]4 M10 02https://esolangs.org/w/index.php?diff=79766&oldid=79764 5* 03Hakerh400 5* (+56) 10
+> 1609510304 450732 PRIVMSG #esoteric :14[[07Hot14]]4 M10 02https://esolangs.org/w/index.php?diff=79767&oldid=79766 5* 03Hakerh400 5* (-19) 10
+> 1609510369 844047 PRIVMSG #esoteric :14[[07User:Hakerh40014]]4 M10 02https://esolangs.org/w/index.php?diff=79768&oldid=79752 5* 03Hakerh400 5* (+41) 10
+< 1609510684 522923 :Arcorann!~awych@159-196-65-46.9fc441.mel.nbn.aussiebb.net QUIT :Ping timeout: 246 seconds
+> 1609510808 546854 PRIVMSG #esoteric :14[[07Hot14]]4 M10 02https://esolangs.org/w/index.php?diff=79769&oldid=79767 5* 03Hakerh400 5* (+1) 10
+< 1609515090 524908 :arseniiv!~arseniiv@95.105.1.35.dynamic.ufanet.ru JOIN :#esoteric
+> 1609516709 829217 PRIVMSG #esoteric :14[[07Brainfuck code generation14]]4 10 02https://esolangs.org/w/index.php?diff=79770&oldid=76861 5* 03Maxi 5* (+597) 10/* Languages that compile to brainfuck */
+> 1609516868 216998 PRIVMSG #esoteric :14[[07User:TehChar133714]]4 N10 02https://esolangs.org/w/index.php?oldid=79771 5* 03TehChar1337 5* (+42) 10Created page with "I am the creator of the PureHell language."
+> 1609516913 530440 PRIVMSG #esoteric :14[[07User talk:TehChar133714]]4 N10 02https://esolangs.org/w/index.php?oldid=79772 5* 03TehChar1337 5* (+28) 10Created page with "Discuss here about PureHell!"
+> 1609516951 100603 PRIVMSG #esoteric :14[[07Brainfuck code generation14]]4 M10 02https://esolangs.org/w/index.php?diff=79773&oldid=79770 5* 03Maxi 5* (+0) 10/* Languages that compile to brainfuck */
+> 1609518411 183935 PRIVMSG #esoteric :14[[07Special:Log/newusers14]]4 create10 02 5* 03ALotOfKelp 5*  10New user account
+> 1609521280 58336 PRIVMSG #esoteric :14[[07Brainfuck code generation14]]4 M10 02https://esolangs.org/w/index.php?diff=79774&oldid=79773 5* 03Maxi 5* (-11) 10/* Languages that compile to brainfuck */
+> 1609521911 549939 PRIVMSG #esoteric :14[[07Talk:C2BF14]]4 10 02https://esolangs.org/w/index.php?diff=79775&oldid=60726 5* 03Maxi 5* (+146) 10
+> 1609522716 454599 PRIVMSG #esoteric :14[[07Special:Log/newusers14]]4 create10 02 5* 03HVMarci 5*  10New user account
+> 1609522914 783835 PRIVMSG #esoteric :14[[07Esolang:Introduce yourself14]]4 M10 02https://esolangs.org/w/index.php?diff=79776&oldid=79760 5* 03HVMarci 5* (+39) 10
+> 1609522955 757740 PRIVMSG #esoteric :14[[07Esolang:Introduce yourself14]]4 10 02https://esolangs.org/w/index.php?diff=79777&oldid=79776 5* 03HVMarci 5* (+81) 10
+> 1609522983 384069 PRIVMSG #esoteric :14[[07Burn14]]4 10 02https://esolangs.org/w/index.php?diff=79778&oldid=68786 5* 03HVMarci 5* (+41) 10Link to rule 110 wiki page
+> 1609525012 681889 PRIVMSG #esoteric :14[[07Brainfuck code generation14]]4 10 02https://esolangs.org/w/index.php?diff=79779&oldid=79774 5* 03Maxi 5* (-171) 10/* Languages that compile to brainfuck */
+> 1609525726 269356 PRIVMSG #esoteric :14[[07Brainfuck code generation14]]4 10 02https://esolangs.org/w/index.php?diff=79780&oldid=79779 5* 03Maxi 5* (+171) 10Undo revision 79779 by [[Special:Contributions/Maxi|Maxi]] ([[User talk:Maxi|talk]])
+< 1609525891 92782 :delta23!~deltaepsi@d179-68-39-184.evv.wideopenwest.com QUIT :Quit: Leaving
+< 1609526536 784556 :Sgeo!~Sgeo@ool-18b98aa4.dyn.optonline.net JOIN :#esoteric
+< 1609526920 831708 :Lord_of_Life_!~Lord@unaffiliated/lord-of-life/x-0885362 JOIN :#esoteric
+< 1609527120 861856 :Lord_of_Life!~Lord@unaffiliated/lord-of-life/x-0885362 QUIT :Ping timeout: 256 seconds
+< 1609527121 178255 :Lord_of_Life_!~Lord@unaffiliated/lord-of-life/x-0885362 NICK :Lord_of_Life
+< 1609528284 522730 :arseniiv!~arseniiv@95.105.1.35.dynamic.ufanet.ru PRIVMSG #esoteric :<fizzie> They've got a conventional orchestra playing an arrangement of Darude's Sandstorm to celebrate. => wow neat!
+< 1609528372 321856 :arseniiv!~arseniiv@95.105.1.35.dynamic.ufanet.ru PRIVMSG #esoteric :HNY to everyone who wants late congratulations too!
+< 1609528420 856591 :arseniiv!~arseniiv@95.105.1.35.dynamic.ufanet.ru PRIVMSG #esoteric :let us all be happier, smarter, nicer and braver this year
+< 1609528423 294068 :rain1!~My_user_n@unaffiliated/rain1 PRIVMSG #esoteric :hny
+< 1609528439 127680 :rain1!~My_user_n@unaffiliated/rain1 PRIVMSG #esoteric :you're asking a lot but ill try
+< 1609528456 816110 :arseniiv!~arseniiv@95.105.1.35.dynamic.ufanet.ru PRIVMSG #esoteric :let all the problems be less obstinate and go away easier
+< 1609528678 159382 :arseniiv!~arseniiv@95.105.1.35.dynamic.ufanet.ru PRIVMSG #esoteric :I want to get a constant income at last and somehow have more geographically near acquaintances who are interested or knowledgeable in the same as me, as I believe that’s the only effective way to have a job you like without hassle and luck
+< 1609528791 158181 :arseniiv!~arseniiv@95.105.1.35.dynamic.ufanet.ru PRIVMSG #esoteric :as of now, I know nice and beautiful people but they are all this and that far away. That’s not a problem in itself but that’s a huge dent in a socialization I ended up with and I don’t particularly know yet how to fix it
+< 1609528880 975201 :arseniiv!~arseniiv@95.105.1.35.dynamic.ufanet.ru PRIVMSG #esoteric :(of course I have relatives and their friends but they are all not mathematical or CS-y or techy almost at all. That’s a big problem as they lean on me for math- or computer-related things and I need to be better at them myself!)
+< 1609528903 125152 :arseniiv!~arseniiv@95.105.1.35.dynamic.ufanet.ru PRIVMSG #esoteric :hopefully a condition like this is uncommon amongst people!
+< 1609529705 401345 :b_jonas!~a@catv-176-63-11-225.catv.broadband.hu PRIVMSG #esoteric :arseniiv: yeah
+< 1609529756 367377 :craigo!~craigo@144.136.206.168 QUIT :Ping timeout: 240 seconds
+< 1609529889 22765 :arseniiv!~arseniiv@95.105.1.35.dynamic.ufanet.ru PRIVMSG #esoteric :I think I’m genuniely relieved when I know someone is not having this or that issue I have, that’s a weird kind of empathy if it is
+< 1609532708 181096 :delta23!~deltaepsi@d179-68-39-184.evv.wideopenwest.com JOIN :#esoteric
+> 1609532882 208433 PRIVMSG #esoteric :14[[07FILO14]]4 N10 02https://esolangs.org/w/index.php?oldid=79781 5* 03Qpliu 5* (+2389) 10Created page with "FILO is a stack-based programming language.  A FILO program consists of a set of function definitions.  ==Syntax==   program = definitions ;      definitions = definition, { d..."
+> 1609532888 3481 PRIVMSG #esoteric :14[[07Language list14]]4 10 02https://esolangs.org/w/index.php?diff=79782&oldid=79765 5* 03Qpliu 5* (+11) 10/* F */
+> 1609534043 104328 PRIVMSG #esoteric :14[[07Hot14]]4 M10 02https://esolangs.org/w/index.php?diff=79783&oldid=79769 5* 03PythonshellDebugwindow 5* (+60) 10cats /* I/O format */
+< 1609541543 982708 :imode!~imode@unaffiliated/imode JOIN :#esoteric
+< 1609542709 514374 :arseniiv!~arseniiv@95.105.1.35.dynamic.ufanet.ru QUIT :Ping timeout: 246 seconds

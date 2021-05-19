@@ -2,6 +2,7 @@
 #define WEB_REQUEST_H_
 
 #include "base/common.h"
+#include "web/response.h"
 
 namespace web {
 

@@ -19,6 +19,14 @@ load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 protobuf_deps()
 
 http_archive(
+    name = "com_github_yhirose_cpp_httplib",
+    urls = ["https://github.com/yhirose/cpp-httplib/archive/75fdb06696d4e27b590135c1e4a226b4e13e9bd7.zip"],
+    strip_prefix = "cpp-httplib-75fdb06696d4e27b590135c1e4a226b4e13e9bd7",
+    sha256 = "1393c3b4b47b060fb11d669ffb1c74f2617a98163309c59b8522f15501d96a2a",
+    build_file = "//tools:com_github_yhirose_cpp_httplib.BUILD",
+)
+
+http_archive(
     name = "com_googlesource_code_re2",
     urls = ["https://github.com/google/re2/archive/2017-12-01.tar.gz"],
     strip_prefix = "re2-2017-12-01",
