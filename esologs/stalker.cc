@@ -278,7 +278,7 @@ void Stalker::CanRead() {
 void Stalker::Backfill() {
   auto today = date::floor<date::days>(std::chrono::system_clock::now());
 
-  std::lock_guard<std::mutex>(*index_->lock());
+  std::lock_guard<std::mutex> lock(*index_->lock());
   for (auto backfill_day = today - kBackfillDays; backfill_day <= today; backfill_day += date::days{1}) {
     YMD ymd{backfill_day};
     if (!index_->Lookup(ymd))
