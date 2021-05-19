@@ -1,2 +1,2 @@
 /bazel-*
-/.clang_complete
+/compile_commands.json
