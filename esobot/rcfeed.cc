@@ -1,5 +1,6 @@
 #include <cerrno>
 #include <cstring>
+#include <memory>
 
 #include "esobot/rcfeed.h"
 #include "event/loop.h"
@@ -16,9 +17,7 @@ namespace esobot {
 
 constexpr int kMaxLen = 400;
 
-RcFeed::RcFeed(const RcFeedConfig& config, irc::bot::PluginHost* host)
-    : channel_(config.channel()), host_(host), socket_ready_callback_(this) {
-
+RcFeed::RcFeed(event::Loop* loop, const RcFeedConfig& config) : loop_(loop), socket_ready_callback_(this) {
   struct addrinfo hints;
   std::memset(&hints, 0, sizeof hints);
   hints.ai_family = AF_INET;
@@ -52,13 +51,18 @@ RcFeed::RcFeed(const RcFeedConfig& config, irc::bot::PluginHost* host)
   if (bind(socket_, addrs->ai_addr, addrs->ai_addrlen) == -1)
     throw base::Exception("bind", errno);
 
-  addrs.release();
+  addrs.reset();
 
-  host_->loop()->ReadFd(socket_, base::borrow(&socket_ready_callback_));
+  loop_->ReadFd(socket_, base::borrow(&socket_ready_callback_));
 }
 
 RcFeed::~RcFeed() {
-  host_->loop()->ReadFd(socket_);
+  loop_->ReadFd(socket_);
+}
+
+std::unique_ptr<irc::bot::Plugin> RcFeed::AddHost(const RcFeedPlugin& config, irc::bot::PluginHost* host) {
+  hosts_.emplace_back(host, config.channel());
+  return std::make_unique<irc::bot::Plugin>();
 }
 
 void RcFeed::SocketReady(int) {
@@ -89,7 +93,9 @@ void RcFeed::SocketReady(int) {
     return;
 
   LOG(INFO) << "wiki message: " << msg;
-  host_->Send({ "PRIVMSG", channel_.c_str(), msg });
+  for (const auto& host : hosts_) {
+    host.host->Send({ "PRIVMSG", host.channel, msg });
+  }
 }
 
 } // namespace esobot

@@ -9,7 +9,7 @@ namespace esobot {
 
 class Logger : public irc::bot::Plugin {
  public:
-  Logger(const LoggerConfig& config, irc::bot::PluginHost*);
+  Logger(const LoggerPlugin& config, irc::bot::PluginHost*);
   void MessageReceived(const irc::Message& msg) override { Log(msg, /* sent: */ false); }
   void MessageSent(const irc::Message& msg) override { Log(msg, /* sent: */ true); }
 

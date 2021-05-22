@@ -6,18 +6,43 @@ import "irc/config.proto";
 import "irc/bot/config.proto";
 
 message Config {
-  irc.Config irc = 1;
-  irc.bot.Config bot = 2;
-  LoggerConfig logger = 3;  // TODO: repeated
-  RcFeedConfig rc_feed = 4; // TODO: repeated
-}
-
-message LoggerConfig {
-  string channel = 1;
-  string config_file = 2;
+  RcFeedConfig rc_feed = 1;
+  BridgeConfig bridge = 2;
+  repeated BotConfig bot = 3;
 }
 
 message RcFeedConfig {
   string port = 1;
-  string channel = 2;
+}
+
+message BridgeConfig {
+  repeated RouteConfig route = 1;
+}
+
+message RouteConfig {
+  string from_net = 1;
+  string from_chan = 2;
+  string to_net = 3;
+  string to_chan = 4;
+}
+
+message BotConfig {
+  irc.Config irc = 1;
+  irc.bot.Config bot = 2;
+  LoggerPlugin logger = 3;  // TODO: repeated
+  RcFeedPlugin rc_feed = 4; // TODO: repeated
+  BridgePlugin bridge = 5;
+}
+
+message LoggerPlugin {
+  string channel = 1;
+  string config_file = 2;
+}
+
+message RcFeedPlugin {
+  string channel = 1;
+}
+
+message BridgePlugin {
+  string net = 1;
 }

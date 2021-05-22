@@ -1,6 +1,8 @@
 cc_binary(
     name = "esobot",
     srcs = [
+        "bridge.cc",
+        "bridge.h",
         "esobot.cc",
         "logger.cc",
         "logger.h",
