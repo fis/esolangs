@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "re2/re2.h"
+
 #include "esobot/config.pb.h"
 #include "event/loop.h"
 #include "irc/bot/plugin.h"
@@ -34,6 +36,7 @@ class Bridge {
   std::vector<RouteConfig> routes_;
   std::unordered_map<std::string, irc::bot::PluginHost*> hosts_;
   std::set<std::pair<std::string, std::string>> ignore_;
+  std::map<std::string, std::unique_ptr<RE2>> filter_;
 };
 
 } // namespace esobot

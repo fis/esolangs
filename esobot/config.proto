@@ -17,6 +17,8 @@ message RcFeedConfig {
 
 message BridgeConfig {
   repeated RouteConfig route = 1;
+  repeated IgnoreConfig ignore = 2;
+  repeated string filter = 3;
 }
 
 message RouteConfig {
@@ -24,6 +26,11 @@ message RouteConfig {
   string from_chan = 2;
   string to_net = 3;
   string to_chan = 4;
+}
+
+message IgnoreConfig {
+  string net = 1;
+  string nick = 2;
 }
 
 message BotConfig {

@@ -12,6 +12,7 @@ cc_binary(
     deps = [
         ":config_cc_proto",
         "//esologs:writer",
+        "@com_googlesource_code_re2//:re2",
         "@fi_zem_bracket//base",
         "@fi_zem_bracket//irc",
         "@fi_zem_bracket//irc/bot",
