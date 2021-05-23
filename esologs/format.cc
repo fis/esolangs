@@ -265,7 +265,7 @@ void LogLineFormatter::FormatEvent(const LogEvent& event) {
   }
 
   if (event.direction() == LogEvent::SENT) {
-    line.nick = "esowiki";  // TODO: configure?
+    line.nick = "esolangs";  // TODO: configure?
   } else {
     const std::string& prefix = event.prefix();
     std::size_t sep = prefix.find('!');
