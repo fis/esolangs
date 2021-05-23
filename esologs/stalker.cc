@@ -163,7 +163,7 @@ void Stalker::Format(LogFormatter* fmt) {
     std::lock_guard<std::mutex> lock(*index_->lock());
     link_year = index_->default_year();
   }
-  fmt->FormatStalkerHeader(link_year);
+  fmt->FormatStalkerHeader(link_year, "TODO: MISSING TITLE"); // TODO FIXME
 
   std::lock_guard<std::mutex> lock(events_lock_);
   for (const LogEvent& event : events_) {

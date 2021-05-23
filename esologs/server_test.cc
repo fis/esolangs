@@ -18,6 +18,7 @@ struct ServerTest : public ::testing::Test {
     target->set_name("test");
     target->set_log_path("testdata/logs");
     target->set_nick("esolangs");
+    target->set_title("test logs");
     target->set_about("<p>These are test logs.</p>\n");
     target->set_announce("<p>This is a test announcement.</p>\n");
     server = std::make_unique<Server>(config, &loop);

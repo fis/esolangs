@@ -60,9 +60,9 @@ void FormatIndex(web::Response* resp, const TargetConfig& cfg, const LogIndex& i
 
   bool all = y < 0;
   if (all)
-    WriteHtmlHeader(&web, kCssIndex, nullptr, "#esoteric logs");
+    WriteHtmlHeader(&web, kCssIndex, nullptr, cfg.title());
   else
-    WriteHtmlHeader(&web, kCssIndex, nullptr, YMD(y), " - #esoteric logs");
+    WriteHtmlHeader(&web, kCssIndex, nullptr, YMD(y), " - ", cfg.title());
 
   if (!cfg.announce().empty())
     web.Write(cfg.announce());
@@ -280,9 +280,9 @@ class HtmlLineFormatter : public LogLineFormatter {
  public:
   HtmlLineFormatter(web::Response* resp) : web_(resp, kContentTypeHtml) {}
   HtmlLineFormatter(std::string* buffer) : web_(buffer) {}
-  void FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) override;
+  void FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next, const std::string& title) override;
   void FormatFooter(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) override;
-  void FormatStalkerHeader(int year) override;
+  void FormatStalkerHeader(int year, const std::string& title) override;
   void FormatStalkerFooter() override;
   void FormatDay(bool multiday, int year, int month, int day) override;
   void FormatElision() override;
@@ -317,8 +317,8 @@ void HtmlLineFormatter::FormatNav(const YMD& date, const std::optional<YMD>& pre
       "</div>\n");
 }
 
-void HtmlLineFormatter::FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) {
-  WriteHtmlHeader(&web_, kCssLog, nullptr, date, " - #esoteric logs");
+void HtmlLineFormatter::FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next, const std::string& title) {
+  WriteHtmlHeader(&web_, kCssLog, nullptr, date, " - ", title);
   FormatNav(date, prev, next);
 }
 
@@ -327,8 +327,8 @@ void HtmlLineFormatter::FormatFooter(const YMD& date, const std::optional<YMD>& 
   WriteHtmlFooter(&web_);
 }
 
-void HtmlLineFormatter::FormatStalkerHeader(int year) {
-  WriteHtmlHeader(&web_, kCssLog, "stalker.js", "#esoteric logs - stalker mode");
+void HtmlLineFormatter::FormatStalkerHeader(int year, const std::string& title) {
+  WriteHtmlHeader(&web_, kCssLog, "stalker.js", title, " - stalker mode");
   web_.Write(
       "<div class=\"n\">"
       "<span class=\"nc\">stalker mode</span>"
@@ -551,9 +551,9 @@ void HtmlLineFormatter::FormatLine(const LogLine& line) {
 class TextLineFormatter : public LogLineFormatter {
  public:
   TextLineFormatter(web::Response* resp) : web_(resp, kContentTypeText) {}
-  void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
+  void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&, const std::string&) override {}
   void FormatFooter(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
-  void FormatStalkerHeader(int) override {}
+  void FormatStalkerHeader(int, const std::string&) override {}
   void FormatStalkerFooter() override {}
   void FormatDay(bool multiday, int year, int month, int day) override;
   void FormatElision() override;
@@ -618,9 +618,9 @@ void TextLineFormatter::FormatLine(const LogLine& line) {
 class RawFormatter : public LogFormatter {
  public:
   RawFormatter(web::Response* resp) : web_(resp, kContentTypeText), offset_s_(0) {}
-  void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
+  void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&, const std::string&) override {}
   void FormatFooter(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
-  void FormatStalkerHeader(int) override {}
+  void FormatStalkerHeader(int, const std::string&) override {}
   void FormatStalkerFooter() override {}
   void FormatDay(bool, int year, int month, int day) override;
   void FormatElision() override {}

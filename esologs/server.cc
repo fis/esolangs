@@ -162,7 +162,7 @@ int Server::Target::HandleGet(Server* srv, const char *uri, web::Response *resp)
     auto fmt = CreateFormatter(format, resp);
 
     LogEvent event;
-    fmt->FormatHeader(date, prev, next);
+    fmt->FormatHeader(date, prev, next, config.title());
 
     int d_min = date.day ? date.day : 1;
     int d_max = date.day ? date.day : 31;

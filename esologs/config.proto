@@ -13,6 +13,7 @@ message TargetConfig {
   string name = 1;
   string log_path = 2;
   string nick = 3;
-  string about = 4;
-  string announce = 5;
+  string title = 4;
+  string about = 5;
+  string announce = 6;
 }
