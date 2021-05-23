@@ -56,17 +56,12 @@ constexpr char kCssLog[] = "log.css";
 constexpr char kAboutText[] =
     "<h1 id=\"about\">about</h1>\n"
     "<p>"
-    "These logs are for the <code>#esoteric</code> IRC channel on Freenode. "
+    "These logs are for the <code>#esolangs</code> IRC channel on Libera.Chat. "
     "See <a href=\"https://esolangs.org/wiki/Esolang:Community_portal\">"
     "Esolang:Community portal</a> for more information about the channel. "
     "The code for collecting these logs can be found in the "
     "<a href=\"https://github.com/fis/esolangs\">github.com/fis/esolangs</a> "
     "repository."
-    "</p>\n"
-    "<p>"
-    "Other public collections of logs of the channel can be found at "
-    "<a href=\"http://codu.org/logs/_esoteric/\">codu.org</a> and "
-    "<a href=\"http://tunes.org/~nef/logs/esoteric/?C=M;O=D\">tunes.org</a>."
     "</p>\n";
 
 constexpr char kAnnouncement[] =
