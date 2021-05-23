@@ -53,13 +53,23 @@ class Writer::Stalker : public event::Socket::Watcher, public event::Timed {
   void Connect();
 };
 
-Writer::Writer(const std::string& config_path, event::Loop* loop, prometheus::Registry* metric_registry)
+Writer::Writer(const std::string& config_path, const std::string& target_name, event::Loop* loop, prometheus::Registry* metric_registry)
     : loop_(loop)
 {
   Config config;
-  proto::ReadText(config_path, &config);
+  const TargetConfig* target = nullptr;
 
-  dir_ = config.log_path();
+  proto::ReadText(config_path, &config);
+  for (const auto& t : config.target()) {
+    if (t.name() == target_name) {
+      target = &t;
+      break;
+    }
+  }
+  if (!target)
+    throw base::Exception("log target name not found in config");
+
+  dir_ = target->log_path();
 
   current_day_ = Now().first;
   OpenLog(current_day_);

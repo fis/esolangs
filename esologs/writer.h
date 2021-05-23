@@ -18,7 +18,7 @@ namespace esologs {
 
 class Writer {
  public:
-  Writer(const std::string& config_file, event::Loop* loop, prometheus::Registry* metric_registry = nullptr);
+  Writer(const std::string& config_file, const std::string& target_name, event::Loop* loop, prometheus::Registry* metric_registry = nullptr);
   ~Writer();
 
   void Write(LogEvent* event);

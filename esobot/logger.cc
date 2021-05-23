@@ -14,7 +14,7 @@ namespace esobot {
 
 Logger::Logger(const LoggerPlugin& config, irc::bot::PluginHost* host)
     : channel_(config.channel()),
-      log_(config.config_file(), host->loop(), host->metric_registry())
+      log_(config.config_file(), config.target(), host->loop(), host->metric_registry())
 {}
 
 void Logger::Log(const irc::Message& msg, bool sent) {

@@ -50,30 +50,12 @@ void WriteHtmlFooter(web::Writer* web) {
 constexpr char kContentTypeText[] = "text/plain; charset=utf-8";
 constexpr char kContentTypeHtml[] = "text/html; charset=utf-8";
 
-constexpr char kCssIndex[] = "index.css";
-constexpr char kCssLog[] = "log.css";
-
-constexpr char kAboutText[] =
-    "<h1 id=\"about\">about</h1>\n"
-    "<p>"
-    "These logs are for the <code>#esolangs</code> IRC channel on Libera.Chat. "
-    "See <a href=\"https://esolangs.org/wiki/Esolang:Community_portal\">"
-    "Esolang:Community portal</a> for more information about the channel. "
-    "The code for collecting these logs can be found in the "
-    "<a href=\"https://github.com/fis/esolangs\">github.com/fis/esolangs</a> "
-    "repository."
-    "</p>\n";
-
-constexpr char kAnnouncement[] =
-    // "<h1 class=\"ann\">newsflash</h1>\n"
-    // "<p>"
-    // "Insert announcement text here."
-    // "</p>\n"
-    "";
+constexpr char kCssIndex[] = "../index.css";
+constexpr char kCssLog[] = "../log.css";
 
 } // unnamed namespace
 
-void FormatIndex(web::Response* resp, const LogIndex& index, int y) {
+void FormatIndex(web::Response* resp, const TargetConfig& cfg, const LogIndex& index, int y) {
   web::Writer web(resp, kContentTypeHtml);
 
   bool all = y < 0;
@@ -82,8 +64,8 @@ void FormatIndex(web::Response* resp, const LogIndex& index, int y) {
   else
     WriteHtmlHeader(&web, kCssIndex, nullptr, YMD(y), " - #esoteric logs");
 
-  if (*kAnnouncement)
-    web.Write(kAnnouncement);
+  if (!cfg.announce().empty())
+    web.Write(cfg.announce());
 
   auto [y_min, y_max] = index.bounds();
   int y_last = y_max;
@@ -145,7 +127,8 @@ void FormatIndex(web::Response* resp, const LogIndex& index, int y) {
     web.Write("</div>\n");
   }
 
-  web.Write(kAboutText);
+  if (!cfg.about().empty())
+    web.Write(cfg.about());
   WriteHtmlFooter(&web);
 }
 
@@ -202,13 +185,13 @@ constexpr const char* kLineDescriptions[] = {
 
 class LogLineFormatter : public LogFormatter {
  public:
-  void FormatEvent(const LogEvent& event) override;
+  void FormatEvent(const LogEvent& event, const TargetConfig& cfg) override;
   virtual void FormatLine(const LogLine& line) = 0;
  private:
   std::uint64_t line_counter_ = 0;
 };
 
-void LogLineFormatter::FormatEvent(const LogEvent& event) {
+void LogLineFormatter::FormatEvent(const LogEvent& event, const TargetConfig& cfg) {
   static constexpr struct {
     const char* cmd;
     LogLine::Type type;
@@ -260,7 +243,7 @@ void LogLineFormatter::FormatEvent(const LogEvent& event) {
   }
 
   if (event.direction() == LogEvent::SENT) {
-    line.nick = "esolangs";  // TODO: configure?
+    line.nick = cfg.nick();
   } else {
     const std::string& prefix = event.prefix();
     std::size_t sep = prefix.find('!');
@@ -641,7 +624,7 @@ class RawFormatter : public LogFormatter {
   void FormatStalkerFooter() override {}
   void FormatDay(bool, int year, int month, int day) override;
   void FormatElision() override {}
-  void FormatEvent(const LogEvent& event) override;
+  void FormatEvent(const LogEvent& event, const TargetConfig&) override;
  private:
   web::Writer web_;
   unsigned long offset_s_;
@@ -652,7 +635,7 @@ void RawFormatter::FormatDay(bool, int year, int month, int day) {
   offset_s_ = date::sys_seconds(d).time_since_epoch().count();
 }
 
-void RawFormatter::FormatEvent(const LogEvent& event) {
+void RawFormatter::FormatEvent(const LogEvent& event, const TargetConfig&) {
   auto time_us = event.time_us();
   web_.Write(
       event.direction() == LogEvent::SENT ? ">" : "<",

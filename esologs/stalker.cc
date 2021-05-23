@@ -2,6 +2,7 @@
 #include <prometheus/gauge.h>
 
 #include "base/buffer.h"
+#include "esologs/config.pb.h"
 #include "esologs/stalker.h"
 #include "web/server.h"
 
@@ -58,7 +59,7 @@ bool Stalker::Client::Send(const LogEvent& event) {
     YMD ymd(YMD::day_number, day);
     fmt_->FormatDay(true, ymd.year, ymd.month, ymd.day);
   }
-  fmt_->FormatEvent(event);
+  fmt_->FormatEvent(event, TargetConfig()); // TODO FIXME
 
   std::size_t body_size = buffer_.size();
   wrote = socket_->Write(web::Websocket::Type::kText, buffer_.data(), body_size);
@@ -178,7 +179,7 @@ void Stalker::Format(LogFormatter* fmt) {
         fmt->FormatElision();
     }
 
-    fmt->FormatEvent(event);
+    fmt->FormatEvent(event, TargetConfig()); // TODO FIXME
   }
 
   fmt->FormatStalkerFooter();

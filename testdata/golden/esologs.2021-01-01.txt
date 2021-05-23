@@ -24,16 +24,16 @@
 01:45:53 -!- ArthurStrong has joined.
 01:46:17 <ArthurStrong> Happy New Year!
 01:46:29 <ArthurStrong> Let this shitty 2020 end.
-01:46:41 <esowiki> [[SELENE.]] M https://esolangs.org/w/index.php?diff=79755&oldid=79746 * Tetrapyronia * (+18) year
+01:46:41 <esolangs> [[SELENE.]] M https://esolangs.org/w/index.php?diff=79755&oldid=79746 * Tetrapyronia * (+18) year
 01:48:39 -!- olsner has joined.
-02:28:50 <esowiki> [[User:Digital Hunter]] M https://esolangs.org/w/index.php?diff=79756&oldid=75412 * Digital Hunter * (+24) /* About me */
+02:28:50 <esolangs> [[User:Digital Hunter]] M https://esolangs.org/w/index.php?diff=79756&oldid=75412 * Digital Hunter * (+24) /* About me */
 02:47:38 <pikhq> Indeed
 03:17:26 -!- craigo has joined.
-04:02:44 <esowiki> [[Talk:SELENE.]] N https://esolangs.org/w/index.php?oldid=79757 * Quintopia * (+486) Q's
+04:02:44 <esolangs> [[Talk:SELENE.]] N https://esolangs.org/w/index.php?oldid=79757 * Quintopia * (+486) Q's
 04:59:21 <zzo38> Do you have feature requests for Free Hero Mesh or any of my other software projects?
 05:04:01 -!- outing has quit (Ping timeout: 246 seconds).
 05:06:51 <zzo38> Does analog television work with the common hobbyist level SDR sticks?
-05:33:09 <esowiki> [[SELENE.]] M https://esolangs.org/w/index.php?diff=79758&oldid=79755 * Tetrapyronia * (+285) (hopefully?) fixed specifications
+05:33:09 <esolangs> [[SELENE.]] M https://esolangs.org/w/index.php?diff=79758&oldid=79755 * Tetrapyronia * (+285) (hopefully?) fixed specifications
 05:36:37 <kmc> zzo38: no, I don't think so. standard NTSC has a 6 MHz bandwidth, PAL is about the same, and the RTL-SDR sticks max out around 2.4 MHz
 05:36:41 <kmc> maybe you could use two
 05:39:19 <kmc> the chip they use is actually a digital TV tuner chip (https://www.realtek.com/en/products/communications-network-ics/item/rtl2832u)
@@ -72,7 +72,7 @@
 08:23:19 -!- craigo has joined.
 08:29:28 -!- imode has quit (Quit: WeeChat 2.9).
 08:29:45 -!- imode has joined.
-08:35:53 <esowiki> [[Talk:SELENE.]]  https://esolangs.org/w/index.php?diff=79759&oldid=79757 * Quintopia * (+144) question
+08:35:53 <esolangs> [[Talk:SELENE.]]  https://esolangs.org/w/index.php?diff=79759&oldid=79757 * Quintopia * (+144) question
 09:08:55 <b_jonas> it's actually 2021. can you beleive it?
 09:09:18 <b_jonas> `datei
 09:09:19 <HackEso> 2021-01-01 09:09:18.881 +0000 UTC January 1 Friday 2020-W53-5
@@ -81,26 +81,26 @@
 09:20:25 -!- delta23 has quit (Ping timeout: 240 seconds).
 09:21:45 -!- delta23 has joined.
 09:33:08 <moony> b_jonas: install sdate, run `sdate -e 2020-12`, and be revealed the truth: it's dec 32nd
-09:41:01 <esowiki> [[Special:Log/newusers]] create  * TehChar1337 *  New user account
+09:41:01 <esolangs> [[Special:Log/newusers]] create  * TehChar1337 *  New user account
 09:45:52 <b_jonas> also the Wiener Philharmoniker new year concert is going to start in half an hour. I'm preparing so I can watch it uninterrupted.
 09:46:00 -!- rain1 has joined.
 09:47:51 <b_jonas> moony: what  is sdate?
 09:47:52 <b_jonas> `sdate
 09:47:53 <HackEso> sdate? No such file or directory
 09:50:39 <moony> https://github.com/df7cb/sdate
-09:54:10 <esowiki> [[Esolang:Introduce yourself]]  https://esolangs.org/w/index.php?diff=79760&oldid=79716 * TehChar1337 * (+467) /* Introductions */
+09:54:10 <esolangs> [[Esolang:Introduce yourself]]  https://esolangs.org/w/index.php?diff=79760&oldid=79716 * TehChar1337 * (+467) /* Introductions */
 10:08:58 <b_jonas> concert starting RSN
 10:09:16 <b_jonas> TV is now broadcasting ads before it
 10:10:10 <b_jonas> and right now I'm trying to make sure that I've got the FM radio set up correctly as a fallback in case there's a problem with the internet TV
 10:10:30 <b_jonas> but they're just playing music so it's hard to tell that it's the right channel
 10:11:38 <b_jonas> conveniently the internet TV will be delayed a bit, so if it fails, I can quickly switch to the radio and, in theory, not miss anything, though of course it's not nice to have music interrupted that way
-10:14:12 <esowiki> [[SELENE.]] M https://esolangs.org/w/index.php?diff=79761&oldid=79758 * Tetrapyronia * (-2) 
+10:14:12 <esolangs> [[SELENE.]] M https://esolangs.org/w/index.php?diff=79761&oldid=79758 * Tetrapyronia * (-2) 
 10:14:19 <b_jonas> yes, radio is correct
 10:15:14 -!- imode has quit (Quit: WeeChat 2.9).
-10:15:25 <esowiki> [[SELENE.]] M https://esolangs.org/w/index.php?diff=79762&oldid=79761 * Tetrapyronia * (+0) 
+10:15:25 <esolangs> [[SELENE.]] M https://esolangs.org/w/index.php?diff=79762&oldid=79761 * Tetrapyronia * (+0) 
 10:15:29 -!- imode has joined.
 10:15:33 <rain1> https://www.youtube.com/watch?v=fUb7eJttOPg
-10:15:34 <esowiki> [[Talk:SELENE.]] M https://esolangs.org/w/index.php?diff=79763&oldid=79759 * Tetrapyronia * (+183) 
+10:15:34 <esolangs> [[Talk:SELENE.]] M https://esolangs.org/w/index.php?diff=79763&oldid=79759 * Tetrapyronia * (+183) 
 10:15:36 <b_jonas> anyone wants to guess what the very last ad before the concert will be?
 10:15:40 <b_jonas> or was
 10:15:47 <rain1> hand sanitizre
@@ -205,27 +205,27 @@
 13:44:20 -!- MDead has joined.
 13:46:38 -!- MDude has quit (Ping timeout: 256 seconds).
 13:46:45 -!- MDead has changed nick to MDude.
-14:06:55 <esowiki> [[Hot]] N https://esolangs.org/w/index.php?oldid=79764 * Hakerh400 * (+2854) +[[Hot]]
-14:07:01 <esowiki> [[Language list]]  https://esolangs.org/w/index.php?diff=79765&oldid=79747 * Hakerh400 * (+10) +[[Hot]]
-14:07:58 <esowiki> [[Hot]] M https://esolangs.org/w/index.php?diff=79766&oldid=79764 * Hakerh400 * (+56) 
-14:11:44 <esowiki> [[Hot]] M https://esolangs.org/w/index.php?diff=79767&oldid=79766 * Hakerh400 * (-19) 
-14:12:49 <esowiki> [[User:Hakerh400]] M https://esolangs.org/w/index.php?diff=79768&oldid=79752 * Hakerh400 * (+41) 
+14:06:55 <esolangs> [[Hot]] N https://esolangs.org/w/index.php?oldid=79764 * Hakerh400 * (+2854) +[[Hot]]
+14:07:01 <esolangs> [[Language list]]  https://esolangs.org/w/index.php?diff=79765&oldid=79747 * Hakerh400 * (+10) +[[Hot]]
+14:07:58 <esolangs> [[Hot]] M https://esolangs.org/w/index.php?diff=79766&oldid=79764 * Hakerh400 * (+56) 
+14:11:44 <esolangs> [[Hot]] M https://esolangs.org/w/index.php?diff=79767&oldid=79766 * Hakerh400 * (-19) 
+14:12:49 <esolangs> [[User:Hakerh400]] M https://esolangs.org/w/index.php?diff=79768&oldid=79752 * Hakerh400 * (+41) 
 14:18:04 -!- Arcorann has quit (Ping timeout: 246 seconds).
-14:20:08 <esowiki> [[Hot]] M https://esolangs.org/w/index.php?diff=79769&oldid=79767 * Hakerh400 * (+1) 
+14:20:08 <esolangs> [[Hot]] M https://esolangs.org/w/index.php?diff=79769&oldid=79767 * Hakerh400 * (+1) 
 15:31:30 -!- arseniiv has joined.
-15:58:29 <esowiki> [[Brainfuck code generation]]  https://esolangs.org/w/index.php?diff=79770&oldid=76861 * Maxi * (+597) /* Languages that compile to brainfuck */
-16:01:08 <esowiki> [[User:TehChar1337]] N https://esolangs.org/w/index.php?oldid=79771 * TehChar1337 * (+42) Created page with "I am the creator of the PureHell language."
-16:01:53 <esowiki> [[User talk:TehChar1337]] N https://esolangs.org/w/index.php?oldid=79772 * TehChar1337 * (+28) Created page with "Discuss here about PureHell!"
-16:02:31 <esowiki> [[Brainfuck code generation]] M https://esolangs.org/w/index.php?diff=79773&oldid=79770 * Maxi * (+0) /* Languages that compile to brainfuck */
-16:26:51 <esowiki> [[Special:Log/newusers]] create  * ALotOfKelp *  New user account
-17:14:40 <esowiki> [[Brainfuck code generation]] M https://esolangs.org/w/index.php?diff=79774&oldid=79773 * Maxi * (-11) /* Languages that compile to brainfuck */
-17:25:11 <esowiki> [[Talk:C2BF]]  https://esolangs.org/w/index.php?diff=79775&oldid=60726 * Maxi * (+146) 
-17:38:36 <esowiki> [[Special:Log/newusers]] create  * HVMarci *  New user account
-17:41:54 <esowiki> [[Esolang:Introduce yourself]] M https://esolangs.org/w/index.php?diff=79776&oldid=79760 * HVMarci * (+39) 
-17:42:35 <esowiki> [[Esolang:Introduce yourself]]  https://esolangs.org/w/index.php?diff=79777&oldid=79776 * HVMarci * (+81) 
-17:43:03 <esowiki> [[Burn]]  https://esolangs.org/w/index.php?diff=79778&oldid=68786 * HVMarci * (+41) Link to rule 110 wiki page
-18:16:52 <esowiki> [[Brainfuck code generation]]  https://esolangs.org/w/index.php?diff=79779&oldid=79774 * Maxi * (-171) /* Languages that compile to brainfuck */
-18:28:46 <esowiki> [[Brainfuck code generation]]  https://esolangs.org/w/index.php?diff=79780&oldid=79779 * Maxi * (+171) Undo revision 79779 by [[Special:Contributions/Maxi|Maxi]] ([[User talk:Maxi|talk]])
+15:58:29 <esolangs> [[Brainfuck code generation]]  https://esolangs.org/w/index.php?diff=79770&oldid=76861 * Maxi * (+597) /* Languages that compile to brainfuck */
+16:01:08 <esolangs> [[User:TehChar1337]] N https://esolangs.org/w/index.php?oldid=79771 * TehChar1337 * (+42) Created page with "I am the creator of the PureHell language."
+16:01:53 <esolangs> [[User talk:TehChar1337]] N https://esolangs.org/w/index.php?oldid=79772 * TehChar1337 * (+28) Created page with "Discuss here about PureHell!"
+16:02:31 <esolangs> [[Brainfuck code generation]] M https://esolangs.org/w/index.php?diff=79773&oldid=79770 * Maxi * (+0) /* Languages that compile to brainfuck */
+16:26:51 <esolangs> [[Special:Log/newusers]] create  * ALotOfKelp *  New user account
+17:14:40 <esolangs> [[Brainfuck code generation]] M https://esolangs.org/w/index.php?diff=79774&oldid=79773 * Maxi * (-11) /* Languages that compile to brainfuck */
+17:25:11 <esolangs> [[Talk:C2BF]]  https://esolangs.org/w/index.php?diff=79775&oldid=60726 * Maxi * (+146) 
+17:38:36 <esolangs> [[Special:Log/newusers]] create  * HVMarci *  New user account
+17:41:54 <esolangs> [[Esolang:Introduce yourself]] M https://esolangs.org/w/index.php?diff=79776&oldid=79760 * HVMarci * (+39) 
+17:42:35 <esolangs> [[Esolang:Introduce yourself]]  https://esolangs.org/w/index.php?diff=79777&oldid=79776 * HVMarci * (+81) 
+17:43:03 <esolangs> [[Burn]]  https://esolangs.org/w/index.php?diff=79778&oldid=68786 * HVMarci * (+41) Link to rule 110 wiki page
+18:16:52 <esolangs> [[Brainfuck code generation]]  https://esolangs.org/w/index.php?diff=79779&oldid=79774 * Maxi * (-171) /* Languages that compile to brainfuck */
+18:28:46 <esolangs> [[Brainfuck code generation]]  https://esolangs.org/w/index.php?diff=79780&oldid=79779 * Maxi * (+171) Undo revision 79779 by [[Special:Contributions/Maxi|Maxi]] ([[User talk:Maxi|talk]])
 18:31:31 -!- delta23 has quit (Quit: Leaving).
 18:42:16 -!- Sgeo has joined.
 18:48:40 -!- Lord_of_Life_ has joined.
@@ -245,8 +245,8 @@
 19:35:56 -!- craigo has quit (Ping timeout: 240 seconds).
 19:38:09 <arseniiv> I think I’m genuniely relieved when I know someone is not having this or that issue I have, that’s a weird kind of empathy if it is
 20:25:08 -!- delta23 has joined.
-20:28:02 <esowiki> [[FILO]] N https://esolangs.org/w/index.php?oldid=79781 * Qpliu * (+2389) Created page with "FILO is a stack-based programming language.  A FILO program consists of a set of function definitions.  ==Syntax==   program = definitions ;      definitions = definition, { d..."
-20:28:08 <esowiki> [[Language list]]  https://esolangs.org/w/index.php?diff=79782&oldid=79765 * Qpliu * (+11) /* F */
-20:47:23 <esowiki> [[Hot]] M https://esolangs.org/w/index.php?diff=79783&oldid=79769 * PythonshellDebugwindow * (+60) cats /* I/O format */
+20:28:02 <esolangs> [[FILO]] N https://esolangs.org/w/index.php?oldid=79781 * Qpliu * (+2389) Created page with "FILO is a stack-based programming language.  A FILO program consists of a set of function definitions.  ==Syntax==   program = definitions ;      definitions = definition, { d..."
+20:28:08 <esolangs> [[Language list]]  https://esolangs.org/w/index.php?diff=79782&oldid=79765 * Qpliu * (+11) /* F */
+20:47:23 <esolangs> [[Hot]] M https://esolangs.org/w/index.php?diff=79783&oldid=79769 * PythonshellDebugwindow * (+60) cats /* I/O format */
 22:52:23 -!- imode has joined.
 23:11:49 -!- arseniiv has quit (Ping timeout: 246 seconds).

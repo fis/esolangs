@@ -5,13 +5,14 @@
 #include <optional>
 #include <string>
 
+#include "esologs/config.pb.h"
 #include "esologs/index.h"
 #include "esologs/log.pb.h"
 #include "web/response.h"
 
 namespace esologs {
 
-void FormatIndex(web::Response* resp, const LogIndex& index, int y);
+void FormatIndex(web::Response* resp, const TargetConfig& cfg, const LogIndex& index, int y);
 
 void FormatError(web::Response* resp, int code, const char* fmt, ...);
 
@@ -27,7 +28,7 @@ struct LogFormatter {
   virtual void FormatStalkerFooter() = 0;
   virtual void FormatDay(bool multiday, int year, int month, int day) = 0;
   virtual void FormatElision() = 0;
-  virtual void FormatEvent(const LogEvent& event) = 0;
+  virtual void FormatEvent(const LogEvent& event, const TargetConfig& cfg) = 0;
 
   virtual ~LogFormatter() = default;
 };
