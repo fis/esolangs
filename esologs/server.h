@@ -15,22 +15,26 @@
 
 namespace esologs {
 
-class Server : public web::RequestHandler, public web::WebsocketHandler {
+class Server : public web::RequestHandler, public web::WebsocketHandler, public IndexMapper {
  public:
   Server(const Config& config, event::Loop* loop);
 
   int port() const { return web_server_->port(); }
+  LogIndex* index(const std::string& target) override;
 
   int HandleGet(const web::Request& req, web::Response* resp) override;
   web::WebsocketClientHandler* HandleWebsocketClient(const char* uri, const char* protocol) override;
 
  private:
   struct Target {
+    Target(const TargetConfig& c) : config(c), index(c.log_path()) {}
+    int HandleGet(Server* srv, const char* uri, web::Response* resp);
+    web::WebsocketClientHandler* HandleWebsocketClient(Server* srv, const char* uri, const char* protocol);
     TargetConfig config;
     LogIndex index;
-    Target(const TargetConfig& c) : config(c), index(c.log_path()) {}
-    int HandleGet(Server* srv, const char *uri, web::Response* resp);
   };
+
+  const char* StripTarget(const char* uri, Target** target);
 
   event::Loop* loop_;
 
@@ -42,7 +46,7 @@ class Server : public web::RequestHandler, public web::WebsocketHandler {
 
   const RE2 re_index_ = RE2("(?:(\\d+|all)\\.html)?");
   const RE2 re_logfile_ = RE2("(\\d+)-(\\d+)(?:-(\\d+))?(\\.html|\\.txt|-raw\\.txt)");
-  const RE2 re_stalker_ = RE2("/stalker(\\.html|\\.txt|-raw\\.txt)");
+  const RE2 re_stalker_ = RE2("stalker(\\.html|\\.txt|-raw\\.txt)");
 
   std::unique_ptr<web::Server> web_server_;
 

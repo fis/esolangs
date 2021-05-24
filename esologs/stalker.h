@@ -20,54 +20,75 @@
 
 namespace esologs {
 
-class Stalker : public event::ServerSocket::Watcher, public event::Socket::Watcher {
+struct IndexMapper {
+  virtual LogIndex* index(const std::string& target) = 0;
+  virtual ~IndexMapper() = default;
+};
+
+class Stalker : public event::Socket::Watcher, public event::Timed {
  public:
-  Stalker(const Config& config, event::Loop* loop, LogIndex* index, prometheus::Registry* metric_registry = nullptr);
+  Stalker(const Config& config, event::Loop* loop, IndexMapper* indices, prometheus::Registry* metric_registry = nullptr);
   ~Stalker();
 
-  void Format(LogFormatter* fmt);
-  void UpdateClients();
+  void Format(const TargetConfig& cfg, LogFormatter* fmt);
 
-  web::WebsocketClientHandler* AddClient();
+  web::WebsocketClientHandler* AddClient(const TargetConfig& config);
 
   bool loaded() { return events_loaded_; }
 
-  void Accepted(std::unique_ptr<event::Socket> socket) override;
-  void AcceptError(std::unique_ptr<base::error> error) override;
+  // event::Socket::Watcher
+  void ConnectionOpen() override;
+  void ConnectionFailed(std::unique_ptr<base::error> error) override;
   void CanRead() override;
-
-  void ConnectionOpen() override {}
-  void ConnectionFailed(std::unique_ptr<base::error> error) override {}
   void CanWrite() override {}
+  // event::Timed
+  void TimerExpired(bool) override { ConnectPipe(); }
 
  private:
+  enum State {
+    kConnecting,
+    kConnected,
+    kWaiting,
+  };
+  struct Target {
+    Target(const std::string& n) : name(n) {}
+    const std::string name; // TODO: maybe put TargetConfig copy here instead of client; less passing around
+    std::int64_t last_day = 0;
+    std::uint64_t last_line = 0;
+    std::deque<LogEvent> events;
+    std::mutex events_lock;
+  };
   class Client;
+
+  void ConnectPipe();
+  void ResetPipe();
+
+  void UpdateClients();
+  void Backfill();
+
+  Target* target(const std::string& name);
 
   static constexpr date::days kBackfillDays{3};
   static constexpr std::size_t kQueueSize = 1000;
+  static constexpr auto kReconnectDelay = std::chrono::seconds(30);
 
-  event::Loop* loop_;
-  LogIndex* index_;
+  event::Loop* const loop_;
+  IndexMapper* const indices_;
+  std::vector<std::unique_ptr<Target>> targets_;
+  std::string pipe_path_;
 
-  std::unique_ptr<event::ServerSocket> server_;
-  std::unique_ptr<event::Socket> writer_;
+  State state_ = kWaiting;
+  std::unique_ptr<event::Socket> pipe_;
   std::array<char, 4096> read_buffer_;
 
-  std::deque<LogEvent> events_;
-  std::mutex events_lock_;
   std::atomic<bool> events_loaded_ = false;
 
   base::unique_set<Client> clients_;
   std::mutex clients_lock_;
   std::atomic<bool> clients_active_ = false;
 
-  std::int64_t last_day_;
-  std::uint64_t last_line_;
-
   prometheus::Gauge* metric_clients_ = nullptr;
   prometheus::Gauge* metric_last_received_ = nullptr;
-
-  void Backfill();
 };
 
 } // namespace esologs

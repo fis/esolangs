@@ -10,7 +10,7 @@ namespace esologs {
 
 class Stalker::Client : public web::WebsocketClientHandler {
  public:
-  Client(Stalker* stalker) : stalker_(stalker) {}
+  Client(Stalker* stalker, Stalker::Target* target, TargetConfig config) : stalker_(stalker), target_(target), config_(config) {}
 
   bool Send(const LogEvent& event);
   void Close();
@@ -28,6 +28,8 @@ class Stalker::Client : public web::WebsocketClientHandler {
 
  private:
   Stalker* const stalker_;
+  Stalker::Target* const target_;
+  TargetConfig const config_;
   web::Websocket* socket_ = nullptr;
 
   std::int64_t sent_day_ = 0;
@@ -35,6 +37,8 @@ class Stalker::Client : public web::WebsocketClientHandler {
 
   std::string buffer_;
   std::unique_ptr<LogFormatter> fmt_ = LogFormatter::CreateHTML(&buffer_);
+
+  friend class Stalker;
 };
 
 bool Stalker::Client::Send(const LogEvent& event) {
@@ -59,7 +63,7 @@ bool Stalker::Client::Send(const LogEvent& event) {
     YMD ymd(YMD::day_number, day);
     fmt_->FormatDay(true, ymd.year, ymd.month, ymd.day);
   }
-  fmt_->FormatEvent(event, TargetConfig()); // TODO FIXME
+  fmt_->FormatEvent(event, config_);
 
   std::size_t body_size = buffer_.size();
   wrote = socket_->Write(web::Websocket::Type::kText, buffer_.data(), body_size);
@@ -131,8 +135,12 @@ void Stalker::Client::WebsocketClose(web::Websocket* socket) {
   stalker_->clients_active_ = active;
 }
 
-Stalker::Stalker(const Config& config, event::Loop* loop, LogIndex* index, prometheus::Registry* metric_registry)
-    : loop_(loop), index_(index) {
+Stalker::Stalker(const Config& config, event::Loop* loop, IndexMapper* indices, prometheus::Registry* metric_registry)
+    : loop_(loop), indices_(indices), pipe_path_(config.pipe_socket())
+{
+  for (const auto& target_config : config.target())
+    targets_.emplace_back(std::make_unique<Target>(target_config.name()));
+
   if (metric_registry) {
     metric_clients_ = &prometheus::BuildGauge()
         .Name("esologs_stalker_active_clients")
@@ -146,27 +154,25 @@ Stalker::Stalker(const Config& config, event::Loop* loop, LogIndex* index, prome
         .Add({});
   }
 
-  auto server = event::ListenUnix(loop, this, config.stalker_socket(), event::Socket::SEQPACKET);
-  if (!server.ok())
-    throw base::Exception(*server.error());
-  server_ = server.ptr();
-  LOG(INFO) << "stalker server listening at: " << config.stalker_socket();
+  ConnectPipe();
 }
 
 Stalker::~Stalker() {}
 
-void Stalker::Format(LogFormatter* fmt) {
+void Stalker::Format(const TargetConfig& cfg, LogFormatter* fmt) {
   std::int64_t day = 0;
 
   int link_year;
   {
-    std::lock_guard<std::mutex> lock(*index_->lock());
-    link_year = index_->default_year();
+    LogIndex* index = indices_->index(cfg.name());
+    std::lock_guard<std::mutex> lock(*index->lock());
+    link_year = index->default_year();
   }
-  fmt->FormatStalkerHeader(link_year, "TODO: MISSING TITLE"); // TODO FIXME
+  fmt->FormatStalkerHeader(link_year, cfg.title());
 
-  std::lock_guard<std::mutex> lock(events_lock_);
-  for (const LogEvent& event : events_) {
+  Target* tgt = target(cfg.name());
+  std::lock_guard<std::mutex> lock(tgt->events_lock);
+  for (const LogEvent& event : tgt->events) {
     std::int64_t event_day = event.event_id().day();
     std::uint64_t event_line = event.event_id().line();
 
@@ -179,94 +185,81 @@ void Stalker::Format(LogFormatter* fmt) {
         fmt->FormatElision();
     }
 
-    fmt->FormatEvent(event, TargetConfig()); // TODO FIXME
+    fmt->FormatEvent(event, cfg);
   }
 
   fmt->FormatStalkerFooter();
 }
 
-void Stalker::UpdateClients() {
-  std::scoped_lock<std::mutex, std::mutex> lock(clients_lock_, events_lock_);
-
-  for (Client* client : clients_) {
-    if (!client->registered())
-      continue;
-
-    auto event = events_.end();
-    while (event != events_.begin() && !client->has_event(*(event-1)))
-      --event;
-    for (; event != events_.end(); ++event) {
-      if (!client->Send(*event)) {
-        client->Close();
-        break;
-      }
-    }
-  }
-}
-
-web::WebsocketClientHandler* Stalker::AddClient() {
+web::WebsocketClientHandler* Stalker::AddClient(const TargetConfig& config) {
   std::lock_guard<std::mutex> lock(clients_lock_);
-  auto* handler = clients_.emplace(this);
+  auto* handler = clients_.emplace(this, target(config.name()), config);
   if (metric_clients_)
     metric_clients_->Set(clients_.size());
   return handler;
 }
 
-void Stalker::Accepted(std::unique_ptr<event::Socket> socket) {
-  {
-    std::lock_guard<std::mutex> lock(events_lock_);
-    if (events_.empty())
-      Backfill();
+void Stalker::ConnectionOpen() {
+  CHECK(state_ == kConnecting);
+
+  LOG(INFO) << "stalker: pipe connected";
+  state_ = kConnected;
+  pipe_->WantRead(true);
+
+  if (!events_loaded_) {
+    Backfill();
     events_loaded_ = true;
   }
-
-  writer_ = std::move(socket);
-  writer_->SetWatcher(this);
-  writer_->WantRead(true);
-  LOG(INFO) << "stalker client connected";
 }
 
-void Stalker::AcceptError(std::unique_ptr<base::error> error) {
-  LOG(WARNING) << "stalker client accept failed: " << *error;
+void Stalker::ConnectionFailed(std::unique_ptr<base::error> error) {
+  CHECK(state_ == kConnecting);
+
+  LOG(WARNING) << "stalker: pipe connection failed: " << pipe_path_ << ": " << *error;
+  ResetPipe();
 }
 
 void Stalker::CanRead() {
-  CHECK(writer_);
+  CHECK(pipe_);
 
-  std::size_t size;
+  std::size_t len;
   {
-    auto ret = writer_->Read(read_buffer_.data(), read_buffer_.size());
+    auto ret = pipe_->Read(read_buffer_.data(), read_buffer_.size());
     if (!ret.ok()) {
-      LOG(WARNING) << "stalker event read failed: " << *ret.error();
-      writer_.reset();
+      LOG(WARNING) << "stalker: pipe read failed: " << *ret.error();
+      ResetPipe();
       return;
     }
-    size = ret.size();
+    len = ret.size();
   }
-  if (size == 0)
+  if (len == 0)
     return;
 
-  {
-    std::lock_guard<std::mutex> lock(events_lock_);
+  LogEvent event;
+  if (!event.ParseFromArray(read_buffer_.data(), len)) {
+    LOG(WARNING) << "stalker: pipe event parse error, len = " << len;
+    return;
+  }
 
-    LogEvent& event = events_.emplace_back();
-    if (!event.ParseFromArray(read_buffer_.data(), size)) {
-      LOG(WARNING) << "stalker event parse error, len = " << size;
-      events_.pop_back();
-      return;
-    }
+  Target* tgt = target(event.event_id().target());
+  if (!tgt) {
+    LOG(WARNING) << "stalker: pipe event for unknown target: " << event.event_id().target();
+    return;
+  }
+
+  {
+    std::lock_guard<std::mutex> lock(tgt->events_lock);
 
     std::int64_t event_day = event.event_id().day();
     std::uint64_t event_line = event.event_id().line();
-    if (event_day < last_day_ || (event_day == last_day_ && event_line <= last_line_)) {
-      events_.pop_back();
-      return;
-    }
-    last_day_ = event_day;
-    last_line_ = event_line;
+    if (event_day < tgt->last_day || (event_day == tgt->last_day && event_line <= tgt->last_line))
+      return; // already seen
+    tgt->last_day = event_day;
+    tgt->last_line = event_line;
 
-    if (events_.size() > kQueueSize)
-      events_.pop_front();
+    tgt->events.emplace_back(std::move(event));
+    if (tgt->events.size() > kQueueSize)
+      tgt->events.pop_front();
   }
 
   if (metric_last_received_)
@@ -276,39 +269,99 @@ void Stalker::CanRead() {
     UpdateClients();
 }
 
+void Stalker::ConnectPipe() {
+  CHECK(state_ == kWaiting);
+  CHECK(!pipe_);
+
+  state_ = kConnecting;
+  auto sock = event::Socket::Builder()
+      .loop(loop_)
+      .watcher(this)
+      .unix(pipe_path_)
+      .kind(event::Socket::SEQPACKET)
+      .Build();
+  if (sock.ok()) {
+    pipe_ = sock.ptr();
+    pipe_->Start();
+  } else {
+    ConnectionFailed(sock.error());
+  }
+}
+
+void Stalker::ResetPipe() {
+  state_ = kWaiting;
+  pipe_.reset();
+  loop_->Delay(kReconnectDelay, base::borrow(this));
+}
+
+void Stalker::UpdateClients() {
+  std::lock_guard<std::mutex> lock_clients(clients_lock_);
+
+  for (Client* client : clients_) {
+    if (!client->registered())
+      continue;
+
+    std::lock_guard<std::mutex> lock_events(client->target_->events_lock);
+    auto& events = client->target_->events;
+    auto event = events.end();
+    while (event != events.begin() && !client->has_event(*(event-1)))
+      --event;
+    for (; event != events.end(); ++event) {
+      if (!client->Send(*event)) {
+        client->Close();
+        break;
+      }
+    }
+  }
+}
+
+// TODO: consider just doing an eager backfill
 void Stalker::Backfill() {
   auto today = date::floor<date::days>(std::chrono::system_clock::now());
 
-  std::lock_guard<std::mutex> lock(*index_->lock());
-  for (auto backfill_day = today - kBackfillDays; backfill_day <= today; backfill_day += date::days{1}) {
-    YMD ymd{backfill_day};
-    if (!index_->Lookup(ymd))
-      continue;
+  for (const auto& tgt : targets_) {
+    std::lock_guard<std::mutex> lock_events(tgt->events_lock);
 
-    auto reader = index_->Open(ymd.year, ymd.month, ymd.day);
-    std::uint64_t line = 0;
-    while (true) {
-      LogEvent& event = events_.emplace_back();
+    LogIndex* index = indices_->index(tgt->name);
+    std::lock_guard<std::mutex> lock(*index->lock());
 
-      if (!reader->Read(&event)) {
-        events_.pop_back();
-        break;
+    for (auto backfill_day = today - kBackfillDays; backfill_day <= today; backfill_day += date::days{1}) {
+      YMD ymd{backfill_day};
+      if (!index->Lookup(ymd))
+        continue;
+
+      auto reader = index->Open(ymd.year, ymd.month, ymd.day);
+      std::uint64_t line = 0;
+      while (true) {
+        LogEvent& event = tgt->events.emplace_back();
+
+        if (!reader->Read(&event)) {
+          tgt->events.pop_back();
+          break;
+        }
+
+        LogEventId* event_id = event.mutable_event_id();
+        event_id->set_day(backfill_day.time_since_epoch().count());
+        event_id->set_line(line);
+        ++line;
+
+        if (tgt->events.size() > kQueueSize)
+          tgt->events.pop_front();
       }
 
-      LogEventId* event_id = event.mutable_event_id();
-      event_id->set_day(backfill_day.time_since_epoch().count());
-      event_id->set_line(line);
-      ++line;
-
-      if (events_.size() > kQueueSize)
-        events_.pop_front();
-    }
-
-    if (line > 0) {
-      last_day_ = backfill_day.time_since_epoch().count();
-      last_line_ = line - 1;
+      if (line > 0) {
+        tgt->last_day = backfill_day.time_since_epoch().count();
+        tgt->last_line = line - 1;
+      }
     }
   }
+}
+
+Stalker::Target* Stalker::target(const std::string& name) {
+  for (auto& t : targets_)
+    if (t->name == name)
+      return t.get();
+  return nullptr;
 }
 
 } // namespace esologs

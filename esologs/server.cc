@@ -52,48 +52,33 @@ Server::Server(const Config& config, event::Loop* loop) : loop_(loop) {
       throw base::Exception("duplicate targets");
   }
 
-#if 0 // temporarily disabled
-  if (!config.stalker_socket().empty())
-    stalker_ = std::make_unique<Stalker>(config, loop_, index_.get(), metric_registry_.get());
-#endif
+  if (!config.pipe_socket().empty())
+    stalker_ = std::make_unique<Stalker>(config, loop_, this, metric_registry_.get());
 
   web_server_ = std::make_unique<web::Server>(config.listen_port());
   web_server_->AddHandler("/", this);
   if (stalker_)
-    web_server_->AddWebsocketHandler("/api/stalker.ws", this);
+    web_server_->AddWebsocketHandler("/", this);
+}
+
+LogIndex* Server::index(const std::string& target) {
+  auto t = targets_.find(target);
+  if (t != targets_.end())
+    return &t->second->index;
+  return nullptr;
 }
 
 int Server::HandleGet(const web::Request& req, web::Response* resp) {
   const char* uri = req.uri();
   if (!uri || *uri != '/') {
-    FormatError(resp, 500, "local_uri missing");
+    FormatError(resp, 500, "missing request uri");
     return 500;
   }
 
-  if (const char *sep = std::strchr(uri+1, '/'); sep != NULL) {
-    std::size_t target_len = (sep - uri) - 1;
-    std::string_view target_name{uri + 1, target_len};
-    auto target = targets_.find(target_name);
-    if (target != targets_.end())
-      return target->second->HandleGet(this, sep + 1, resp);
-    FormatError(resp, 404, "unknown path: %s", uri);
-    return 404;
-  }
+  Target* tgt;
+  if (const char* target_uri = StripTarget(uri, &tgt); target_uri)
+    return tgt->HandleGet(this, target_uri, resp);
 
-#if 0 // temporarily disabled
-  if (stalker_ && RE2::FullMatch(uri, re_stalker_, &format)) {
-    if (stalker_->loaded()) {
-      auto fmt = CreateFormatter(format, resp);
-      stalker_->Format(fmt.get());
-      return 200;
-    } else {
-      FormatError(resp, 500, "stalker server temporarily unavailable, try again in a minute");
-      return 500;
-    }
-  }
-#endif
-
-#undef NDEBUG // TODO FIXME
 #if !defined(NDEBUG)
   std::string ext;
   if (RE2::FullMatch(uri, "/(?:index|log|stalker)\\.(html|css|js)", &ext)) {
@@ -120,7 +105,7 @@ int Server::HandleGet(const web::Request& req, web::Response* resp) {
   return 404;
 }
 
-int Server::Target::HandleGet(Server* srv, const char *uri, web::Response *resp) {
+int Server::Target::HandleGet(Server* srv, const char* uri, web::Response *resp) {
   std::string ys, ms, ds, format;
 
   if (RE2::FullMatch(uri, srv->re_index_, &ys)) {
@@ -182,15 +167,36 @@ int Server::Target::HandleGet(Server* srv, const char *uri, web::Response *resp)
     return 200;
   }
 
-  FormatError(resp, 404, "unknown path: %s", uri);
+  if (srv->stalker_ && RE2::FullMatch(uri, srv->re_stalker_, &format)) {
+    // TODO consider checking for a connected pipe rather than events being loaded
+    if (srv->stalker_->loaded()) {
+      auto fmt = CreateFormatter(format, resp);
+      srv->stalker_->Format(config, fmt.get());
+      return 200;
+    } else {
+      FormatError(resp, 500, "stalker server temporarily unavailable, try again in a minute");
+      return 500;
+    }
+  }
+
+  FormatError(resp, 404, "unknown path: /%s/%s", config.name().c_str(), uri);
   return 404;
 }
 
 web::WebsocketClientHandler* Server::HandleWebsocketClient(const char* uri, const char* protocol) {
   CHECK(stalker_);
 
-  if (std::strcmp(uri, "/api/stalker.ws") != 0) {
-    LOG(WARNING) << "unexpected websocket request uri: " << uri;
+  Target* tgt;
+  if (const char* target_uri = StripTarget(uri, &tgt); target_uri)
+    return tgt->HandleWebsocketClient(this, target_uri, protocol);
+
+  LOG(WARNING) << "unexpected websocket request uri: " << uri;
+  return nullptr;
+}
+
+web::WebsocketClientHandler* Server::Target::HandleWebsocketClient(Server* srv, const char* uri, const char* protocol) {
+  if (std::strcmp(uri, "stalker.ws") != 0) {
+    LOG(WARNING) << "unexpected websocket request uri: /" << config.name() << '/' << uri;
     return nullptr;
   }
 
@@ -199,7 +205,25 @@ web::WebsocketClientHandler* Server::HandleWebsocketClient(const char* uri, cons
     return nullptr;
   }
 
-  return stalker_->AddClient();
+  return srv->stalker_->AddClient(config);
+}
+
+const char* Server::StripTarget(const char* uri, Target** target) {
+  if (!uri || *uri != '/')
+    return nullptr;
+
+  const char* sep = std::strchr(uri+1, '/');
+  if (!sep)
+    return nullptr;
+
+  std::size_t target_len = (sep - uri) - 1;
+  std::string_view target_name{uri + 1, target_len};
+  auto tgt = targets_.find(target_name);
+  if (tgt == targets_.end())
+    return nullptr;
+
+  *target = tgt->second.get();
+  return sep + 1;
 }
 
 std::unique_ptr<LogFormatter> Server::CreateFormatter(const std::string& format, web::Response* resp) {

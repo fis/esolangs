@@ -2,6 +2,7 @@
 #include <chrono>
 #include <cstdio>
 #include <ctime>
+#include <memory>
 #include <string>
 
 #include "esobot/logger.h"
@@ -9,17 +10,24 @@
 #include "esologs/log.pb.h"
 #include "esologs/writer.h"
 #include "irc/bot/module.h"
+#include "proto/util.h"
 
 namespace esobot {
 
 Logger::Logger(const LoggerConfig& config, irc::bot::ModuleHost* host) {
+  esologs::Config log_config;
+  proto::ReadText(config.config_file(), &log_config);
+
   for (const auto& target_config : config.targets())
-    targets_.emplace_back(std::make_unique<Target>(config, target_config, host));
+    targets_.emplace_back(std::make_unique<Target>(target_config, log_config, host));
+
+  if (!log_config.pipe_socket().empty())
+    pipe_ = std::make_unique<esologs::PipeServer>(host->loop(), log_config.pipe_socket());
 }
 
-Logger::Target::Target(const LoggerConfig& config, const LoggerTarget& target, irc::bot::ModuleHost* host)
+Logger::Target::Target(const LoggerTarget& target, const esologs::Config& log_config, irc::bot::ModuleHost* host)
     : net(target.net()), chan(target.chan()),
-      log(config.config_file(), target.config(), host->loop(), host->metric_registry())
+      log(log_config, target.config(), host->loop(), host->metric_registry())
 {}
 
 void Logger::Log(Connection* conn, const irc::Message& msg, bool sent) {
@@ -49,7 +57,7 @@ void Logger::Log(Connection* conn, const irc::Message& msg, bool sent) {
       log_event.add_args(arg);
     if (sent)
       log_event.set_direction(esologs::LogEvent::SENT);
-    target->log.Write(&log_event);
+    target->log.Write(&log_event, pipe_.get());
   }
 };
 

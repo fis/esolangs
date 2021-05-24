@@ -45,7 +45,7 @@
                 (loc.protocol == 'https:' ? 'wss:' : 'ws:')
                 + '//' + loc.host
                 + loc.pathname.substr(0, loc.pathname.length - 12)
-                + 'api/stalker.ws';
+                + 'stalker.ws';
             console.info('stalker:', 'connecting to:', ws);
 
             socket = new WebSocket(ws, 'v1.stalker.logs.esolangs.org');

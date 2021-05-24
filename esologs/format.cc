@@ -328,7 +328,7 @@ void HtmlLineFormatter::FormatFooter(const YMD& date, const std::optional<YMD>& 
 }
 
 void HtmlLineFormatter::FormatStalkerHeader(int year, const std::string& title) {
-  WriteHtmlHeader(&web_, kCssLog, "stalker.js", title, " - stalker mode");
+  WriteHtmlHeader(&web_, kCssLog, "../stalker.js", title, " - stalker mode");
   web_.Write(
       "<div class=\"n\">"
       "<span class=\"nc\">stalker mode</span>"

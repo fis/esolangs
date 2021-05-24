@@ -4,10 +4,12 @@ package esologs;
 
 // Unique identifier for a log event, based on its position in the logs.
 message LogEventId {
+  // Name of the target (network + channel pair) the event is related to.
+  string target = 1;
   // Count of days, with 0 denoting January 1st, 1970.
-  int64 day = 1;
+  int64 day = 2;
   // Log event index within the day, with 0 denoting the first event.
-  uint64 line = 2;
+  uint64 line = 3;
 }
 
 // IRC log event.

@@ -19,47 +19,11 @@ namespace esologs {
 
 namespace fs = std::experimental::filesystem;
 
-class Writer::Stalker : public event::Socket::Watcher, public event::Timed {
- public:
-  Stalker(const std::string& socket_path, event::Loop* loop)
-      : socket_path_(socket_path), loop_(loop), state_(kWaiting)
-  { Connect(); }
-
-  void ConnectionOpen() override;
-  void ConnectionFailed(std::unique_ptr<base::error> error) override;
-  void CanRead() override;
-  void CanWrite() override {}
-
-  void TimerExpired(bool) override { Connect(); }
-
-  void Write(const LogEvent& event);
-
- private:
-  static constexpr auto kReconnectDelay = std::chrono::seconds(30);
-
-  enum State {
-    kConnecting,
-    kConnected,
-    kWaiting,
-  };
-
-  const std::string socket_path_;
-  event::Loop* loop_;
-
-  State state_;
-  std::unique_ptr<event::Socket> socket_;
-  std::string write_buffer_;
-
-  void Connect();
-};
-
-Writer::Writer(const std::string& config_path, const std::string& target_name, event::Loop* loop, prometheus::Registry* metric_registry)
+Writer::Writer(const Config& config, const std::string& target_name, event::Loop* loop, prometheus::Registry* metric_registry)
     : loop_(loop)
 {
-  Config config;
   const TargetConfig* target = nullptr;
 
-  proto::ReadText(config_path, &config);
   for (const auto& t : config.target()) {
     if (t.name() == target_name) {
       target = &t;
@@ -70,12 +34,10 @@ Writer::Writer(const std::string& config_path, const std::string& target_name, e
     throw base::Exception("log target name not found in config");
 
   dir_ = target->log_path();
+  target_ = target->name();
 
   current_day_ = Now().first;
   OpenLog(current_day_);
-
-  if (!config.stalker_socket().empty())
-    stalker_ = std::make_unique<Stalker>(config.stalker_socket(), loop);
 
   if (metric_registry) {
     metric_last_written_ = &prometheus::BuildGauge()
@@ -88,7 +50,7 @@ Writer::Writer(const std::string& config_path, const std::string& target_name, e
 
 Writer::~Writer() {}
 
-void Writer::Write(LogEvent* event) {
+void Writer::Write(LogEvent* event, PipeServer* pipe) {
   auto [day, time_us] = Now();
 
   if (day != current_day_) {
@@ -100,11 +62,12 @@ void Writer::Write(LogEvent* event) {
   current_log_->Write(*event);
   ++current_line_;
 
-  if (stalker_) {
+  if (pipe) {
     LogEventId* event_id = event->mutable_event_id();
+    event_id->set_target(target_);
     event_id->set_day(day.time_since_epoch().count());
     event_id->set_line(current_line_ - 1);
-    stalker_->Write(*event);
+    pipe->Write(event);
   }
 
   if (metric_last_written_)
@@ -141,6 +104,96 @@ void Writer::OpenLog(date::sys_days day) {
   current_log_ = std::make_unique<proto::DelimWriter>(log_file.c_str());
 }
 
+PipeServer::PipeServer(event::Loop* loop, const std::string& path) {
+  auto server = event::ListenUnix(loop, this, path, event::Socket::SEQPACKET);
+  if (!server.ok())
+    throw base::Exception(*server.error());
+  server_ = server.ptr();
+  LOG(INFO) << "pipeserver: listening at: " << path;
+}
+
+void PipeServer::Write(LogEvent* event) {
+  if (!reader_)
+    return;
+
+  bool start_write = write_buffer_.empty();
+
+  std::size_t event_size = event->ByteSizeLong();
+  if (write_buffer_.size() + event_size > kWriteBufferSize) {
+    LOG(WARNING) << "pipeserver: send queue full, killing the client";
+    ResetReader();
+    return;
+  }
+
+  {
+    proto::RingBufferOutputStream stream(base::borrow(&write_buffer_));
+    google::protobuf::io::CodedOutputStream coded(&stream);
+    event->SerializeWithCachedSizes(&coded);
+  }
+  write_sizes_.push_back(event_size);
+
+  if (start_write)
+    reader_->WantWrite(true);
+}
+
+void PipeServer::Accepted(std::unique_ptr<event::Socket> socket) {
+  ResetReader();
+  reader_ = std::move(socket);
+  reader_->SetWatcher(this);
+  reader_->WantRead(true);
+  reader_->WantWrite(false);
+  LOG(INFO) << "pipeserver: accepted connection";
+}
+
+void PipeServer::AcceptError(std::unique_ptr<base::error> error) {
+  LOG(WARNING) << "pipeserver: accept failed: " << *error;
+}
+
+void PipeServer::CanRead() {
+  // A pipe reader is never expected to write anything back.
+  // If the socket is ready to read, it means something must have gone wrong.
+
+  LOG(WARNING) << "pipeserver: connection broken (unexpected input)";
+  ResetReader();
+}
+
+void PipeServer::CanWrite() {
+  std::size_t len = write_sizes_.front();
+  write_sizes_.pop_front();
+
+  auto chunks = write_buffer_.front(len);
+  base::io_result wrote = base::io_result::ok(0);
+  if (chunks.second.valid()) {
+    // TODO: rethink this to avoid the rare copy when straddling the boundary
+    char copy[len];
+    std::memcpy(copy, chunks.first.data(), chunks.first.size());
+    std::memcpy(copy + chunks.first.size(), chunks.second.data(), chunks.second.size());
+    wrote = reader_->Write(copy, len);
+  } else {
+    wrote = reader_->Write(chunks.first.data(), chunks.first.size());
+  }
+
+  if (wrote.failed()) {
+    LOG(WARNING) << "pipeserver: write failed: " << *wrote.error();
+    ResetReader();
+    return;
+  }
+
+  if (wrote.size() < len)
+    LOG(WARNING) << "pipeserver: write truncated: " << wrote.size() << " < " << len;
+
+  write_buffer_.pop(len);
+  if (write_buffer_.empty())
+    reader_->WantWrite(false);
+}
+
+void PipeServer::ResetReader() {
+  write_buffer_.clear();
+  write_sizes_.clear();
+  reader_.reset();
+}
+
+#if 0 // TODO REMOVE
 void Writer::Stalker::ConnectionOpen() {
   LOG(INFO) << "stalker connected: " << socket_path_;
 
@@ -213,5 +266,6 @@ void Writer::Stalker::Connect() {
     ConnectionFailed(maybe_socket.error());
   }
 }
+#endif
 
 } // namespace esologs

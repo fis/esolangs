@@ -5,7 +5,7 @@ package esologs;
 message Config {
   string listen_port = 1;
   repeated TargetConfig target = 2;
-  string stalker_socket = 3;
+  string pipe_socket = 3;
   string metrics_addr = 4;
 }
 

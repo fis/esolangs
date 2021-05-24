@@ -20,11 +20,13 @@ class Logger : public irc::bot::Module {
     const std::string net;
     const std::string chan;
     esologs::Writer log;
-    Target(const LoggerConfig& config, const LoggerTarget& target, irc::bot::ModuleHost* host);
+    Target(const LoggerTarget& target, const esologs::Config& log_config, irc::bot::ModuleHost* host);
   };
-  std::vector<std::unique_ptr<Target>> targets_;
 
   void Log(Connection* conn, const irc::Message& msg, bool sent);
+
+  std::vector<std::unique_ptr<Target>> targets_;
+  std::unique_ptr<esologs::PipeServer> pipe_;
 };
 
 } // namespace esobot
