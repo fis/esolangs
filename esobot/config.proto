@@ -2,23 +2,41 @@ syntax = "proto3";
 
 package esobot;
 
-import "irc/config.proto";
 import "irc/bot/config.proto";
 
 message Config {
-  RcFeedConfig rc_feed = 1;
-  BridgeConfig bridge = 2;
-  repeated BotConfig bot = 3;
+  repeated irc.bot.ConnectionConfig conns = 1;
+  irc.bot.Config bot = 2;
+  LoggerConfig logger = 3;
+  RcFeedConfig rc_feed = 4;
+  BridgeConfig bridge = 5;
+}
+
+message LoggerConfig {
+  string config_file = 1;
+  repeated LoggerTarget targets = 2;
+}
+
+message LoggerTarget {
+  string net = 1;
+  string chan = 2;
+  string config = 3;
 }
 
 message RcFeedConfig {
   string port = 1;
+  repeated RcFeedTarget targets = 2;
+}
+
+message RcFeedTarget {
+  string net = 1;
+  string chan = 2;
 }
 
 message BridgeConfig {
-  repeated RouteConfig route = 1;
-  repeated IgnoreConfig ignore = 2;
-  repeated string filter = 3;
+  repeated RouteConfig routes = 1;
+  repeated IgnoreConfig ignores = 2;
+  repeated string filters = 3;
 }
 
 message RouteConfig {
@@ -31,26 +49,4 @@ message RouteConfig {
 message IgnoreConfig {
   string net = 1;
   string nick = 2;
-}
-
-message BotConfig {
-  irc.Config irc = 1;
-  irc.bot.Config bot = 2;
-  LoggerPlugin logger = 3;  // TODO: repeated
-  RcFeedPlugin rc_feed = 4; // TODO: repeated
-  BridgePlugin bridge = 5;
-}
-
-message LoggerPlugin {
-  string channel = 1;
-  string config_file = 2;
-  string target = 3;
-}
-
-message RcFeedPlugin {
-  string channel = 1;
-}
-
-message BridgePlugin {
-  string net = 1;
 }

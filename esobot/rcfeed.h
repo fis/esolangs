@@ -5,27 +5,26 @@
 
 #include "esobot/config.pb.h"
 #include "event/loop.h"
-#include "irc/bot/plugin.h"
+#include "irc/bot/module.h"
 
 namespace esobot {
 
-class RcFeed {
+class RcFeed : public irc::bot::Module {
  public:
-  RcFeed(event::Loop* loop, const RcFeedConfig& config);
+  RcFeed(const RcFeedConfig& config, irc::bot::ModuleHost* host);
   ~RcFeed();
-
-  std::unique_ptr<irc::bot::Plugin> AddHost(const RcFeedPlugin& config, irc::bot::PluginHost* host);
 
  private:
   event::Loop* loop_;
+
   int socket_;
 
-  struct Host {
-    irc::bot::PluginHost* host;
-    const std::string channel;
-    Host(irc::bot::PluginHost* h, const std::string& ch) : host(h), channel(ch) {}
+  struct Target {
+    irc::bot::Connection* conn;
+    const std::string chan;
+    Target(irc::bot::Connection* co, const std::string& ch) : conn(co), chan(ch) {}
   };
-  std::vector<Host> hosts_; // TODO: on plugin desctruction, remove it from list
+  std::vector<Target> targets_;
 
   void SocketReady(int);
 

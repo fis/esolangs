@@ -9,34 +9,26 @@
 
 #include "esobot/config.pb.h"
 #include "event/loop.h"
-#include "irc/bot/plugin.h"
+#include "irc/bot/module.h"
 
 namespace esobot {
 
-class Bridge {
- public:
-  Bridge(event::Loop* loop, const BridgeConfig& config);
+class Bridge : public irc::bot::Module {
+  using Connection = irc::bot::Connection;
 
-  std::unique_ptr<irc::bot::Plugin> AddHost(const BridgePlugin& config, irc::bot::PluginHost* host);
+ public:
+  Bridge(const BridgeConfig& config, irc::bot::ModuleHost* host);
+
+  void MessageReceived(Connection* conn, const irc::Message& msg) override;
 
  private:
-  struct Plugin : public irc::bot::Plugin {
-    Plugin(Bridge* b, irc::bot::PluginHost* h, const std::string& n) : bridge(b), host(h), net(n) {}
-    ~Plugin();
+  bool ParseSpec(Connection* conn, std::string_view spec, std::string_view *net, std::string_view *nick);
 
-    void MessageReceived(const irc::Message& msg) override;
-    bool ParseSpec(std::string_view spec, std::string_view *net, std::string_view *nick);
-
-    Bridge* bridge;
-    irc::bot::PluginHost* host;
-    std::string net;
-  };
-
-  event::Loop* loop_;
+  // TODO: look for opportunities to add std::less<> to string-keyed maps
+  irc::bot::ModuleHost* host_;
   std::vector<RouteConfig> routes_;
-  std::unordered_map<std::string, irc::bot::PluginHost*> hosts_;
-  std::set<std::pair<std::string, std::string>> ignore_;
-  std::map<std::string, std::unique_ptr<RE2>> filter_;
+  std::set<std::pair<std::string, std::string>> ignores_;
+  std::map<std::string, std::unique_ptr<RE2>> filters_;
 };
 
 } // namespace esobot

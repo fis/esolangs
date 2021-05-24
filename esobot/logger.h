@@ -3,21 +3,28 @@
 
 #include "esobot/config.pb.h"
 #include "esologs/writer.h"
-#include "irc/bot/plugin.h"
+#include "irc/bot/module.h"
 
 namespace esobot {
 
-class Logger : public irc::bot::Plugin {
+class Logger : public irc::bot::Module {
+  using Connection = irc::bot::Connection;
+
  public:
-  Logger(const LoggerPlugin& config, irc::bot::PluginHost*);
-  void MessageReceived(const irc::Message& msg) override { Log(msg, /* sent: */ false); }
-  void MessageSent(const irc::Message& msg) override { Log(msg, /* sent: */ true); }
+  Logger(const LoggerConfig& config, irc::bot::ModuleHost* host);
+  void MessageReceived(Connection* conn, const irc::Message& msg) override { Log(conn, msg, /* sent: */ false); }
+  void MessageSent(Connection* conn, const irc::Message& msg) override { Log(conn, msg, /* sent: */ true); }
 
  private:
-  const std::string channel_;
-  esologs::Writer log_;
+  struct Target {
+    const std::string net;
+    const std::string chan;
+    esologs::Writer log;
+    Target(const LoggerConfig& config, const LoggerTarget& target, irc::bot::ModuleHost* host);
+  };
+  std::vector<std::unique_ptr<Target>> targets_;
 
-  void Log(const irc::Message& msg, bool sent);
+  void Log(Connection* conn, const irc::Message& msg, bool sent);
 };
 
 } // namespace esobot
