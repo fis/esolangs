@@ -96,7 +96,7 @@ int Server::HandleGet(const web::Request& req, web::Response* resp) {
 #undef NDEBUG // TODO FIXME
 #if !defined(NDEBUG)
   std::string ext;
-  if (RE2::FullMatch(uri, "/(?:index|log|stalker)\\.(css|js)", &ext)) {
+  if (RE2::FullMatch(uri, "/(?:index|log|stalker)\\.(html|css|js)", &ext)) {
     std::string path("esologs/web"); path += uri;
     std::FILE* f = std::fopen(path.c_str(), "rb");
     if (f) {
