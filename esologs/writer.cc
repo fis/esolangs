@@ -44,7 +44,7 @@ Writer::Writer(const Config& config, const std::string& target_name, event::Loop
         .Name("esologs_writer_last_message_time")
         .Help("When was the last log message written?")
         .Register(*metric_registry)
-        .Add({});
+        .Add({{"target", target_name}});
   }
 }
 
