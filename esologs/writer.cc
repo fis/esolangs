@@ -125,6 +125,8 @@ void PipeServer::Write(LogEvent* event) {
     return;
   }
 
+  write_buffer_.push_cont(event_size); // ensure events are always contiguous
+  write_buffer_.unpush(event_size);
   {
     proto::RingBufferOutputStream stream(base::borrow(&write_buffer_));
     google::protobuf::io::CodedOutputStream coded(&stream);
@@ -162,23 +164,14 @@ void PipeServer::CanWrite() {
   write_sizes_.pop_front();
 
   auto chunks = write_buffer_.front(len);
-  base::io_result wrote = base::io_result::ok(0);
-  if (chunks.second.valid()) {
-    // TODO: rethink this to avoid the rare copy when straddling the boundary
-    char copy[len];
-    std::memcpy(copy, chunks.first.data(), chunks.first.size());
-    std::memcpy(copy + chunks.first.size(), chunks.second.data(), chunks.second.size());
-    wrote = reader_->Write(copy, len);
-  } else {
-    wrote = reader_->Write(chunks.first.data(), chunks.first.size());
-  }
+  CHECK(!chunks.second.valid()); // Write() ensures events are contiguous
 
+  auto wrote = reader_->Write(chunks.first.data(), chunks.first.size());
   if (wrote.failed()) {
     LOG(WARNING) << "pipeserver: write failed: " << *wrote.error();
     ResetReader();
     return;
   }
-
   if (wrote.size() < len)
     LOG(WARNING) << "pipeserver: write truncated: " << wrote.size() << " < " << len;
 
@@ -192,80 +185,5 @@ void PipeServer::ResetReader() {
   write_sizes_.clear();
   reader_.reset();
 }
-
-#if 0 // TODO REMOVE
-void Writer::Stalker::ConnectionOpen() {
-  LOG(INFO) << "stalker connected: " << socket_path_;
-
-  CHECK(state_ == kConnecting);
-  state_ = kConnected;
-  socket_->WantRead(true);  // monitor readability for detecting disconnect early
-}
-
-void Writer::Stalker::ConnectionFailed(std::unique_ptr<base::error> error) {
-  LOG(WARNING) << "stalker connect failed: " << socket_path_ << ": " << *error;
-
-  CHECK(state_ == kConnecting);
-  state_ = kWaiting;
-  socket_.reset();
-  loop_->Delay(kReconnectDelay, base::borrow(this));
-}
-
-void Writer::Stalker::CanRead() {
-  // The stalker server is never expected to write anything back.
-  // The socket being ready to read must mean something went wrong.
-
-  LOG(WARNING) << "stalker connection broken";
-  state_ = kWaiting;
-  socket_.reset();
-  loop_->Delay(kReconnectDelay, base::borrow(this));
-}
-
-void Writer::Stalker::Write(const LogEvent& event) {
-  if (state_ != kConnected)
-    return;  // not critical, just drop
-
-  CHECK(socket_);
-
-  if (!event.SerializeToString(&write_buffer_)) {
-    LOG(WARNING) << "stalker event serialization failed";
-    return;
-  }
-
-  auto wrote = socket_->Write(write_buffer_.data(), write_buffer_.length());
-
-  if (wrote.failed()) {
-    LOG(WARNING) << "stalker write failed: " << socket_path_ << ": " << *wrote.error();
-    state_ = kWaiting;
-    socket_.reset();
-    loop_->Delay(kReconnectDelay, base::borrow(this));
-    return;
-  }
-
-  if (wrote.size() < write_buffer_.length()) {
-    LOG(WARNING) << "stalker write truncated: " << wrote.size() << " < " << write_buffer_.length();
-    return;
-  }
-}
-
-void Writer::Stalker::Connect() {
-  CHECK(state_ == kWaiting);
-  CHECK(!socket_);
-
-  state_ = kConnecting;
-  auto maybe_socket = event::Socket::Builder()
-      .loop(loop_)
-      .watcher(this)
-      .unix(socket_path_)
-      .kind(event::Socket::SEQPACKET)
-      .Build();
-  if (maybe_socket.ok()) {
-    socket_ = maybe_socket.ptr();
-    socket_->Start();
-  } else {
-    ConnectionFailed(maybe_socket.error());
-  }
-}
-#endif
 
 } // namespace esologs
