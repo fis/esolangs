@@ -1,0 +1,30 @@
+body {
+    font-family: monospace;
+    padding-bottom: 1rem;
+}
+
+h1 {
+    margin: 0.5rem 0 0.5rem 0;
+    padding: 0;
+    font-size: large;
+    font-weight: bold;
+    white-space: pre;
+}
+ul {
+    list-style-type: none;
+    padding: 0 0.5rem 0.5rem 1rem;
+}
+
+p {
+    font-family: sans-serif;
+}
+
+h1.ann {
+    color: #a00000;
+}
+
+@media (pointer:coarse) {
+    li {
+        margin: 0.5rem 0 0.5rem 0;
+    }
+}
