@@ -2,10 +2,11 @@ syntax = "proto3";
 
 package esobot;
 
+import "irc/config.proto";
 import "irc/bot/config.proto";
 
 message Config {
-  repeated irc.bot.ConnectionConfig conns = 1;
+  repeated irc.Config irc = 1;
   irc.bot.Config bot = 2;
   LoggerConfig logger = 3;
   RcFeedConfig rc_feed = 4;
