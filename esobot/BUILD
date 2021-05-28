@@ -16,6 +16,7 @@ cc_binary(
         "@fi_zem_bracket//base",
         "@fi_zem_bracket//irc",
         "@fi_zem_bracket//irc/bot",
+        "@fi_zem_bracket//irc/bot:remote",
     ],
 )
 
@@ -25,6 +26,7 @@ proto_library(
     deps = [
         "@fi_zem_bracket//irc:config_proto",
         "@fi_zem_bracket//irc/bot:config_proto",
+        "@fi_zem_bracket//irc/bot:remote_service_proto",
     ],
 )
 
