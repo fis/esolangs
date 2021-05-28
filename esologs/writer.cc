@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <ctime>
 #include <experimental/filesystem>
+#include <memory>
 #include <string>
 
 #include <prometheus/gauge.h>
@@ -60,13 +61,12 @@ void Writer::Write(LogEvent* event, PipeServer* pipe) {
 
   event->set_time_us(time_us);
   current_log_->Write(*event);
-  ++current_line_;
 
   if (pipe) {
     LogEventId* event_id = event->mutable_event_id();
     event_id->set_target(target_);
     event_id->set_day(day.time_since_epoch().count());
-    event_id->set_line(current_line_ - 1);
+    event_id->set_line(current_log_->line() - 1);
     pipe->Write(event);
   }
 
@@ -94,14 +94,25 @@ void Writer::OpenLog(date::sys_days day) {
   std::snprintf(buf, sizeof buf, "%u.pb", (unsigned)ymd.day());
   log_file /= buf;
 
+  current_log_ = std::make_unique<FileWriter>(log_file);
+}
+
+FileWriter::FileWriter(const std::string& file) {
   current_line_ = 0;
-  if (fs::exists(log_file)) {
-    proto::DelimReader reader(log_file.c_str());
+  initial_bytes_ = 0;
+  if (fs::exists(file)) {
+    proto::DelimReader reader(file.c_str());
     while (reader.Skip())
       ++current_line_;
+    initial_bytes_ = reader.bytes();
   }
 
-  current_log_ = std::make_unique<proto::DelimWriter>(log_file.c_str());
+  writer_ = std::make_unique<proto::DelimWriter>(file.c_str());
+}
+
+void FileWriter::Write(const LogEvent &event) {
+  writer_->Write(event);
+  ++current_line_;
 }
 
 PipeServer::PipeServer(event::Loop* loop, const std::string& path) {

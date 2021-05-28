@@ -19,6 +19,7 @@
 
 namespace esologs {
 
+class FileWriter;
 class PipeServer;
 
 /**
@@ -35,7 +36,10 @@ class Writer {
   /**
    * Writes an event to the relevant logfile, and optionally a pipe too.
    *
-   * Note that if tee'ing the event to a pipe is requested by passing in a non-null pipe server, the
+   * The event will in any case have its `time_us` field set, to the offset in microseconds from
+   * the start of the day the logfile is representing.
+   *
+   * Further, if tee'ing the event to a pipe is requested by passing in a non-null pipe server, the
    * event will be mutated to contain the correct event ID that the event received when it was
    * written to the logfile.
    */
@@ -44,14 +48,15 @@ class Writer {
   DISALLOW_COPY(Writer);
 
  private:
+  void OpenLog(date::sys_days day);
+
   event::Loop* const loop_;
 
   std::string target_;
   std::string dir_;
 
   date::sys_days current_day_;
-  std::unique_ptr<proto::DelimWriter> current_log_;
-  std::uint64_t current_line_;  // index of next line to be written
+  std::unique_ptr<FileWriter> current_log_;
 
   prometheus::Gauge* metric_last_written_;
 
@@ -61,8 +66,33 @@ class Writer {
     auto time = date::floor<std::chrono::microseconds>(now - day);
     return std::pair(day, time.count());
   }
+};
 
-  void OpenLog(date::sys_days day);
+/**
+ * Single-file IRC log writer.
+ *
+ * This class handles simply appending delimited-proto events into a file, with some bookkeeping
+ * on how much has been written. See the Writer class for a higher-level interface that can do
+ * splitting by day and so on.
+ */
+class FileWriter {
+ public:
+  /** Creates a new writer, writing events to the specified file. */
+  FileWriter(const std::string& file);
+
+  /** Writes an event to the logfile, with no processing. */
+  void Write(const LogEvent& event);
+
+  /** Returns the number of lines written so far (i.e., the index of the next line to be written). */
+  std::uint64_t line() { return current_line_; }
+
+  /** Returns the current size of the file in bytes. */
+  std::uint64_t bytes() { return initial_bytes_ + (std::uint64_t) writer_->bytes(); }
+
+ private:
+  std::unique_ptr<proto::DelimWriter> writer_;
+  std::uint64_t current_line_;  // number of lines written = index of next line to write
+  std::uint64_t initial_bytes_; // number of bytes in the file when it was opened
 };
 
 /**
