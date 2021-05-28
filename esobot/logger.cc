@@ -35,17 +35,17 @@ void Logger::Log(Connection* conn, const irc::Message& msg, bool sent) {
     if (conn->net() != target->net)
       continue;
 
-    bool logged =
-        ((msg.command_is("PRIVMSG")
-          || msg.command_is("NOTICE")
-          || msg.command_is("JOIN")
-          || msg.command_is("PART")
-          || msg.command_is("KICK")
-          || msg.command_is("MODE")
-          || msg.command_is("TOPIC"))
-         && msg.arg_is(0, target->chan))
-        || msg.command_is("QUIT")
-        || msg.command_is("NICK");
+    bool logged = false;
+    if (msg.command_is("PRIVMSG")
+        || msg.command_is("NOTICE")
+        || msg.command_is("JOIN")
+        || msg.command_is("PART")
+        || msg.command_is("KICK")
+        || msg.command_is("MODE")
+        || msg.command_is("TOPIC"))
+      logged = msg.arg_is(0, target->chan);
+    else if (msg.command_is("QUIT") || msg.command_is("NICK"))
+      logged = conn->on_channel(msg.prefix_nick(), target->chan);
     if (!logged)
       return;
 

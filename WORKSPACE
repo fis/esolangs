@@ -4,9 +4,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "fi_zem_bracket",
-    urls = ["https://github.com/fis/bracket/archive/c342cff798a9198b9c6275c7b6bfa53195b95c06.zip"],
-    strip_prefix = "bracket-c342cff798a9198b9c6275c7b6bfa53195b95c06",
-    sha256 = "54d75e6e5ca30e0fd89a2cc728fa0fb0003ea0f84ec15b204d8fb2fed94d8abf",
+    urls = ["https://github.com/fis/bracket/archive/26000aa6c74edabd51909aab26b9fee222d472f1.zip"],
+    strip_prefix = "bracket-26000aa6c74edabd51909aab26b9fee222d472f1",
+    sha256 = "3d08113b9cc35096c00d27331c78338cbe2f84265613c8974df04cf6b4d33479",
 )
 
 # For development use:
