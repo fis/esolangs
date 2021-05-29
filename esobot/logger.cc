@@ -56,16 +56,16 @@ void Logger::Log(Connection* conn, const irc::Message& msg, bool sent) {
       continue;
 
     bool logged = false;
-    if (msg.command_is("PRIVMSG")
-        || msg.command_is("NOTICE")
-        || msg.command_is("JOIN")
+    if (msg.command_is("PRIVMSG") || msg.command_is("NOTICE"))
+      logged = msg.arg_is(0, target->chan); // log both received and sent (not echoed)
+    else if (msg.command_is("JOIN")
         || msg.command_is("PART")
         || msg.command_is("KICK")
         || msg.command_is("MODE")
         || msg.command_is("TOPIC"))
-      logged = msg.arg_is(0, target->chan);
+      logged = !sent && msg.arg_is(0, target->chan); // log only received (echoed)
     else if (msg.command_is("QUIT") || msg.command_is("NICK"))
-      logged = conn->on_channel(msg.prefix_nick(), target->chan);
+      logged = !sent && conn->on_channel(msg.prefix_nick(), target->chan); // log only received (echoed), if target on channel
     if (!logged)
       continue;
 
