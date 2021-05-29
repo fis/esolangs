@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <ctime>
 #include <memory>
 #include <string_view>
 
@@ -31,8 +32,17 @@ int main(int argc, char *argv[]) {
       }
       while (reader->Read(&event)) {
         auto tstamp = event.time_us();
+        if (tstamp >= 86400000000) {
+          time_t time = tstamp / 1000000;
+          tm *date = std::gmtime(&time);
+          char dstamp[sizeof "[YYYY-MM-DD "];
+          std::strftime(dstamp, sizeof dstamp, "[%Y-%m-%d ", date);
+          std::fputs(dstamp, stdout);
+          tstamp %= 86400000000;
+        } else
+          std::putc('[', stdout);
         std::printf(
-            "[%02d:%02d:%02d.%03d] ",
+            "%02d:%02d:%02d.%03d] ",
             (int)(tstamp / 3600000000),
             (int)(tstamp / 60000000 % 60),
             (int)(tstamp / 1000000 % 60),

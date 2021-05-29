@@ -1,6 +1,8 @@
 #ifndef ESOBOT_LOGGER_H_
 #define ESOBOT_LOGGER_H_
 
+#include <filesystem>
+
 #include "esobot/config.pb.h"
 #include "esologs/writer.h"
 #include "irc/bot/module.h"
@@ -24,9 +26,15 @@ class Logger : public irc::bot::Module {
   };
 
   void Log(Connection* conn, const irc::Message& msg, bool sent);
+  esologs::FileWriter* RawFile(const std::string& net);
+  void CloseRawFile(const std::string& net, std::uint64_t time);
+  std::filesystem::path RawFilePath(const std::string& net);
 
   std::vector<std::unique_ptr<Target>> targets_;
   std::unique_ptr<esologs::PipeServer> pipe_;
+
+  std::string raw_path_;
+  std::unique_ptr<std::unordered_map<std::string, esologs::FileWriter>> raw_files_;
 };
 
 } // namespace esobot

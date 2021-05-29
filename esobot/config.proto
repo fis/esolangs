@@ -18,6 +18,7 @@ message Config {
 message LoggerConfig {
   string config_file = 1;
   repeated LoggerTarget targets = 2;
+  string raw_path = 3;
 }
 
 message LoggerTarget {

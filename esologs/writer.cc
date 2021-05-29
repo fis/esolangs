@@ -2,7 +2,7 @@
 #include <chrono>
 #include <cstdio>
 #include <ctime>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <memory>
 #include <string>
 
@@ -18,7 +18,7 @@
 
 namespace esologs {
 
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 
 Writer::Writer(const Config& config, const std::string& target_name, event::Loop* loop, prometheus::Registry* metric_registry)
     : loop_(loop)
