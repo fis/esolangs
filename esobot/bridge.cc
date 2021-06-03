@@ -21,7 +21,7 @@ Bridge::Bridge(const BridgeConfig& config, irc::bot::ModuleHost* host) : host_(h
 namespace {
 
 constexpr char kHelpText[] = "brctl: see \"brctl: help ignore\" (filter by nick) and \"brctl: help filter\" (filter by text content) for the two available commands";
-constexpr char kIgnoreHelpText[] = "brctl: usage: \"brctl: ignored\" (to list), \"brctl: ignore [net/]nick\" (to add) or \"brctl: unignore [net/]nick\" (to remove); network defaults to your own; nick = * matches any message";
+constexpr char kIgnoreHelpText[] = "brctl: usage: \"brctl: ignored\" (to list; only in a query), \"brctl: ignore [net/]nick\" (to add) or \"brctl: unignore [net/]nick\" (to remove); network defaults to your own; nick = * matches any message";
 constexpr char kFilterHelpText[] = "brctl: usage: \"brctl: filtered\" (to list), \"brctl: filter regex\" (to add) or \"brctl: unfilter regex\" (to remove)";
 
 constexpr char kNickErrorText[] = "brctl: invalid [net/]nick specification";
@@ -59,6 +59,8 @@ void Bridge::MessageReceived(Connection* conn, const irc::Message& msg) {
         out.push_back('/');
         out.append(ignored.second);
       }
+      if (reply_target.size() > 0 && reply_target[0] == '#')
+        out = "brctl: Try doing that in a query, otherwise it pings everyone.";
       conn->Send({"PRIVMSG", reply_target, out});
     } else if (body.rfind("brctl: ignore ", 0) == 0) {
       std::string_view ignore_net, ignore_nick;
