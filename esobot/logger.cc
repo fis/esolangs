@@ -18,7 +18,7 @@ namespace esobot {
 
 namespace fs = std::filesystem;
 
-static constexpr std::uint64_t kRawLogChunkSize = 1024*1024; // 1M uncompressed is maybe a month's worth these days
+static constexpr std::uint64_t kRawLogChunkSize = 2*1024*1024; // 2M uncompressed is probably more than a month's worth these days
 static constexpr char kRawLogExtension[] = ".pb";
 
 static void FillEvent(esologs::LogEvent* event, const irc::Message& msg, bool sent) {
@@ -45,6 +45,10 @@ Logger::Logger(const LoggerConfig& config, irc::bot::ModuleHost* host) : raw_pat
     raw_files_ = std::make_unique<std::unordered_map<std::string, esologs::FileWriter>>();
 }
 
+void Logger::ConnectionConfigured(Connection* conn) {
+  conn->EnableCap("chghost");
+}
+
 Logger::Target::Target(const LoggerTarget& target, const esologs::Config& log_config, irc::bot::ModuleHost* host)
     : net(target.net()), chan(target.chan()),
       log(log_config, target.config(), host->loop(), host->metric_registry())
@@ -64,7 +68,7 @@ void Logger::Log(Connection* conn, const irc::Message& msg, bool sent) {
         || msg.command_is("MODE")
         || msg.command_is("TOPIC"))
       logged = !sent && msg.arg_is(0, target->chan); // log only received (echoed)
-    else if (msg.command_is("QUIT") || msg.command_is("NICK"))
+    else if (msg.command_is("QUIT") || msg.command_is("NICK") || msg.command_is("CHGHOST"))
       logged = !sent && conn->on_channel(msg.prefix_nick(), target->chan); // log only received (echoed), if target on channel
     if (!logged)
       continue;

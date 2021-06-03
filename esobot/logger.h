@@ -14,6 +14,7 @@ class Logger : public irc::bot::Module {
 
  public:
   Logger(const LoggerConfig& config, irc::bot::ModuleHost* host);
+  void ConnectionConfigured(Connection* conn) override;
   void MessageReceived(Connection* conn, const irc::Message& msg) override { Log(conn, msg, /* sent: */ false); }
   void MessageSent(Connection* conn, const irc::Message& msg) override { Log(conn, msg, /* sent: */ true); }
 
