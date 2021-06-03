@@ -78,7 +78,7 @@ class Writer {
 class FileWriter {
  public:
   /** Creates a new writer, writing events to the specified file. */
-  FileWriter(const std::string& file);
+  explicit FileWriter(const std::string& file);
 
   /** Writes an event to the logfile, with no processing. */
   void Write(const LogEvent& event);
