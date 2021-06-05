@@ -49,8 +49,15 @@ int main(int argc, char *argv[]) {
             (int)((tstamp + 500) / 1000 % 1000));
         if (event.direction() == esologs::LogEvent::SENT)
           std::fputs("=> ", stdout);
+        if (event.tags_size() > 0) {
+          for (int i = 0; i < event.tags_size(); i++)
+            std::printf("%c%s=%s", i == 0 ? '@' : ';', event.tags(i).key().c_str(), event.tags(i).value().c_str());
+          std::fputc(' ', stdout);
+        }
         if (!event.prefix().empty())
           std::printf(":%s ", event.prefix().c_str());
+        if (!event.account().empty())
+          std::printf("{%s} ", event.account().c_str());
         std::fputs(event.command().c_str(), stdout);
         for (const auto& arg : event.args())
           std::printf(" '%s'", arg.c_str());

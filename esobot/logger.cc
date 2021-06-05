@@ -27,6 +27,15 @@ static void FillEvent(esologs::LogEvent* event, const irc::Message& msg, bool se
   event->set_command(msg.command());
   for (const auto& arg : msg.args())
     event->add_args(arg);
+  for (const auto& tag : msg.tags()) {
+    if (tag.first == "account")
+      event->set_account(tag.second);
+    else {
+      auto* etag = event->add_tags();
+      etag->set_key(tag.first);
+      etag->set_value(tag.second);
+    }
+  }
   if (sent)
     event->set_direction(esologs::LogEvent::SENT);
 }
@@ -46,7 +55,9 @@ Logger::Logger(const LoggerConfig& config, irc::bot::ModuleHost* host) : raw_pat
 }
 
 void Logger::ConnectionConfigured(Connection* conn) {
+  conn->EnableCap("account-tag");
   conn->EnableCap("chghost");
+  conn->EnableCap("extended-join");
 }
 
 Logger::Target::Target(const LoggerTarget& target, const esologs::Config& log_config, irc::bot::ModuleHost* host)

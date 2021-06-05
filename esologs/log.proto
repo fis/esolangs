@@ -27,12 +27,19 @@ message LogEvent {
   // Prefix of the IRC message, without the leading ':'.
   bytes prefix = 2;
 
+  // User account of the person sending the message. This field is only set if the network
+  // supports the `account-tag` IRCv3 extension, and the message contains the "account" tag.
+  bytes account = 7;
+
   // The command or the numeric portion.
   bytes command = 3;
 
   // The command parameters. Whether the last parameter had a leading ':' is not
   // indicated, though if it contains any space characters, it must have had.
   repeated bytes args = 4;
+
+  // Any message tags, excluding "account" (which can be found in its own field).
+  repeated Tag tags = 8;
 
   // Direction type for log events.
   enum Direction {
@@ -44,4 +51,10 @@ message LogEvent {
 
   // Direction of the event (received or sent, from the client's perspective).
   Direction direction = 5;
+}
+
+// IRCv3 message tag, a (key, value) pair.
+message Tag {
+  string key = 1;
+  string value = 2;
 }
