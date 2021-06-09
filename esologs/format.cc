@@ -178,7 +178,7 @@ constexpr const char* kLineDescriptions[] = {
   /* PART: */ "left",
   /* QUIT: */ "quit",
   /* NICK: */ "changed nick to",
-  /* CHGHOST: */ "changed hostmask from",
+  /* CHGHOST: */ "changed hostmask to",
   /* KICK: */ "kicked",
   /* MODE: */ "set channel mode",
   /* TOPIC: */ "set topic",
@@ -542,7 +542,7 @@ void HtmlLineFormatter::FormatLine(const LogLine& line) {
       else if (line.type == LogLine::NICK || line.type == LogLine::KICK)
         web_.Write(" <span class=\"ea h", NickHash(body), "\">", body, "</span>");
       else if (line.type == LogLine::CHGHOST)
-        web_.Write(" <span class=\"eb\">", line.uhost, "</span> to <span class=\"eb\">", body, "</span>");
+        web_.Write(" <span class=\"eb\">", body, "</span>");
       else if (line.type == LogLine::MODE || line.type == LogLine::TOPIC)
         web_.Write(": <span class=\"eb\">", body, "</span>");
     }
@@ -610,10 +610,8 @@ void TextLineFormatter::FormatLine(const LogLine& line) {
     if (!line.body.empty()) {
       if (line.type == LogLine::PART || line.type == LogLine::QUIT)
         web_.Write(" (", body, ")");
-      else if (line.type == LogLine::NICK || line.type == LogLine::KICK)
+      else if (line.type == LogLine::NICK || line.type == LogLine::KICK || line.type == LogLine::CHGHOST)
         web_.Write(" ", body);
-      else if (line.type == LogLine::CHGHOST)
-        web_.Write(" ", line.uhost, " to ", body);
       else if (line.type == LogLine::MODE || line.type == LogLine::TOPIC)
         web_.Write(": ", body);
     }
