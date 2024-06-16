@@ -67,7 +67,7 @@ func TestGet(t *testing.T) {
 	}
 
 	pageID := 1003 // Iota
-	if page, err := c.Get(context.TODO(), pageID); err != nil {
+	if page, err := c.Get(context.Background(), pageID); err != nil {
 		t.Errorf("Get(%d): %v", pageID, err)
 	} else if got := page.Content(); got != string(want) {
 		t.Errorf("Get(%d) = %s, want %s", pageID, got, want)

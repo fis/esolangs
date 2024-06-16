@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -13,7 +12,9 @@ import (
 )
 
 func TestHandleQuestion(t *testing.T) {
-	ts := httptest.NewServer(testHandler{})
+	th := &testHandler{}
+	defer th.checkUnexpected(t)
+	ts := httptest.NewServer(th)
 	defer ts.Close()
 
 	cfg := &spb.Config{
@@ -43,7 +44,16 @@ func TestHandleQuestion(t *testing.T) {
 	}
 }
 
-type testHandler struct{}
+type testHandler struct {
+	unexpected []string
+}
+
+func (th *testHandler) checkUnexpected(t *testing.T) {
+	t.Helper()
+	for _, path := range th.unexpected {
+		t.Errorf("unexpected HTTP request: %s", path)
+	}
+}
 
 var testResponses = map[string]string{
 	`/api.php?action=query&format=json&list=search&srlimit=3&srnamespace=0&srprop=&srsearch=Foo&srwhat=title&utf8=`:  `{"query":{"search":[{"title":"Foo","pageid":1}]}}`,
@@ -54,12 +64,12 @@ var testResponses = map[string]string{
 	`/api.php?action=parse&disableeditsection=&disablelimitreport=&disabletoc=&format=json&pageid=2&prop=text&utf8=`: `{"parse":{"text":{"*":"<div><p>Article about Bar.</p></div>"}}}`,
 }
 
-func (testHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	if resp, ok := testResponses[req.URL.String()]; ok {
+func (th *testHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	path := req.URL.String()
+	if resp, ok := testResponses[path]; ok {
 		w.Write([]byte(resp))
 		return
 	}
-	// TODO remove, just for debugging
-	fmt.Fprintf(os.Stderr, "unimplemented endpoint: %s?%s\n", req.URL.Path, req.URL.RawQuery)
+	th.unexpected = append(th.unexpected, path)
 	http.Error(w, "unimplemented", http.StatusInternalServerError)
 }

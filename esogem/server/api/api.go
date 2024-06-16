@@ -18,8 +18,6 @@ import (
 	spb "github.com/fis/esolangs/esogem/server/proto"
 )
 
-// TODO: make Serve take the mux rather than set up the server, makes it easier to test
-
 const (
 	requestIdHeader       = "x-esogem-request-id"
 	maxConcurrentRequests = 10
