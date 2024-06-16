@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+/*
+This file defines the protocol between esogem/model and esogem/server.
+
+Message framing (to run this protocol over stdin/out) is very simple:
+- All non-proto fields are 32-bit little-endian integers.
+- Requests arriving at stdin are prefixed with a request code + payload length.
+- Responses written to stdout are prefixed with payload length only.
+- After the prefix, there's a raw proto of the given length.
+
+Request codes are the values from the ModelFunction enumeration,
+which also documents what the corresponding "call" does.
+
+Closing stdin will cause the process to exit.
+If the model process is sent a SIGUSR1, the currently running operation (if any) is cancelled.
+*/
+
+package esogem;
+option go_package = "github.com/fis/esolangs/esogem/server/proto";
+
+enum ModelFunction {
+  MODEL_FUNCTION_UNSPECIFIED = 0;
+  // Sets the runtime configuration of the model, and also causes it to be loaded.
+  // Must be sent exactly once as the first message after starting the process.
+  MODEL_FUNCTION_CONFIG = 1;
+  // Counts how many tokens there are in a prompt.
+  MODEL_FUNCTION_TOKEN_COUNT = 2;
+  // Prompts the model to generate content.
+  MODEL_FUNCTION_GENERATE = 3;
+}
+
+message ModelConfigRequest {
+  string model_dir = 1;
+}
+
+message ModelConfigResponse {
+  string error = 1;
+}
+
+message ModelTokenCountRequest {
+  string prompt = 1;
+}
+
+message ModelTokenCountResponse {
+  int32 token_count = 1;
+  string error = 2;
+}
+
+message ModelGenerateRequest {
+  string prompt = 1;
+}
+
+message ModelGenerateResponse {
+  string generated = 1;
+  string error = 2;
+}

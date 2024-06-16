@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package esogem;
+option go_package = "github.com/fis/esolangs/esogem/server/proto";
+
+message Config {
+  string server_addr = 1;
+  ModelConfig model = 2;
+  WikiConfig wiki = 3;
+  string log_file = 4;
+}
+
+message ModelConfig {
+  string binary_path = 1;
+  string data_dir = 2;
+}
+
+message WikiConfig {
+  string url = 1;
+  string namespaces = 2;
+  string cache_file = 3;
+}

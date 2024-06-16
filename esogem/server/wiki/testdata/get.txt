@@ -1,0 +1,20 @@
+Iota is a Turing tarpit designed by Chris Barker, based in combinatory logic.  It uses only two symbols, * and i, but not every combination of them is syntactically correct; e.g. *i*ii is correct but *iii is not, as opposed to its "sister language" Jot in which every string of symbols is valid.
+An Iota program is either an i, or a * followed by two Iota (sub-)programs.
+Iota execution can be defined as repeating the following rewriting rules, which make use of the auxiliary subprograms k and s, and where x,y,z represent subprograms:
+*ix     --> **xsk
+**kxy   --> x
+***sxyz --> **xz*yz
+Alternatively it can be defined by translation to lambda calculus:
+i = λx.xsk
+k = λxy.x
+s = λxyz.xz(yz)
+*xy where x and y are functions denotes the function (xy). These can be "nested", such that (for example) *x*yz denotes x(yz).
+Only the i function and the * operator can actually appear in a program's source code.
+# See also
+- Jot, Iota's "sister language" from the same article
+- Binary combinatory logic
+- Lambda calculus
+# External resources
+- Iota and Jot: the simplest languages? (from the Wayback Machine; retrieved on 12 November 2020)
+- Lambda tutorial (interactive), by the creator of this language (from the Wayback Machine; retrieved on 26 July 2016)
+- Iota and Jot (Wikipedia)

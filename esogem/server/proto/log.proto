@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package esogem;
+option go_package = "github.com/fis/esolangs/esogem/server/proto";
+
+message LogEntry {
+  int64 time_usec = 1;
+  string request = 2;
+  string error = 3;
+  string question = 4;
+  repeated string search_terms = 5;
+  repeated string search_results = 6;
+  repeated string used_results = 7;
+  repeated GenerationEntry generations = 8;
+}
+
+message GenerationEntry {
+  string prompt = 1;
+  string response = 2;
+}
