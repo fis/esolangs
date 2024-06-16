@@ -12,11 +12,11 @@ cc_binary(
     deps = [
         ":config_cc_proto",
         "//esologs:writer",
-        "@com_googlesource_code_re2//:re2",
-        "@fi_zem_bracket//base",
-        "@fi_zem_bracket//irc",
-        "@fi_zem_bracket//irc/bot",
-        "@fi_zem_bracket//irc/bot:remote",
+        "@bracket//base",
+        "@bracket//irc",
+        "@bracket//irc/bot",
+        "@bracket//irc/bot:remote",
+        "@re2//:re2",
     ],
 )
 
@@ -24,9 +24,9 @@ proto_library(
     name = "config_proto",
     srcs = ["config.proto"],
     deps = [
-        "@fi_zem_bracket//irc:config_proto",
-        "@fi_zem_bracket//irc/bot:config_proto",
-        "@fi_zem_bracket//irc/bot:remote_service_proto",
+        "@bracket//irc:config_proto",
+        "@bracket//irc/bot:config_proto",
+        "@bracket//irc/bot:remote_service_proto",
     ],
 )
 

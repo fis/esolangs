@@ -28,9 +28,9 @@ def erb_file(name, srcs, out, bootstrap=False, main_template='default'):
     native.genrule(
         name = name,
         srcs = srcs,
-        tools = ["@esowiki//webgen:erb"],
+        tools = ["@esolangs//webgen:erb"],
         outs = ["%s/%s" % (_WEB_DIR, out)],
-        cmd = "ruby $(location @esowiki//webgen:erb) {args} {srcs}".format(
+        cmd = "ruby $(location @esolangs//webgen:erb) {args} {srcs}".format(
             args = " ".join(erb_args),
             srcs = " ".join(["$(locations %s)" % src for src in srcs])
         ),
@@ -51,10 +51,10 @@ def js_file(name, srcs, out, level="SIMPLE"):
     native.genrule(
         name = name,
         srcs = srcs,
-        tools = ["@esowiki//webgen:closure_compiler"],
+        tools = ["@esolangs//webgen:closure_compiler"],
         outs = ["%s/%s" % (_WEB_DIR, out), "%s/%s.map" % (_WEB_DIR, out)],
         cmd = """
-            ./$(location @esowiki//webgen:closure_compiler) \
+            ./$(location @esolangs//webgen:closure_compiler) \
               --compilation_level {level} \
               --js_output_file $(location {out}) \
               --create_source_map $(location {out}.map) \
@@ -160,20 +160,20 @@ def website(name, srcs, preview_data=None, preview_redir={}):
         name = "%s" % name,
         srcs = srcs,
         outs = ["%s.zip" % name],
-        tools = ["@esowiki//webgen:archive"],
-        cmd = "./$(location @esowiki//webgen:archive) $@ " + " ".join(["$(locations %s)" % src for src in srcs]),
+        tools = ["@esolangs//webgen:archive"],
+        cmd = "./$(location @esolangs//webgen:archive) $@ " + " ".join(["$(locations %s)" % src for src in srcs]),
     )
 
     native.genrule(
         name = "%s_preview_stub" % name,
         srcs = [
             ":%s" % name,
-            "@esowiki//webgen:preview_stub",
+            "@esolangs//webgen:preview_stub",
         ] + ([preview_data] if preview_data else []),
         outs = ["%s_preview.py" % name],
         cmd = """
             sed -e 's^%ARCHIVES%^{zip}{extra}^;s^%REDIR%^{redir}^' \
-              < $(location @esowiki//webgen:preview_stub) \
+              < $(location @esolangs//webgen:preview_stub) \
               > $@
         """.format(
             zip = "$(location :%s)" % name,
@@ -185,6 +185,6 @@ def website(name, srcs, preview_data=None, preview_redir={}):
     native.py_binary(
         name = "%s_preview" % name,
         srcs = [":%s_preview_stub" % name],
-        deps = ["@esowiki//webgen:preview"],
+        deps = ["@esolangs//webgen:preview"],
         data = [":%s" % name] + ([preview_data] if preview_data else []),
     )

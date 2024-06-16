@@ -1,12 +1,12 @@
-load("@fi_zem_bracket//tools:gtest.bzl", "cc_gtest")
+load("@bracket//tools:gtest.bzl", "cc_gtest")
 
 cc_binary(
     name = "esologs",
     srcs = ["esologs.cc"],
     deps = [
         ":server",
-        "@fi_zem_bracket//event",
-        "@fi_zem_bracket//proto:util",
+        "@bracket//event",
+        "@bracket//proto:util",
     ],
 )
 
@@ -28,14 +28,14 @@ cc_library(
         ":config_cc_proto",
         ":log_cc_proto",
         "//web",
-        "@com_googlesource_code_re2//:re2",
-        "@fi_zem_bracket//base",
-        "@fi_zem_bracket//event",
-        "@fi_zem_bracket//proto:brotli",
-        "@fi_zem_bracket//proto:delim",
+        "@bracket//base",
+        "@bracket//event",
+        "@bracket//proto:brotli",
+        "@bracket//proto:delim",
         "@hinnant_date//:date",
-        "@com_github_jupp0r_prometheus_cpp//core",
-        "@com_github_jupp0r_prometheus_cpp//pull",
+        "@prometheus_cpp//core",
+        "@prometheus_cpp//pull",
+        "@re2//:re2",
     ],
     linkopts = ["-lstdc++fs"],
 )
@@ -44,7 +44,7 @@ cc_gtest(
     name = "server_test",
     deps = [
         ":server",
-        "@com_github_yhirose_cpp_httplib//:httplib",
+        "@cpp_httplib//:httplib",
     ],
     data = [
         "//testdata:golden_esologs",
@@ -59,12 +59,12 @@ cc_library(
     deps = [
         ":config_cc_proto",
         ":log_cc_proto",
-        "@fi_zem_bracket//base",
-        "@fi_zem_bracket//event",
-        "@fi_zem_bracket//proto:delim",
-        "@fi_zem_bracket//proto:util",
+        "@bracket//base",
+        "@bracket//event",
+        "@bracket//proto:delim",
+        "@bracket//proto:util",
         "@hinnant_date//:date",
-        "@com_github_jupp0r_prometheus_cpp//core",
+        "@prometheus_cpp//core",
     ],
     linkopts = ["-lstdc++fs"],
     visibility = ["//esobot:__pkg__"],
@@ -75,8 +75,8 @@ cc_binary(
     srcs = ["logcat.cc"],
     deps = [
         ":log_cc_proto",
-        "@fi_zem_bracket//proto:brotli",
-        "@fi_zem_bracket//proto:delim",
+        "@bracket//proto:brotli",
+        "@bracket//proto:delim",
     ],
 )
 

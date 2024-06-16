@@ -16,7 +16,7 @@ cc_library(
         "writer.h",
     ],
     deps = [
+        "@bracket//base",
         "@civetweb//:civetweb",
-        "@fi_zem_bracket//base",
     ],
 )
