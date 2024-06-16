@@ -70,16 +70,29 @@ func nodeText(out *strings.Builder, n *html.Node) {
 			}
 		}
 	case html.ElementNode:
-		// TODO: find other elements common in generated wikitext that need special handling
-		// at least <ol> might be nice
 		switch n.Data {
-		case `p`:
+		case `p`, `tr`, `caption`:
 			childText(out, n)
 			out.WriteByte('\n')
-		case `ul`:
+		case `h3`, `h4`, `h5`, `h6`:
+			out.WriteString("## ")
+			childText(out, n)
+			out.WriteByte('\n')
+		case `td`, `th`:
+			if n.Parent != nil && n != n.Parent.FirstChild {
+				out.WriteString(" | ")
+			}
+			childText(out, n)
+		case `ul`, `ol`:
+			number, i := n.Data == `ol`, 1
 			for c := n.FirstChild; c != nil; c = c.NextSibling {
 				if c.Type == html.ElementNode && c.Data == `li` {
-					out.WriteString("- ")
+					if number {
+						fmt.Fprintf(out, "%d. ", i)
+						i++
+					} else {
+						out.WriteString("- ")
+					}
 					nodeText(out, c)
 					out.WriteByte('\n')
 				}
