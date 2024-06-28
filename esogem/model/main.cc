@@ -17,6 +17,7 @@ namespace esogem::model {
 constexpr const char* kTokenizerFile = "/tokenizer.spm";
 constexpr const char* kWeightFile = "/2b-it-sfp.sbs";
 constexpr gcpp::Model kModelType = gcpp::Model::GEMMA_2B;
+constexpr gcpp::Type kWeightType = gcpp::Type::kSFP;
 constexpr size_t kMaxPromptTokens = 3072; // TODO: consider bumping these up (needs change in compilation settings)
 constexpr size_t kMaxAnswerTokens = 1024;
 constexpr float kTemperature = 1.0f;
@@ -54,8 +55,8 @@ void Model::Load(std::string_view path, std::string* error) {
   tokenizer.path.append(kTokenizerFile);
   weights.path.append(path);
   weights.path.append(kWeightFile);
-  gemma_ = std::make_unique<gcpp::Gemma>(tokenizer, weights, kModelType, pool_);
-  kv_cache_ = gcpp::CreateKVCache(kModelType);
+  gemma_ = std::make_unique<gcpp::Gemma>(tokenizer, weights, kModelType, kWeightType, pool_);
+  kv_cache_ = gcpp::KVCache::Create(kModelType);
 }
 
 int32_t Model::TokenCount(const std::string& prompt, std::string* error) {
@@ -63,9 +64,9 @@ int32_t Model::TokenCount(const std::string& prompt, std::string* error) {
     *error = "model not loaded";
     return 0;
   }
-  auto tokenizer = gemma_->Tokenizer();
+  const auto& tokenizer = gemma_->Tokenizer();
   prompt_tokens_.clear();
-  if (!tokenizer->Encode(prompt, &prompt_tokens_))
+  if (!tokenizer.Encode(prompt, &prompt_tokens_))
     *error = "tokenization failed";
   return prompt_tokens_.size() + 1; // account for BOS token
 }
@@ -81,10 +82,10 @@ void Model::Generate(const std::string& prompt, std::string* generated, std::str
     *error = "model not loaded";
     return;
   }
-  auto tokenizer = gemma_->Tokenizer();
+  const auto& tokenizer = gemma_->Tokenizer();
 
   prompt_tokens_.clear();
-  if (!tokenizer->Encode(prompt, &prompt_tokens_)) {
+  if (!tokenizer.Encode(prompt, &prompt_tokens_)) {
     *error = "tokenization failed";
     return;
   }
@@ -113,14 +114,14 @@ void Model::Generate(const std::string& prompt, std::string* generated, std::str
     .verbosity = 0,
     .gen = &gen_,
     .stream_token = stream_token,
-    .accept_token = [](int) { return true; },
+    .accept_token = [](int, float) { return true; },
   };
   gcpp::TimingInfo timing; // TODO: maybe export as metrics
   usr1_interrupt_signal.store(false);
   gcpp::GenerateGemma(*gemma_, runtime_config, prompt_tokens_, 0, kv_cache_, pool_, timing);
   if (usr1_interrupt_signal.load())
     *error = "interrupted";
-  else if (!tokenizer->Decode(generated_tokens_, generated))
+  else if (!tokenizer.Decode(generated_tokens_, generated))
     *error = "detokenization failed";
 }
 
