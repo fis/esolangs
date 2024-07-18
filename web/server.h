@@ -26,16 +26,26 @@ class Server {
   int port() const;
 
   void AddHandler(const char* path, RequestHandler* handler);
-  void AddWebsocketHandler(const char* path, WebsocketHandler* handler);
+  void AddWebsocketHandler(const char* path, const char* proto, WebsocketHandler* handler);
 
  private:
   class CivetConnection;
   class CivetWebsocket;
 
+  struct WebsocketHandlerProto {
+    WebsocketHandlerProto(const char *p) : proto(p) {
+      proto_list.nb_subprotocols = 1;
+      proto_list.subprotocols = &proto;
+    }
+    const char *proto;
+    struct mg_websocket_subprotocols proto_list;
+  };
+
   struct WebsocketHandlerRecord {
     Server* server;
     WebsocketHandler* handler;
-    WebsocketHandlerRecord(Server* s, WebsocketHandler* h) : server(s), handler(h) {}
+    std::unique_ptr<WebsocketHandlerProto> proto;
+    WebsocketHandlerRecord(Server* s, WebsocketHandler* h, const char* p) : server(s), handler(h), proto(std::make_unique<WebsocketHandlerProto>(p)) {}
   };
 
   static constexpr std::size_t kMaxWebsocketClients = 256;

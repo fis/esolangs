@@ -109,10 +109,10 @@ void Server::AddHandler(const char* path, RequestHandler* handler) {
   mg_set_request_handler(civet_ctx_, path, CivetRequestHandler, handler);
 }
 
-void Server::AddWebsocketHandler(const char* path, WebsocketHandler* handler) {
-  auto* record = &websocket_handlers_.emplace_back(this, handler);
-  mg_set_websocket_handler(
-      civet_ctx_, path,
+void Server::AddWebsocketHandler(const char* path, const char* proto, WebsocketHandler* handler) {
+  auto* record = &websocket_handlers_.emplace_back(this, handler, proto);
+  mg_set_websocket_handler_with_subprotocols(
+      civet_ctx_, path, &record->proto.get()->proto_list,
       CivetWebsocketConnectHandler,
       CivetWebsocketReadyHandler,
       CivetWebsocketDataHandler,

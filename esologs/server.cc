@@ -29,6 +29,12 @@ extern "C" {
 
 namespace esologs {
 
+namespace {
+
+constexpr const char* kStalkerWebsocketProtocol = "v1.stalker.logs.esolangs.org";
+
+} // unnamed namespace
+
 Server::Server(const Config& config, event::Loop* loop) : loop_(loop) {
   if (config.listen_port().empty())
     throw base::Exception("missing required setting: listen_port");
@@ -58,7 +64,7 @@ Server::Server(const Config& config, event::Loop* loop) : loop_(loop) {
   web_server_ = std::make_unique<web::Server>(config.listen_port());
   web_server_->AddHandler("/", this);
   if (stalker_)
-    web_server_->AddWebsocketHandler("/", this);
+    web_server_->AddWebsocketHandler("/", kStalkerWebsocketProtocol, this);
 }
 
 LogIndex* Server::index(const std::string& target) {
@@ -200,7 +206,7 @@ web::WebsocketClientHandler* Server::Target::HandleWebsocketClient(Server* srv, 
     return nullptr;
   }
 
-  if (!protocol || std::strcmp(protocol, "v1.stalker.logs.esolangs.org") != 0) {
+  if (!protocol || std::strcmp(protocol, kStalkerWebsocketProtocol) != 0) {
     LOG(WARNING) << "unexpected websocket protocol: " << (protocol ? protocol : "(none)");
     return nullptr;
   }
