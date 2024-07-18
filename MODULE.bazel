@@ -9,6 +9,15 @@ bazel_dep(name = "protobuf", version = "21.7")
 bazel_dep(name = "googletest", version = "1.14.0.bcr.1")
 bazel_dep(name = "re2", version = "2023-11-01")
 
+bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
+#git_override(
+#    module_name = "hedron_compile_commands",
+#    remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
+#    commit = "a14ad3a64e7bf398ab48105aaa0348e032ac87f8",
+#)
+# workaround for https://github.com/hedronvision/bazel-compile-commands-extractor/issues/199
+local_path_override(module_name = "hedron_compile_commands", path = "../../prog/bazel-compile-commands-extractor")
+
 # bracket is not in any repository, so it's up to you to get a copy
 local_path_override(module_name = "bracket", path = "../bracket")
 
@@ -16,7 +25,6 @@ bracket_non_module_dependencies = use_extension("@bracket//:extensions.bzl", "no
 use_repo(
     bracket_non_module_dependencies,
     "civetweb",
-    "hedron_compile_commands",
     "hinnant_date",
     prometheus_cpp = "com_github_jupp0r_prometheus_cpp",
 )
