@@ -7,7 +7,9 @@
 namespace web {
 
 struct Request {
+  virtual bool is_head() const = 0;
   virtual const char* uri() const = 0;
+  virtual const char* header(const char* key) const = 0;
 
   Request() = default;
   virtual ~Request() = default;

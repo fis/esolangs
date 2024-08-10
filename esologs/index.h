@@ -2,6 +2,7 @@
 #define ESOLOGS_INDEX_H_
 
 #include <chrono>
+#include <filesystem>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -31,6 +32,16 @@ struct YMD {
   }
   YMD(day_number_tag, std::int64_t day) : YMD(date::sys_days{date::days{day}}) {}
 
+  YMD last_of_month() const noexcept {
+    auto d = date::year{year}/date::month{static_cast<unsigned>(month)}/date::last;
+    return YMD{year, month, static_cast<int>(static_cast<unsigned>(d.day()))};
+  }
+
+  std::chrono::sys_seconds time() const noexcept {
+    auto d = date::year{year}/date::month{static_cast<unsigned>(month)}/date::day{static_cast<unsigned>(day)};
+    return static_cast<date::sys_days>(d);
+  }
+
   friend bool operator==(const YMD& a, const YMD& b);
   friend bool operator!=(const YMD& a, const YMD& b);
   friend bool operator< (const YMD& a, const YMD& b);
@@ -50,6 +61,20 @@ inline bool operator<=(const YMD& a, const YMD& b) {
 }
 inline bool operator>=(const YMD& a, const YMD& b) { return b <= a; }
 inline bool operator>(const YMD& a, const YMD& b) { return b < a; }
+
+struct FileInfo {
+  using time_type = std::chrono::time_point<std::chrono::system_clock>;
+
+  bool frozen;          // `true` if file is guaranteed to no longer change
+  time_type last_write; // synthesized past-the-end-of-day timestamp for frozen files
+  int size_day;         // always set to 0 if frozen; otherwise the day number that size refers to
+  std::size_t size;     // always set to 0 if frozen; otherwise size of the most recent referred-to file
+
+  explicit constexpr FileInfo() : frozen(false), last_write(), size(0) {}
+  explicit constexpr FileInfo(bool frozen, time_type last_write, int size_day, std::size_t size) : frozen(frozen), last_write(last_write), size_day(size_day), size(size) {}
+  static inline constexpr FileInfo of_frozen(time_type last_write) { return FileInfo(true, last_write, 0, 0); }
+  static inline constexpr FileInfo of_liquid(time_type last_write, int size_day, std::size_t size) { return FileInfo(false, last_write, size_day, size); }
+};
 
 class LogIndex {
  public:
@@ -72,6 +97,8 @@ class LogIndex {
   }
 
   bool Lookup(const YMD& date, std::optional<YMD>* prev = nullptr, std::optional<YMD>* next = nullptr) const noexcept;
+
+  bool Stat(const YMD& date, FileInfo* info);
 
   std::unique_ptr<proto::DelimReader> Open(int y, int m, int d);
 
@@ -98,6 +125,7 @@ class LogIndex {
 
   std::mutex lock_;
 
+  std::filesystem::path file(int y, int m, int d) const noexcept;
   void Scan(bool full = false);
 };
 

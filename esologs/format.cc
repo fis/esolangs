@@ -55,8 +55,10 @@ constexpr char kCssLog[] = "../log.css";
 
 } // unnamed namespace
 
-void FormatIndex(web::Response* resp, const TargetConfig& cfg, const LogIndex& index, int y) {
+void FormatIndex(const web::Request& req, web::Response* resp, const TargetConfig& cfg, const LogIndex& index, int y) {
   web::Writer web(resp, kContentTypeHtml);
+  if (req.is_head())
+    return;
 
   bool all = y < 0;
   if (all)
@@ -132,17 +134,25 @@ void FormatIndex(web::Response* resp, const TargetConfig& cfg, const LogIndex& i
   WriteHtmlFooter(&web);
 }
 
-void FormatError(web::Response* resp, int code, const char* fmt, ...) {
+static void DoFormatError(web::Response* resp, int code, std::string_view extra_headers, const char* fmt, va_list args) {
   char text[512];
-  {
-    va_list args;
-    va_start(args, fmt);
-    std::vsnprintf(text, sizeof text, fmt, args);
-    va_end(args);
-  }
-
-  web::Writer web(resp, kContentTypeText, code);
+  std::vsnprintf(text, sizeof text, fmt, args);
+  web::Writer web(resp, kContentTypeText, code, extra_headers);
   web.Write(text);
+}
+
+void FormatError(web::Response* resp, int code, const char* fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  DoFormatError(resp, code, std::string_view(), fmt, args);
+  va_end(args);
+}
+
+void FormatErrorWithHeaders(web::Response* resp, int code, std::string_view extra_headers, const char* fmt, ...) {
+  va_list args;
+  va_start(args, fmt);
+  DoFormatError(resp, code, extra_headers, fmt, args);
+  va_end(args);
 }
 
 namespace internal {
@@ -282,7 +292,7 @@ void LogLineFormatter::FormatEvent(const LogEvent& event, const TargetConfig& cf
 
 class HtmlLineFormatter : public LogLineFormatter {
  public:
-  HtmlLineFormatter(web::Response* resp) : web_(resp, kContentTypeHtml) {}
+  HtmlLineFormatter(web::Response* resp, std::string_view extra_headers) : web_(resp, kContentTypeHtml, 200, extra_headers) {}
   HtmlLineFormatter(std::string* buffer) : web_(buffer) {}
   void FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next, const std::string& title) override;
   void FormatFooter(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) override;
@@ -556,7 +566,7 @@ void HtmlLineFormatter::FormatLine(const LogLine& line) {
 
 class TextLineFormatter : public LogLineFormatter {
  public:
-  TextLineFormatter(web::Response* resp) : web_(resp, kContentTypeText) {}
+  TextLineFormatter(web::Response* resp, std::string_view extra_headers) : web_(resp, kContentTypeText, 200, extra_headers) {}
   void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&, const std::string&) override {}
   void FormatFooter(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
   void FormatStalkerHeader(int, const std::string&) override {}
@@ -623,7 +633,7 @@ void TextLineFormatter::FormatLine(const LogLine& line) {
 
 class RawFormatter : public LogFormatter {
  public:
-  RawFormatter(web::Response* resp) : web_(resp, kContentTypeText), offset_s_(0) {}
+  RawFormatter(web::Response* resp, std::string_view extra_headers) : web_(resp, kContentTypeText, 200, extra_headers), offset_s_(0) {}
   void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&, const std::string&) override {}
   void FormatFooter(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
   void FormatStalkerHeader(int, const std::string&) override {}
@@ -660,20 +670,20 @@ void RawFormatter::FormatEvent(const LogEvent& event, const TargetConfig&) {
 
 } // namespace internal
 
-std::unique_ptr<LogFormatter> LogFormatter::CreateHTML(web::Response* resp) {
-  return std::make_unique<internal::HtmlLineFormatter>(resp);
+std::unique_ptr<LogFormatter> LogFormatter::CreateHTML(web::Response* resp, std::string_view extra_headers) {
+  return std::make_unique<internal::HtmlLineFormatter>(resp, extra_headers);
 }
 
 std::unique_ptr<LogFormatter> LogFormatter::CreateHTML(std::string* buffer) {
   return std::make_unique<internal::HtmlLineFormatter>(buffer);
 }
 
-std::unique_ptr<LogFormatter> LogFormatter::CreateText(web::Response* resp) {
-  return std::make_unique<internal::TextLineFormatter>(resp);
+std::unique_ptr<LogFormatter> LogFormatter::CreateText(web::Response* resp, std::string_view extra_headers) {
+  return std::make_unique<internal::TextLineFormatter>(resp, extra_headers);
 }
 
-std::unique_ptr<LogFormatter> LogFormatter::CreateRaw(web::Response* resp) {
-  return std::make_unique<internal::RawFormatter>(resp);
+std::unique_ptr<LogFormatter> LogFormatter::CreateRaw(web::Response* resp, std::string_view extra_headers) {
+  return std::make_unique<internal::RawFormatter>(resp, extra_headers);
 }
 
 } // namespace esologs

@@ -1,3 +1,5 @@
+#include <strings.h> // strcasecmp
+
 #include "base/exc.h"
 #include "base/log.h"
 #include "web/response.h"
@@ -8,7 +10,9 @@ namespace web {
 class Server::CivetConnection : public Request, public Response {
  public:
   explicit CivetConnection(struct mg_connection* conn);
+  bool is_head() const override; 
   const char* uri() const override;
+  const char* header(const char* key) const override;
   void Write(const void* data, std::size_t size) override;
 
  private:
@@ -20,8 +24,20 @@ Server::CivetConnection::CivetConnection(struct mg_connection* conn)
     : conn_(conn), info_(mg_get_request_info(conn))
 {}
 
+bool Server::CivetConnection::is_head() const {
+  return std::string_view(info_->request_method) == "HEAD";
+}
+
 const char* Server::CivetConnection::uri() const {
   return info_->local_uri;
+}
+
+const char* Server::CivetConnection::header(const char* key) const {
+  for (int i = 0; i < info_->num_headers; i++) {
+    if (strcasecmp(info_->http_headers[i].name, key) == 0)
+      return info_->http_headers[i].value;
+  }
+  return NULL;
 }
 
 void Server::CivetConnection::Write(const void* data, std::size_t size) {
@@ -121,8 +137,10 @@ void Server::AddWebsocketHandler(const char* path, const char* proto, WebsocketH
 }
 
 int Server::CivetRequestHandler(struct mg_connection* conn, void* cb) {
+  std::string_view method = mg_get_request_info(conn)->request_method;
+  if (method != "HEAD" && method != "GET")
+    return 0; // TODO: return method not allowed?
   auto* handler = static_cast<RequestHandler*>(cb);
-  // TODO: check HTTP method
   CivetConnection c(conn);
   return handler->HandleGet(c, &c);
 }

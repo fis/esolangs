@@ -1,6 +1,7 @@
 #ifndef ESOLOGS_SERVER_H_
 #define ESOLOGS_SERVER_H_
 
+#include <string_view>
 #include <unordered_map>
 
 #include <prometheus/exposer.h>
@@ -28,7 +29,7 @@ class Server : public web::RequestHandler, public web::WebsocketHandler, public 
  private:
   struct Target {
     Target(const TargetConfig& c) : config(c), index(c.log_path()) {}
-    int HandleGet(Server* srv, const char* uri, web::Response* resp);
+    int HandleGet(Server* srv, const char* uri, const web::Request& req, web::Response* resp);
     web::WebsocketClientHandler* HandleWebsocketClient(Server* srv, const char* uri, const char* protocol);
     TargetConfig config;
     LogIndex index;
@@ -50,7 +51,7 @@ class Server : public web::RequestHandler, public web::WebsocketHandler, public 
 
   std::unique_ptr<web::Server> web_server_;
 
-  static std::unique_ptr<LogFormatter> CreateFormatter(const std::string& format, web::Response* resp);
+  static std::unique_ptr<LogFormatter> CreateFormatter(const std::string& format, web::Response* resp, std::string_view extra_headers);
 };
 
 } // namespace esologs

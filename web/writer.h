@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 
 #include "web/response.h"
@@ -13,7 +14,7 @@ namespace web {
 class Writer {
  public:
   /** Writer for a web response. */
-  Writer(Response* resp, const char* content_type, int response_code=200);
+  Writer(Response* resp, const char* content_type, int response_code=200, std::string_view extra_headers=std::string_view());
   /** Writer to an external buffer. */
   Writer(std::string* buffer) : buffer_(buffer) {}
 
@@ -42,6 +43,7 @@ class Writer {
 
   void Append(const char* s) { *buffer_ += s; }
   void Append(const std::string& s) { *buffer_ += s; }
+  void Append(std::string_view s) { *buffer_ += s; }
 
   template <typename Number>
   auto Append(Number n) -> decltype((void)std::to_string(n), void()) {
