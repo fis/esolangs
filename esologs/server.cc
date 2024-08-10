@@ -1,8 +1,6 @@
 #include <chrono>
 #include <cstdio>
 #include <cstring>
-#include <format>
-#include <iterator>
 #include <limits>
 #include <memory>
 #include <mutex>
@@ -318,10 +316,15 @@ static bool CheckETag(std::string_view etag, std::string_view cond) {
 
 static void AppendLastModified(FileInfo::time_type last_write, std::string* headers) {
   auto t = std::chrono::floor<std::chrono::seconds>(last_write);
-  std::format_to(
-    std::back_inserter(*headers),
-    "Last-Modified: {0:%a}, {0:%d} {0:%b} {0:%Y} {0:%T} GMT\r\n",
-    t);
+  std::string header = date::format("Last-Modified: %a, %d %b %Y %T GMT\r\n", t);
+  headers->append(header);
+  // N.B. once C++20 support is more widespread, this could be simplified to:
+  // #include <format>
+  // #include <iterator>
+  // std::format_to(
+  //   std::back_inserter(*headers),
+  //   "Last-Modified: {0:%a}, {0:%d} {0:%b} {0:%Y} {0:%T} GMT\r\n",
+  //   t);
 }
 
 static bool CheckLastModified(FileInfo::time_type last_write, const char* cond) {
