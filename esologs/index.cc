@@ -177,7 +177,9 @@ bool LogIndex::Stat(const YMD& date, FileInfo* info) {
   std::size_t size = fs::file_size(logfile, ec);
   if (ec)
     return false;
-  *info = FileInfo::of_liquid(std::chrono::clock_cast<std::chrono::system_clock>(last_write), logdate.day, size);
+  // N.B. this would be more portable with `std::chrono::clock_cast<std::chrono::system_clock>`,
+  // but GCC 12 on Debian stable does not support it as of this writing.
+  *info = FileInfo::of_liquid(std::chrono::file_clock::to_sys(last_write), logdate.day, size);
   return true;
 }
 
