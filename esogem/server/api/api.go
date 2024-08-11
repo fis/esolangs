@@ -41,9 +41,6 @@ func AddHandler(mux *http.ServeMux, cfg *spb.Config) error {
 		}
 	}
 	mux.Handle("POST /ask", h)
-	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, "bad thing", http.StatusInternalServerError)
-	}))
 	return nil
 }
 
