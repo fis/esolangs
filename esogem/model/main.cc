@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <atomic>
 #include <memory>
+#include <string_view>
 
 #include <gemma/gemma.h>
 #include <google/protobuf/io/coded_stream.h>
@@ -15,9 +16,9 @@
 namespace esogem::model {
 
 constexpr const char* kTokenizerFile = "/tokenizer.spm";
-constexpr const char* kWeightFile = "/2b-it-sfp.sbs";
-constexpr gcpp::Model kModelType = gcpp::Model::GEMMA_2B;
-constexpr gcpp::Type kWeightType = gcpp::Type::kSFP;
+constexpr const char* kWeightFile = "/2.0-2b-it-sfp.sbs";
+constexpr gcpp::ModelInfo kModelInfo = {gcpp::Model::GEMMA2_2B, gcpp::ModelTraining::GEMMA_IT, gcpp::Type::kSFP};
+constexpr size_t kPrefillTBatchSize = 64;
 constexpr size_t kMaxPromptTokens = 3072; // TODO: consider bumping these up (needs change in compilation settings)
 constexpr size_t kMaxAnswerTokens = 1024;
 constexpr float kTemperature = 1.0f;
@@ -55,8 +56,8 @@ void Model::Load(std::string_view path, std::string* error) {
   tokenizer.path.append(kTokenizerFile);
   weights.path.append(path);
   weights.path.append(kWeightFile);
-  gemma_ = std::make_unique<gcpp::Gemma>(tokenizer, weights, kModelType, kWeightType, pool_);
-  kv_cache_ = gcpp::KVCache::Create(kModelType);
+  gemma_ = std::make_unique<gcpp::Gemma>(tokenizer, weights, kModelInfo, pool_);
+  kv_cache_ = gcpp::KVCache::Create(kModelInfo.model, kPrefillTBatchSize);
 }
 
 int32_t Model::TokenCount(const std::string& prompt, std::string* error) {
@@ -123,6 +124,11 @@ void Model::Generate(const std::string& prompt, std::string* generated, std::str
     *error = "interrupted";
   else if (!tokenizer.Decode(generated_tokens_, generated))
     *error = "detokenization failed";
+
+  generated->erase(generated->find_last_not_of(" \t\n") + 1);
+  if (generated->ends_with("<end_of_turn>"))
+    generated->erase(generated->size() - 13);
+  generated->erase(generated->find_last_not_of(" \t\n") + 1);
 }
 
 class ModelServer {
