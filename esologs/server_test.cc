@@ -3,7 +3,7 @@
 #include <string>
 
 #include "gtest/gtest.h"
-#include "httplib/httplib.h"
+#include "httplib.h"
 
 #include "esologs/config.pb.h"
 #include "esologs/server.h"

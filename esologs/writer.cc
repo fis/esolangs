@@ -74,11 +74,11 @@ void Writer::Write(LogEvent* event, PipeServer* pipe) {
     metric_last_written_->SetToCurrentTime();
 };
 
-void Writer::OpenLog(date::sys_days day) {
+void Writer::OpenLog(std::chrono::sys_days day) {
   if (current_log_)
     current_log_.reset();
 
-  auto ymd = date::year_month_day{day};
+  auto ymd = std::chrono::year_month_day{day};
 
   char buf[16];
 

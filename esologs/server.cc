@@ -2,6 +2,7 @@
 #include <chrono>
 #include <cstdio>
 #include <cstring>
+#include <format>
 #include <limits>
 #include <memory>
 #include <mutex>
@@ -317,14 +318,13 @@ static bool CheckETag(std::string_view etag, std::string_view cond) {
 
 static void AppendLastModified(FileInfo::time_type last_write, std::string* headers) {
   auto t = std::chrono::floor<std::chrono::seconds>(last_write);
-  std::string header = date::format("Last-Modified: %a, %d %b %Y %T GMT\r\n", t);
+  std::string header = std::format("Last-Modified: {:%a, %d %b %Y %T} GMT\r\n", t);
   headers->append(header);
-  // N.B. once C++20 support is more widespread, this could be simplified to:
-  // #include <format>
+  // N.B. this could probably be done in-place:
   // #include <iterator>
   // std::format_to(
   //   std::back_inserter(*headers),
-  //   "Last-Modified: {0:%a}, {0:%d} {0:%b} {0:%Y} {0:%T} GMT\r\n",
+  //   "Last-Modified: {:%a, %d %b %Y %T} GMT\r\n",
   //   t);
 }
 
@@ -332,8 +332,9 @@ static bool CheckLastModified(FileInfo::time_type last_write, const char* cond) 
   std::string input{cond};
   std::istringstream is{input};
   FileInfo::time_type cond_time;
-  is >> date::parse("%a, %d %b %Y %T GMT", cond_time);
-  return is.good() && last_write <= cond_time;
+  is >> std::chrono::parse("%a, %d %b %Y %T GMT", cond_time);
+  auto t = std::chrono::floor<std::chrono::seconds>(last_write);
+  return is.good() && t <= cond_time;
 }
 
 } // namespace esologs

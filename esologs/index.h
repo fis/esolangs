@@ -9,8 +9,6 @@
 #include <utility>
 #include <vector>
 
-#include <date/date.h>
-
 #include "proto/delim.h"
 
 namespace esologs {
@@ -24,22 +22,22 @@ struct YMD {
   int day;
 
   explicit YMD(int y, int m = 0, int d = 0) : year(y), month(m), day(d) {}
-  explicit YMD(date::sys_days d) {
-    auto date = date::year_month_day{d};
+  explicit YMD(std::chrono::sys_days d) {
+    auto date = std::chrono::year_month_day{d};
     year = (int) date.year();
     month = (unsigned) date.month();
     day = (unsigned) date.day();
   }
-  YMD(day_number_tag, std::int64_t day) : YMD(date::sys_days{date::days{day}}) {}
+  YMD(day_number_tag, std::int64_t day) : YMD(std::chrono::sys_days{std::chrono::days{day}}) {}
 
   YMD last_of_month() const noexcept {
-    auto d = date::year{year}/date::month{static_cast<unsigned>(month)}/date::last;
+    auto d = std::chrono::year{year}/std::chrono::month{static_cast<unsigned>(month)}/std::chrono::last;
     return YMD{year, month, static_cast<int>(static_cast<unsigned>(d.day()))};
   }
 
   std::chrono::sys_seconds time() const noexcept {
-    auto d = date::year{year}/date::month{static_cast<unsigned>(month)}/date::day{static_cast<unsigned>(day)};
-    return static_cast<date::sys_days>(d);
+    auto d = std::chrono::year{year}/std::chrono::month{static_cast<unsigned>(month)}/std::chrono::day{static_cast<unsigned>(day)};
+    return static_cast<std::chrono::sys_days>(d);
   }
 
   friend bool operator==(const YMD& a, const YMD& b);

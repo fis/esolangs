@@ -4,8 +4,6 @@
 #include <ctime>
 #include <functional>
 
-#include <date/date.h>
-
 #include "base/log.h"
 #include "esologs/format.h"
 #include "web/writer.h"
@@ -510,7 +508,7 @@ void HtmlLineFormatter::FormatLine(const LogLine& line) {
   std::string link;
 
   if (line.day) {
-    YMD ymd{date::sys_days{date::days{line.day}}};
+    YMD ymd{std::chrono::sys_days{std::chrono::days{line.day}}};
     id = "";
     // TODO: wrap this sort of thing
     link.resize(10);
@@ -647,8 +645,8 @@ class RawFormatter : public LogFormatter {
 };
 
 void RawFormatter::FormatDay(bool, int year, int month, int day) {
-  date::sys_days d = date::year{year}/month/day;
-  offset_s_ = date::sys_seconds(d).time_since_epoch().count();
+  std::chrono::sys_days d = std::chrono::year{year}/month/day;
+  offset_s_ = std::chrono::sys_seconds(d).time_since_epoch().count();
 }
 
 void RawFormatter::FormatEvent(const LogEvent& event, const TargetConfig&) {

@@ -1,37 +1,35 @@
 module(
     name = "esolangs",
-    version = "0.0.1",
 )
 
-bazel_dep(name = "bracket", version = "0.0.1")
-bazel_dep(name = "rules_proto", version = "5.3.0-21.7")
-bazel_dep(name = "protobuf", version = "21.7")
-bazel_dep(name = "googletest", version = "1.14.0.bcr.1")
-bazel_dep(name = "re2", version = "2023-11-01")
+bazel_dep(name = "bracket")
+
+# bracket is not in any repository, so it's up to you to point at a copy
+local_path_override(
+    module_name = "bracket",
+    path = "../bracket",
+)
+
+bazel_dep(name = "civetweb", version = "1.16.bcr.3")
+bazel_dep(name = "googletest", version = "1.17.0.bcr.1")
+bazel_dep(name = "cpp-httplib", version = "0.22.0")
+bazel_dep(name = "prometheus-cpp", version = "1.3.0.bcr.2")
+bazel_dep(name = "protobuf", version = "33.0-rc2")  # TODO: non-RC version?
+bazel_dep(name = "re2", version = "2025-08-12")
+bazel_dep(name = "rules_proto", version = "7.1.0")
 
 bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
-#git_override(
-#    module_name = "hedron_compile_commands",
-#    remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
-#    commit = "a14ad3a64e7bf398ab48105aaa0348e032ac87f8",
-#)
-# workaround for https://github.com/hedronvision/bazel-compile-commands-extractor/issues/199
-local_path_override(module_name = "hedron_compile_commands", path = "../../prog/bazel-compile-commands-extractor")
-
-# bracket is not in any repository, so it's up to you to get a copy
-local_path_override(module_name = "bracket", path = "../bracket")
-
-bracket_non_module_dependencies = use_extension("@bracket//:extensions.bzl", "non_module_dependencies")
-use_repo(
-    bracket_non_module_dependencies,
-    "civetweb",
-    "hinnant_date",
-    prometheus_cpp = "com_github_jupp0r_prometheus_cpp",
+archive_override(
+    module_name = "hedron_compile_commands",
+    patch_strip = 1,
+    patches = ["//tools:compile-commands-extractor.patch"],
+    sha256 = "ec1e419358eb23daeab0dd0206dfc930316bac9de942d94eb82019f402022847",
+    strip_prefix = "bazel-compile-commands-extractor-abb61a688167623088f8768cc9264798df6a9d10",
+    urls = ["https://github.com/hedronvision/bazel-compile-commands-extractor/archive/abb61a688167623088f8768cc9264798df6a9d10.zip"],
 )
 
 esolangs_non_module_dependencies = use_extension("@esolangs//:extensions.bzl", "non_module_dependencies")
 use_repo(
     esolangs_non_module_dependencies,
     "closure_compiler_prebuilt",
-    cpp_httplib = "com_github_yhirose_cpp_httplib",
 )

@@ -1,4 +1,3 @@
-#include <date/date.h>
 #include <prometheus/gauge.h>
 
 #include "base/buffer.h"
@@ -317,7 +316,7 @@ void Stalker::UpdateClients() {
 
 // TODO: consider just doing an eager backfill
 void Stalker::Backfill() {
-  auto today = date::floor<date::days>(std::chrono::system_clock::now());
+  auto today = std::chrono::floor<std::chrono::days>(std::chrono::system_clock::now());
 
   for (const auto& tgt : targets_) {
     std::lock_guard<std::mutex> lock_events(tgt->events_lock);
@@ -325,7 +324,7 @@ void Stalker::Backfill() {
     LogIndex* index = indices_->index(tgt->name);
     std::lock_guard<std::mutex> lock(*index->lock());
 
-    for (auto backfill_day = today - kBackfillDays; backfill_day <= today; backfill_day += date::days{1}) {
+    for (auto backfill_day = today - kBackfillDays; backfill_day <= today; backfill_day += std::chrono::days{1}) {
       YMD ymd{backfill_day};
       if (!index->Lookup(ymd))
         continue;

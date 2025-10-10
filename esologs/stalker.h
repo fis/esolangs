@@ -2,10 +2,10 @@
 #define ESOLOGS_STALKER_H_
 
 #include <atomic>
+#include <chrono>
 #include <deque>
 #include <mutex>
 
-#include <date/date.h>
 #include <prometheus/registry.h>
 
 #include "base/exc.h"
@@ -68,7 +68,7 @@ class Stalker : public event::Socket::Watcher, public event::Timed {
 
   Target* target(const std::string& name);
 
-  static constexpr date::days kBackfillDays{3};
+  static constexpr std::chrono::days kBackfillDays{3};
   static constexpr std::size_t kQueueSize = 1000;
   static constexpr auto kReconnectDelay = std::chrono::seconds(30);
 

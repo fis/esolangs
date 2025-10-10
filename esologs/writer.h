@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <string>
 
-#include <date/date.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <prometheus/registry.h>
 
@@ -48,22 +47,22 @@ class Writer {
   DISALLOW_COPY(Writer);
 
  private:
-  void OpenLog(date::sys_days day);
+  void OpenLog(std::chrono::sys_days day);
 
   event::Loop* const loop_;
 
   std::string target_;
   std::string dir_;
 
-  date::sys_days current_day_;
+  std::chrono::sys_days current_day_;
   std::unique_ptr<FileWriter> current_log_;
 
   prometheus::Gauge* metric_last_written_;
 
-  std::pair<date::sys_days, std::uint64_t> Now() {
+  std::pair<std::chrono::sys_days, std::uint64_t> Now() {
     auto now = std::chrono::system_clock::now();
-    auto day = date::floor<date::days>(now);
-    auto time = date::floor<std::chrono::microseconds>(now - day);
+    auto day = std::chrono::floor<std::chrono::days>(now);
+    auto time = std::chrono::floor<std::chrono::microseconds>(now - day);
     return std::pair(day, time.count());
   }
 };
