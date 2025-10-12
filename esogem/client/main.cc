@@ -130,7 +130,7 @@ Router::Router(event::Loop* loop, const std::string& url, const std::string& soc
 void Router::RegisterCommandOpen(irc::bot::RemoteServiceClient::RegisterCommandCall* call) {
   LOG(INFO) << "connected to bot";
   irc::bot::RegisterCommandRequest req{};
-  req.set_directed(true);
+  req.add_commands("");
   call->Send(req);
 }
 

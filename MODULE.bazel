@@ -1,14 +1,10 @@
-module(
-    name = "esolangs",
-)
+module(name = "esolangs")
 
+# bracket is not in any registry, so it's up to you to set up a suitable override
 bazel_dep(name = "bracket")
-
-# bracket is not in any repository, so it's up to you to point at a copy
-local_path_override(
-    module_name = "bracket",
-    path = "../bracket",
-)
+local_path_override(module_name = "bracket", path = "../bracket")
+bazel_dep(name = "bracket-protos")
+local_path_override(module_name = "bracket-protos", path = "../bracket-protos")
 
 bazel_dep(name = "civetweb", version = "1.16.bcr.3")
 bazel_dep(name = "googletest", version = "1.17.0.bcr.1")

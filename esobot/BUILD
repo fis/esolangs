@@ -26,7 +26,7 @@ proto_library(
     deps = [
         "@bracket//irc:config_proto",
         "@bracket//irc/bot:config_proto",
-        "@bracket//irc/bot:remote_service_proto",
+        "@bracket-protos//irc/bot:remote_service_proto",
     ],
 )
 

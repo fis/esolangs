@@ -6,6 +6,6 @@ cc_binary(
         "@bracket//event",
         "@bracket//http",
         "@bracket//irc/bot:remote_service_brpc",
-        "@bracket//irc/bot:remote_service_cc_proto",
+        "@bracket-protos//irc/bot:remote_service_cc_proto",
     ],
 )
