@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/eliben/go-sentencepiece"
 	"google.golang.org/protobuf/proto"
 
 	spb "github.com/fis/esolangs/esogem/server/proto"
@@ -25,17 +26,23 @@ const (
 )
 
 type Host struct {
-	cfg  *spb.ModelConfig
-	conn chan *modelConn
+	cfg       *spb.ModelConfig
+	conn      chan *modelConn
+	tokenizer *sentencepiece.Processor
 }
 
 func NewHost(cfg *spb.ModelConfig) (*Host, error) {
 	if err := validateConfig(cfg); err != nil {
 		return nil, fmt.Errorf("config validation: %w", err)
 	}
+	tokenizer, err := sentencepiece.NewProcessorFromPath(cfg.DataDir + "/tokenizer.spm")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create tokenizer: %w", err)
+	}
 	h := &Host{
-		cfg:  cfg,
-		conn: make(chan *modelConn, 1),
+		cfg:       cfg,
+		conn:      make(chan *modelConn, 1),
+		tokenizer: tokenizer,
 	}
 	h.conn <- nil
 	return h, nil
@@ -53,8 +60,9 @@ func validateConfig(cfg *spb.ModelConfig) error {
 	return nil
 }
 
-func (h *Host) CountTokens(ctx context.Context, prompt string) (int, error) {
-	return run(h, ctx, prompt, (*modelConn).countTokens)
+func (h *Host) CountTokens(ctx context.Context, prompt string) int {
+	tokens := h.tokenizer.Encode(prompt)
+	return len(tokens) + 1 // account for BOS token
 }
 
 func (h *Host) Generate(ctx context.Context, prompt string, logEntry *spb.LogEntry) (string, error) {
@@ -166,15 +174,6 @@ func (c *modelConn) idleCheck(ctx context.Context) {
 			return
 		}
 	}
-}
-
-func (c *modelConn) countTokens(ctx context.Context, prompt string) (tokens int, err error, shutdown bool) {
-	req := &spb.ModelTokenCountRequest{Prompt: prompt}
-	resp := &spb.ModelTokenCountResponse{}
-	if err, shutdown := c.call(ctx, spb.ModelFunction_MODEL_FUNCTION_TOKEN_COUNT, req, resp); err != nil {
-		return 0, err, shutdown
-	}
-	return int(resp.TokenCount), nil, false
 }
 
 func (c *modelConn) generate(ctx context.Context, prompt string) (generated string, err error, shutdown bool) {

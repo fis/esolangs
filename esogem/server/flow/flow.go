@@ -19,6 +19,8 @@ const (
 	maxSearchTermLen = 64   // maximum number of runes in a search term
 )
 
+// TODO: add a cache for retaining conversation context
+
 type Flow struct {
 	model      Model
 	wikiSource WikiSource
@@ -28,7 +30,7 @@ type Flow struct {
 }
 
 type Model interface {
-	CountTokens(ctx context.Context, prompt string) (int, error)
+	CountTokens(ctx context.Context, prompt string) int
 	Generate(ctx context.Context, prompt string, logEntry *spb.LogEntry) (string, error)
 }
 
@@ -49,10 +51,7 @@ func (fl *Flow) Respond(ctx context.Context) (string, error) {
 	fl.log.SearchTerms = searchTerms
 
 	prompt := makeResponsePrompt(fl.query, nil)
-	promptSize, err := fl.model.CountTokens(ctx, prompt)
-	if err != nil {
-		return "", fmt.Errorf("counting tokens: %w", err)
-	}
+	promptSize := fl.model.CountTokens(ctx, prompt)
 
 	// TODO: potentially generate extra search terms with the other prompt if needed
 augmentPrompt:
@@ -132,10 +131,7 @@ func (fl *Flow) generateSearchTerms(ctx context.Context) ([]string, error) {
 func (fl *Flow) addBackground(ctx context.Context, pageID wiki.PageID, page wiki.Page, maxTokens int) (string, int, error) {
 	newBackground := append(fl.background, article{pageID: pageID.ID, title: pageID.Title, content: page.Content()})
 	prompt := makeResponsePrompt(fl.query, newBackground)
-	promptSize, err := fl.model.CountTokens(ctx, prompt)
-	if err != nil {
-		return "", 0, err
-	}
+	promptSize := fl.model.CountTokens(ctx, prompt)
 	// TODO: consider also compacting long pages to include more responses in the prompt, even if it technically fits
 	if promptSize <= maxPromptSize {
 		fl.background = newBackground
@@ -152,10 +148,7 @@ func (fl *Flow) addBackground(ctx context.Context, pageID wiki.PageID, page wiki
 
 	newBackground[len(newBackground)-1].content = summary
 	prompt = makeResponsePrompt(fl.query, newBackground)
-	promptSize, err = fl.model.CountTokens(ctx, prompt)
-	if err != nil {
-		return "", 0, err
-	}
+	promptSize = fl.model.CountTokens(ctx, prompt)
 	if promptSize <= maxPromptSize {
 		fl.background = newBackground
 		return prompt, promptSize, nil
