@@ -175,38 +175,32 @@ func (lst articleList) hasPage(pageID int) bool {
 }
 
 func makeSearchPrompt(query string) string {
-	return fmt.Sprintf(`<start_of_turn>user
-You are an assistant to help find information in an esoteric programming language wiki.
+	return fmt.Sprintf(`You are an assistant to help find information in an esoteric programming language wiki.
 Your task is to find the search term most likely to return relevant results for a question.
 The question is:
 
 %s
 
-What is the best keyword to find relevant results? Give only the answer with no formatting. <end_of_turn>
-<start_of_turn>model
-`, query)
+What is the best keyword to find relevant results? Give only the answer with no formatting.
+Prefer single-word search terms.`, query)
 }
 
 func makeSummaryPrompt(query, article string, maxTokens int) string {
 	// TODO: convert maxTokens to a length suggestion
 	_ = maxTokens
-	return fmt.Sprintf(`<start_of_turn>user
-Your task is to summarize text but retain the information necessary to answer a question.
+	return fmt.Sprintf(`Your task is to summarize text but retain the information necessary to answer a question.
 The question is:
 
 %s
 
 Keeping the preceding question in mind, summarize the following text in %d words or fewer:
 
-%s <end_of_turn>
-<start_of_turn>model
-`, query, 500, article)
+%s`, query, 500, article)
 }
 
 func makeResponsePrompt(query string, background []article) string {
 	var sb strings.Builder
-	sb.WriteString(`<start_of_turn>user
-Your task is to answer questions on an IRC channel about esoteric programming languages.
+	sb.WriteString(`Your task is to answer questions on an IRC channel about esoteric programming languages.
 `)
 
 	if len(background) > 0 {
@@ -225,9 +219,7 @@ Answer the following question:
 
 %s
 
-Answer the question using at most 100 words. <end_of_turn>
-<start_of_turn>model
-`, query)
+Answer the question using at most 100 words. Give just the answer with no formatting.`, query)
 
 	return sb.String()
 }

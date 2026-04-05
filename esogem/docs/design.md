@@ -6,7 +6,7 @@ This document contains some notes on how the `esogem` system works.
 
 To save on resource use, all these steps will use the same model, one of the Gemma instruction-tuned variants.
 
-The Gemma IT models expect the following prompt structure:
+The Gemma IT models expect the following prompt structure (which is now handled transparently by Ollama):
 
 ```
 <start_of_turn>user
@@ -38,21 +38,19 @@ The process for compacting an article is:
 Search query generation:
 
 ```
-<start_of_turn>user
 You are an assistant to help find information in an esoteric programming language wiki.
 Your task is to make a list of search terms most likely to return relevant results for a question.
 The question is:
 
 ...IRC question goes here...
 
-Return only the list of 1 to 3 key search terms. <end_of_turn>
-<start_of_turn>model
+What is the best keyword to find relevant results? Give only the answer with no formatting.
+Prefer single-word search terms.
 ```
 
 Article summarization:
 
 ```
-<start_of_turn>user
 Your task is to summarize text but retain the information necessary to answer a question.
 The question is:
 
@@ -60,14 +58,12 @@ The question is:
 
 Keeping the preceding question in mind, summarize the following text in N words or fewer:
 
-...article text goes here... <end_of_turn>
-<start_of_turn>model
+...article text goes here...
 ```
 
 Response generation:
 
 ```
-<start_of_turn>user
 Your task is to answer questions on an IRC channel about esoteric programming languages.
 Here is some background material:
 
@@ -77,8 +73,7 @@ Answer the following question:
 
 ...IRC question goes here...
 
-Answer the question in the style of an IRC chat message written by a slightly snarky developer. <end_of_turn>
-<start_of_turn>model
+Answer the question using at most 100 words. Give just the answer with no formatting.
 ```
 
 ### Evaluation
@@ -92,12 +87,11 @@ Set of plausible questions for the model:
 
 There's four(-ish) components involved in how this is wired up to IRC:
 
-- `esogem/model`:
-  A CMake C++ binary that uses [gemma.cpp](https://github.com/google/gemma.cpp) to host the model.
-  Uses a very simple synchronous request-response protocol over its standard input/output streams.
+- The model host:
+  Now using Ollama (basically a wrapper around `llama.cpp`), to run inference on a GPU.
+  Previously, this was a C++ binary driving [gemma.cpp](https://github.com/google/gemma.cpp).
 - `esogem/server`:
-  A Go binary that implements most of the "business logic".
-  Exposes a HTTP endpoint, and is the parent process to `esogem/model`.
+  A Go binary that implements most of the "business logic" behind a HTTP endpoint.
   (There's also a pre-existing nginx proxy in front of this.)
 - `esogem/client`:
   Part of the top-level Bazel project, a C++ executable.
@@ -106,9 +100,8 @@ There's four(-ish) components involved in how this is wired up to IRC:
 - `esobot`:
   The IRC bot known as `esolangs`, which doesn't know anything specific about this particular function.
 
-The `server` component runs on a moderately beefy (8 cores, 32G RAM) home-hosted server.
-It auto-starts `model` as a subprocess, and talks to it over a pair of pipes.
-If there have been no requests in a while, it also lets the `model` process die so it doesn't permanently reserve a lot of memory.
+The `server` component (and Ollama) runs on a moderately beefy (8 cores, 32G RAM) home-hosted server.
+There's also a barely sufficient GPU (GTX 1060, 6 GB of VRAM).
 There's also a (pre-existing) nginx proxy in front of the Go HTTP server, handling TLS and auth.
 
 The `client` component runs on the same system as the IRC bot, in order to reach its Unix domain socket remote control `brpc` service.

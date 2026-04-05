@@ -5,8 +5,10 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -73,7 +75,6 @@ func (h *httpHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if h.lw != nil {
 		h.lw.Write(logEntry)
 	}
-	// TODO: maybe also write something to slog
 }
 
 type modelServer struct {
@@ -103,6 +104,9 @@ func (s *modelServer) handleQuestion(w http.ResponseWriter, req *http.Request, l
 	if err != nil {
 		return err
 	}
+	resp = strings.TrimSpace(resp)
+
+	slog.Info("generated answer", "question", question, "search", logEntry.GetSearchTerms(), "context", logEntry.GetSearchResults(), "used", logEntry.GetUsedResults())
 
 	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
 	w.Write([]byte(resp))

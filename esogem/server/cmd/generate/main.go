@@ -19,9 +19,10 @@ import (
 )
 
 var (
-	modelBin    = flag.String("bin", "", "model host executable [required]")
-	modelDir    = flag.String("model", "", "directory holding the model files [required]")
-	outputCount = flag.Int("n", 1, "number of times to generate output for the same prompt")
+	tokenizerFile = flag.String("tokenizer", "", "tokenizer.spm file name [required]")
+	ollamaURL     = flag.String("ollama", "http://localhost:11434/api/generate", "Ollama API endpoint address")
+	modelName     = flag.String("model", "gemma3:4b", "model name ")
+	outputCount   = flag.Int("n", 1, "number of times to generate output for the same prompt")
 )
 
 func main() {
@@ -33,26 +34,28 @@ func main() {
 }
 
 func run() error {
-	if *modelBin == "" || *modelDir == "" {
-		return fmt.Errorf("must provide both --bin=X and --model=X options")
+	if *tokenizerFile == "" {
+		return fmt.Errorf("must provide --tokenizer=.../tokenizer.spm option")
 	}
 	if flag.NArg() < 1 {
 		return fmt.Errorf("must provide at least one non-option argument to use as a prompt")
 	}
 
-	modelHost, err := model.NewHost(&spb.ModelConfig{BinaryPath: *modelBin, DataDir: *modelDir})
+	modelHost, err := model.NewHost(&spb.ModelConfig{TokenizerSpm: *tokenizerFile, OllamaUrl: *ollamaURL, ModelName: *modelName, ContextSize: 4096})
 	if err != nil {
 		return err
 	}
 
-	for _, userPrompt := range flag.Args() {
-		prompt := fmt.Sprintf("<start_of_turn>user\n%s <end_of_turn>\n<start_of_turn>model\n", userPrompt)
-		generated, err := modelHost.Generate(context.Background(), prompt, &spb.LogEntry{})
-		if err != nil {
-			return err
+	for _, prompt := range flag.Args() {
+		for range *outputCount {
+			generated, err := modelHost.Generate(context.Background(), prompt, &spb.LogEntry{})
+			if err != nil {
+				return err
+			}
+			generated = strings.TrimSpace(generated)
+			generated = strings.ReplaceAll(generated, "\n", " / ")
+			fmt.Println(generated)
 		}
-		generated = strings.ReplaceAll(generated, "\n", " / ")
-		fmt.Println(generated)
 	}
 
 	return nil
