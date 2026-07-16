@@ -6,22 +6,30 @@ local_path_override(module_name = "bracket", path = "../bracket")
 bazel_dep(name = "bracket-protos")
 local_path_override(module_name = "bracket-protos", path = "../bracket-protos")
 
-bazel_dep(name = "civetweb", version = "1.16.bcr.3")
-bazel_dep(name = "googletest", version = "1.17.0.bcr.1")
-bazel_dep(name = "cpp-httplib", version = "0.22.0")
+bazel_dep(name = "civetweb", version = "1.16.bcr.4")
+bazel_dep(name = "googletest", version = "1.17.0.bcr.2")
+bazel_dep(name = "cpp-httplib", version = "0.46.0")
 bazel_dep(name = "prometheus-cpp", version = "1.3.0.bcr.2")
-bazel_dep(name = "protobuf", version = "33.0-rc2")  # TODO: non-RC version?
-bazel_dep(name = "re2", version = "2025-08-12")
-bazel_dep(name = "rules_proto", version = "7.1.0")
+bazel_dep(name = "protobuf", version = "35.1")
+bazel_dep(name = "re2", version = "2025-11-05.bcr.1")
+bazel_dep(name = "rules_cc", version = "0.2.19")
+bazel_dep(name = "rules_java", version = "9.7.0")
+bazel_dep(name = "rules_python", version = "2.2.0")
+
+# current BCR version of prometheus-cpp is not compatible with Bazel 9
+archive_override(
+  module_name = "prometheus-cpp",
+  sha256 = "f38116a7220e62195fd5fcc6995d9adca6cffba37a8d14255203eee4273bd410",
+  strip_prefix = "prometheus-cpp-458deac15d331ca4ec993d3b88ac8f8f727aae05",
+  urls = ["https://github.com/jupp0r/prometheus-cpp/archive/458deac15d331ca4ec993d3b88ac8f8f727aae05.zip"],
+)
 
 bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
 archive_override(
     module_name = "hedron_compile_commands",
-    patch_strip = 1,
-    patches = ["//tools:compile-commands-extractor.patch"],
-    sha256 = "ec1e419358eb23daeab0dd0206dfc930316bac9de942d94eb82019f402022847",
-    strip_prefix = "bazel-compile-commands-extractor-abb61a688167623088f8768cc9264798df6a9d10",
-    urls = ["https://github.com/hedronvision/bazel-compile-commands-extractor/archive/abb61a688167623088f8768cc9264798df6a9d10.zip"],
+    sha256 = "ab0580944b362f28105d6af1cf3e3c7ff731b9205dcef8fe4b9b18be3037bcdd",
+    strip_prefix = "bazel-compile-commands-extractor-1f9360db1834d115c48279d38a97f30d64d3fd4a",
+    urls = ["https://github.com/helly25/bazel-compile-commands-extractor/archive/1f9360db1834d115c48279d38a97f30d64d3fd4a.zip"],
 )
 
 esolangs_non_module_dependencies = use_extension("@esolangs//:extensions.bzl", "non_module_dependencies")

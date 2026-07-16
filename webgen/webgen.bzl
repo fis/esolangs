@@ -1,5 +1,7 @@
 """Macros for defining static website content."""
 
+load("@rules_python//python:py_binary.bzl", "py_binary")
+
 _WEB_DIR = "web"
 
 def erb_file(name, srcs, out, bootstrap=False, main_template='default'):
@@ -182,7 +184,7 @@ def website(name, srcs, preview_data=None, preview_redir={}):
         ),
     )
 
-    native.py_binary(
+    py_binary(
         name = "%s_preview" % name,
         srcs = [":%s_preview_stub" % name],
         deps = ["@esolangs//webgen:preview"],
