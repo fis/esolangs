@@ -1,0 +1,198 @@
+# Segment
+
+Segment is an esoteric programming language inspired by Glypho Incident and some others, which is created by User:cleverxia.
+
+## Parsing
+
+Let the program be in P then the following Node.js program will parse it into sections:
+
+```
+P="<Code <goes <here>";
+
+[J,...P]=[...P]
+P=P.join``.split(J).slice(1)
+H={}
+r=0
+Q=P.map(t=>H[t]?H[t]:H[t]=++r)
+console.log(Q)
+```
+
+## Program flow
+
+The program opreates on a queue of bits as in BCT. (attempting to pop a bit while queue is empty returns a random bit and is the only way to randomize something in segment.) For every *distinct* number in the parsed array Q, it resembles an instruction.
+
+- if there are only one that number in Q, then it's a NOP to ease polyglotting.
+- if there are exactly 2 that numbers in Q, the 1st number push a zero on queue, the 2nd number push a one.
+- if there are exactly 3 that numbers in Q, the 1st number unconditionally pops a bit, the 2nd number outputs (and pops) the front bit; the 3rd number gets an input bits and pushes to the back. I/O is little endian
+- if there are 4n(n∈ℤ+) same such numbees in Q, they form a unconditional forward jump: When the instruction is reached, they jump to the number after the next same number; if it's the last such number in the program then the program halts.
+- if there are 4n+1(n∈ℤ+) same such numbers in Q, they form a conditional forward jump: When the instruction is reached, they jump to the number after the next same number if the front bit in the queue is one; if it's the last such number in the program and a jump would be triggered then the program halts. The tested bit *is* popped from the queue.
+- if there are 4n+2(n∈ℤ+) same such numbers in Q, they form a unconditional backward jump: When the instruction is reached, they jump to the number after the previous same number; if it's the first such number in the program then the program halts.
+- if there are 4n+3(n∈ℤ+) same such numbers in Q, they form a conditional backward jump: When the instruction is reached, they jump to the number after the previous same number if the front bit in the queue is one; if it's the first such number in the program and a jump would be triggered then the program halts. The tested bit *is* popped from the queue.
+
+## Turing completeness
+
+It may be turing complete by a reduction into CT, but I don't know. (I also wants to know when only keeping the conditional backward jump and deleting the "3 numbers in Q" operation.)
+
+## Examples
+
+### Hello, World!
+
+```
+HH10H11H12H13H14H15H16H17H18H19H1aH1
+H20H21H22H23H24H25H26H27H28H29H2aH2
+H30H31H32H33H34H35H36H37H38H39H3aH3
+H40H41H42H43H44H45H46H47H48H49H4aH4
+H50H51H52H53H54H55H56H57H58H59H5aH5
+H60H61H62H63H64H65H66H67H68H69H6aH6
+H70H71H72H73H74H75H76H77H78H79H7aH7
+H80H81H82H83H84H85H86H87H88H89H8aH8
+H90H91H92H93H94H95H96H97HjHA
+HjHAAH10HBAH11HCAH12HAAH13H
+AH14HEAH15HBAH16HFAH17HCAH18HABH19H
+AH1aHBBH1
+HCBH20HEAH21HFAH22H
+BH23HEBH24HFBH25HABH26HBBH27HACH28HCBH29H
+BH2aHBCH2
+HCCH30H
+CH31HEBH32HFBH33HECH34HACH35HBCH36HFCH37HCCH38H
+CH39HECH3aHFCH3
+HA
+H40HZ
+H41HB
+H42HB
+H43HC
+H44H
+
+H45HC
+H46H
+
+H47HE
+H48HE
+H49HF
+H4aHAEH4
+HBEH50HCEH51H
+EH52HEEH53HFEH54HF
+H55HAFH56HBFH57HAEH58HBEH59HCEH5aHCFH5
+H
+EH60H
+FH61HEEH62HEFH63HFEH64HAFH65HBFH66HCFH67HFFH68H
+FH69HEFH6aHAGH6
+HBGH70HFFH71HCGH72H
+GH73HAGH74HBGH75HCGH76HEGH77HFGH78HAhH79H
+GH7aHEGH7
+HBhH80HFGH81HAhH82HChH83H
+hH84HEhH85HBhH86HFhH87HAIH88HChH89H
+hH8aHBIH8
+HEhH90HCIH91H
+IH92HEIH93HFIH94HFhH95HAJH96HBJH97HjHAIHBIHCIH
+IHEIHFIHAJHBJH10H11H12H13H14H15H16H17H18H19H1aH1
+H20H21H22H23H24H25H26H27H28H29H2aH2
+H30H31H32H33H34H35H36H37H38H39H3aH3
+H40H41H42H43H44H45H46H47H48H49H4aH4
+H50H51H52H53H54H55H56H57H58H59H5aH5
+H60H61H62H63H64H65H66H67H68H69H6aH6
+H70H71H72H73H74H75H76H77H78H79H7aH7
+H80H81H82H83H84H85H86H87H88H89H8aH8
+H90H91H92H93H94H95H96H97HZ
+HzHjHzHzHz
+```
+
+(newlines are important here) I want to fuck the creator, because that was VERY hard to write at least by hand.
+
+#### Nope. Intepreter
+
+```
+..:.+.
+/.A.B.C.D.E.F.G.H.I.J.K
+.L.M.N.O.P.Q.R.S.T.U.V.W.X.Y.Z.w.o.p.q.r.
+.t.u.v.x.y.z.1.2.6.7.9.:.0.o.0.p.1.q.2.r.3.
+.4.t.3.u.5.v.4.w.5.x.6.y.7.z.8.A.8.B.9.C.a.D.b.E.c.F.d.G.e.H.a.I.b.J.c.K
+.f.L.d.M.g.N.e.O.h.P.i.Q.f.R.g.S.j.T.k.U.h.V.i.W.j.Z.l.X.k.Y.m.+.n.
+/.:.+.
+/.A.B.C.D.E.F.G.H.I.J.K
+.L.M.N.O.P.Q.R.S.T.U.V.W.X.Y.Z.l.m.n.o.p.q.r.
+.t.u.v.w.x.y.z.".:."."."
+```
+
+(newlines are important here, too) (At least its easier than Malbolge, isn't it?)
+
+##### Cat
+
+```
+CC!C:C;C!C;C;C;C?C!C:C?C:C?C?C?C?
+```
+
+### Output a random byte
+
+```
+rr0r1r2r3r4r5r6r7r
+r0r1r2r3r4r5r6r7r
+r0r1r2r3r4r5r6r7r
+r9r0r9r9r9
+```
+
+## Translator to C++ in node.js
+
+```
+Q="CC!C;C!C;C;C;C?C!C:C?C:C?C?C?C?C:";
+
+[J,...Q]=[...Q]
+Q=Q.join``.split(J).slice(1)
+H={}
+r=0
+P=Q.map(t=>H[t]?H[t]:H[t]=++r)
+console.log('//',P+'')
+T={};END="";
+for(let i of P)T[i]=1+(T[i]||0);
+TT={};for(let i in T)TT[i]=T[i];Object.freeze(TT);
+console.log(`#include<bits/stdc++.h>
+using namespace std;namespace IO{int b1,b2,b3,b4,b5;const
+int z[]={1,2,4,8,16,32,64,128};bool g(){if(!b2)b1=getchar
+(),b2=8;b5=b1&1;b1>>=1;b2--;return b5}void p(bool e){b4++
+;b3+=z[b4-1]*e;if(8==b4){b4=0;putchar(b3);b3=0;}}};queue<
+bool>Q;mt19937_64 rand(std::chrono::steady_clock::now()::
+time_since_epoch().count()); bool pop(){if(Q.size()){bool
+z=Q.front();Q.pop();return z;}return rand()&1;}int main(){`);
+for(let i of P){T[i]--;switch(TT[i]){
+case 0:throw 1;
+case 1:console.log(";");break;
+case 2:console.log('Q.push(',!T[i],');');break;
+case 3:console.log(['pop();','IO::p(pop());','Q.push(IO::g());'][2-T[i]]);break;
+default:switch(TT[i]&3){
+case 0:console.log(`goto LABEL_t${T[i]}_${i};LABEL_t${T[i]+1}_${i}:`);if(!T[i])END+=`LABEL_t0_${i}:`;break;
+case 1:console.log(`if(pop())goto LABEL_t${T[i]}_${i};LABEL_t${T[i]+1}_${i}:`);if(!T[i])END+=`LABEL_t0_${i}:`;break;
+case 2:console.log(`goto LABEL_t${T[i]+1}_${i};LABEL_t${T[i]}_${i}:`);if(!T[i])END+=`LABEL_t${TT[i]}_${i}:`;break;
+case 3:console.log(`if(pop())goto LABEL_t${T[i]+1}_${i};LABEL_t${T[i]}_${i}:`);if(!T[i])END+=`LABEL_t${TT[i]}_${i}:`;break;
+ }
+}}
+console.log(END,'return 0;}')
+```
+
+put the code in `Q`.
+
+## Output any text
+
+```
+let STR="<place string here>"
+
+function Shuffle(A){let a=Object.assign(A);
+return a.map(r=>Math.random()+'丨'+r).sort().map(r=>r.split`丨`[1])}
+let qtr=Shuffle([...`0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+-={}[]\\|:'\`
+,<.>/? ~`]).join``,ir=';',rara=0;
+function g(){let z=++rara,Z="";z++;
+while(z){let Q=z%qtr.length;if(!Q)Q=qtr.length;z=(z-Q)/qtr.length;
+Z+=qtr[Q-1];}return Z}
+STR=[...STR].map(t=>[...(t.charCodeAt()&255).toString(2).padStart(8,0)].reverse()).flat()
+str=STR.length
+outputs=[];zeros=[]
+for(let i in STR){outputs.push(g());zeros.push(g());}
+outputs=Shuffle(outputs)
+zeros=Shuffle(zeros)
+A1=g();A2=g()
+console.log(ir+[...outputs.map(x=>ir+x),ir,A1,
+...STR.map((x,i)=>[x,i]).filter(z=>z[0]=='1').map(r=>ir+zeros[r[1]]),
+ir,A1,...Array(str).fill(0).map((x,i)=>ir+zeros[i]+ir+outputs[i]),
+ir,A1,...STR.map((x,i)=>[x,i]).filter(z=>z[0]=='0').map(r=>ir+zeros[r[1]]),
+ir,A2,ir,A1,ir,A2,ir,A2,ir,A2
+].join``)
+```

@@ -1,0 +1,31 @@
+# QFL
+
+*QFL* is a Turing tarpit inspired by Iota and Jot. Basically it's Iota with IO.
+
+## Features
+
+- Functional purity
+- Literate programming
+- Full Unicode support
+- Minimalism (there are only two operations)
+- Weird IO model (different from monads and uniq types)
+
+## Syntax
+
+There are two combinators: fu (equal to λf.fSK) and bar (used for output). Keyword "fu" pushes the fu combinator to the top of a stack. Keyword "bar" pushes the bar to the stack. Keyword "~" pops two entities, say, a (the topmost one) and b from the stack, then pushes (ba) back to the stack.
+
+## bar combinator
+
+Bar combinator takes two arguments: a Unicode character encoded as a Church numeral and a value of type RealWorld. It returns a universe where the character is printed.
+
+## IO
+
+There are no monads nor uniq types, so values with type RealWorld may be referenced many times. It means that there may be more than one RealWorld. Hence the program is executed in a quantum way: in a multiverse, rather than in a universe. One should perform a measurement to observe the output of a program. A measurement basically sends QFL VM to a one of the possible worlds.
+
+## Input
+
+Although there is no explicit syntax for input, runtime interaction with a QFL program is possible. Hint: you just have to appear in a world where the right input is already typed.
+
+## Realization
+
+Working realization and some examples are found there: https://github.com/i2l/QFL _(dead link)_

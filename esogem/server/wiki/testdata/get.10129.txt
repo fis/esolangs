@@ -1,0 +1,23 @@
+# Call stack
+
+In computer programming, the *call stack* is a low-level stack data structure (of course) which contains information about the currently running subroutines. The call stack's primary purpose is to store the order of subroutine calling, in order to inform the computer program as to which subroutine the current subroutine returns to. Some languages employ separate stacks for data and calls, while others use the same stack for both purposes (notably the x86-architecture).
+
+## Spicing it up
+
+The call stack can be made esoteric in a various ways. A simple way to do this is shown by Call Queue, an otherwise standard language where the call structure is a queue instead of a stack. Appending a function to the queue does not immediately call it, and functions "return" control to the next function that was called instead of their caller. A good metaphor for this is multitasking with a queue where every task can queue new tasks to be executed at some point in the future.
+
+Many non-esoteric, LISP-like languages have first-class continuations. They can be implemented by replacing the traditional stack with a spaghetti stack, where every call frame holds a reference to its caller and control can be transferred to any call frame; it's like GOTO on steroids. You can also give programs the ability to directly manipulate the call stack in whatever fashion you want.
+
+## Other kinds of call stacks
+
+### Buffering Calls
+
+Some languages employ call stacks to 'buffer' calls rather than immediately carrying them out. This technique is usually only used when interpreting languages though. Such languages tend to employ two different kind of stacks: A call stack (sometimes also called function stack) and a data stack. If the interpreter encounters a value it is pushed to the data stack, if it encounters a call to a function it is pushed to the call stack. If the interpreter encounters a special operator (may be a newline as well) it executes all calls currently on the stack. The main purpose of this technique is to allow for prefix, postfix and infix notation at the same time (all the following lines are semantically equal):
+
+```
+5 5 squ add;
+squ 5 add 5;
+squ 5 add 5;
+squ add 5 5;
+squ 5 5 add;
+```

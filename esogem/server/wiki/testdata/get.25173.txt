@@ -1,0 +1,308 @@
+# Codesh (קודש)
+
+Paradigm(s) | Object-Oriented
+Designed by | Eliran Ben Moshe, Stav Solomon
+Appeared in | 2026
+Type system | Static
+Computational class | Turing complete
+Reference implementation | The Motzi B'She'ela
+Influenced by | Java, Kotlin, Biblical Hebrew (Tanakh)
+File extension(s) | `.אמן`
+
+[Logo of Codesh]
+
+*Codesh* (Hebrew: *קודש*) is an esoteric programming language created by Stav Solomon and Eliran Ben Moshe whose syntax is modeled after the Hebrew Bible (Tanakh). Its source files use the extension `.אמן` (_amen_).
+
+Its official compiler, *The Motzi B'She'ela* (Hebrew: *המוציא בשאלה*), compiles into JVM bytecode, allowing it to be fully object-oriented (as G-d intended) and enables full interoperability with any other JVM language.
+
+The name "Codesh" means *"holy"* in Hebrew. It is also a wordplay of *קוד קדוש* (_kod kadosh, "holy code"_).
+
+```
+בס"ד
+וישב בארץ ישראל:
+
+ויהי עצם ושמו תוכנית נגלה היה ויאמר:
+    ויהי מעשה ושמו בראשית לכל־נגלה היה ויקח כתובים כמסדר ושמו מנחות ויאמר:
+        ויעש מסוף ל־אמר כי־דבריו יקרא היי אמא לאמר כי־טוב:
+    ויתם:
+ויתם:
+```
+
+_A *Shalom Olam* Codesh program_
+
+## Similarity to the Hebrew Scriptures
+
+Reading a Codesh program is practically indistinguishable from reading a passage of scripture.
+
+Instead of explicitly instructing the machine what _to do_, the program unfolds as a sequence of statements describing what _came to be_.
+
+For example,
+
+```
+ויהי אדם ושמו משה ויהי ויברא אדם כי־שמו יקרא משה לאמר כי־טוב:
+ויעש מסוף ל־אמר כי־דבריו משה ל־שמו כי־טוב:
+```
+
+Literally translates to:
+
+```
+And there was Person, and his name was Moses; and a Person was conjured, and his name was Moses, and God saw that it was good.
+And the terminal did say: Moses's name, and God saw that it was good.
+```
+
+The snippet above creates a new variable called `moses` (_משה_) of type `Person` (_אדם_), and sets its value to `Person(hisName = "Moses")` _(in Kotlin syntax)_.
+
+## Abominations
+
+All compilation errors in Codesh are considered an *abomination*, and will lead to a *תועבה* (_to'eva_).
+
+## bibli־case
+
+All Codesh identifiers are, by convention, written in *bibli־case* (Hebrew: *קייס־מקרא*).
+
+bibli־case is defined as pure Hebrew words separated by *Maqaf Elions* (`־`).
+
+### Examples
+
+```
+ויהי מעשה ושמו שחרר־את־עמי ...
+ויהי שלם ושמו מצחיק ויהי שבע ושישים:
+ויהי שניצל ושמו בצורת־ארץ־ישראל:
+```
+
+## Besiyata Dishmaya (בסיעתא דשמיא)
+
+Every book (Codesh source file in Codesh terminology) must open with one of four prescribed invocations:
+
+Invocation | Transliteration
+`בס"ד` | _Besiyata Dishmaya_ ("With the help of Heaven")
+`בע"ה` | _Be'ezrat Hashem_ ("With G-d's help")
+`אי"א` | _Im Yirtzeh Allah_ ("If Allah wills it")
+`ימ"מ` | _Yeshua Ha'Mashiach Hu Ha'Melech_ ("Jesus Christ is King")
+
+Any invocation besides `בס"ד` or `בע"ה` may lead to unexpected compilation issues as it is believed by the Motzi B'She'ela that the programmer in question is not Jewish enough.
+
+## Land of Origin
+
+Every book resides within a land. A land is defined as a file system directory, equivalent to Java's packaging system. Nested lands are allowed. *Every book must declare its homeland explicitly*, immediately following the BASAD declaration.
+
+By convention, *all Codesh books* reside within the *Land of Israel* - equivalent to the source directory.
+
+For example, Talmud Codesh resides within the land of `ישראל ל־קודש ל־בן ל־משה`. Its header is as such:
+
+```
+בס"ד
+וישב בארץ ישראל ל־קודש ל־בן ל־משה:
+```
+
+## Biblical Numerals
+
+Numbers in Codesh are not written as digits. Rather, they are *spelled out in words*, in the manner of the biblical counting system.
+
+Numbers are composed by additive decomposition. They *must* be typed in *descending order*, or else an abomination will be thrown.
+
+A leading `ו` prefix on a word means addition; adjacent words without it imply multiplication *by powers of ten*.
+
+### Examples
+
+Decimal | Codesh
+`127 ` | `שבע ועשרים ומאה`
+`1` | `אחד`
+`7` | `שבע`
+`12` | `תריסר`
+`10000` | `רבבה`
+`621000` | `אלף ושתיים רבבה ושש מאה אלף`
+
+Decimal points are written with the word `נקודה` (_"dot"_).
+
+Codesh supports arabic numerals as well, though the Motzi B'She'ela will warn that said numerals are not Kosher.
+
+## Talmud Codesh
+
+Codesh's standard talmud is called *Talmud Codesh*. It resides within the land of `ישראל ל־קודש ל־בן ל־משה`, which is automatically imported to every book. Talmud Codesh serves as a wrapper around common Java functionalities, but with a Biblical Hebrew interface.
+
+Most prominently, it exposes the `מסוף` class, providing an interface for interacting with the terminal:
+
+```
+ויעש מסוף ל־אמר כי־דבריו יקרא תלמוד קודש לאמר כי־טוב:
+```
+
+The `אמר` method internally calls `System ל־out ל־println`.
+
+Using native Java methods directly when Talmud Codesh alternatives exist will lead to compilation warnings.
+
+## Terminology
+
+When discussing Codesh, the standard vocabulary of computer science has been replaced with more appropriate biblical terminology.
+
+Computer Science Term | Codesh Term
+Bug | יצר הרע
+Codesh source file | ספר
+Line of code | פרק
+Character position | פסוק
+Debugging | להתגבר על יצר הרע
+Programmer | יוצר
+Method | מעשה
+Constructor | מעשה בריאה
+Parameter | מנחה
+String | כתובים
+Exception | חטא
+Compile-time error | תועבה
+To throw (an exception) | גזר
+Scope | עמוד
+Class | עצם
+Interface | צלם
+enum | מניין
+Array | מסדר
+static | כללי
+Package | ארץ מוצא
+Library | תלמוד
+switch | מחלוקת
+case | צדיק
+Translating foreign code to Codesh | להחזיר בתשובה
+Compiling from Codesh to foreign code | להוציא בשאלה
+
+## Lingual Rules
+
+To allow for the grammatical fluency of Codesh, a number of conventions and lingual rules are set in place.
+
+- *Pure-Hebrew Vocabulary.* The language is made up of Hebrew characters *exclusively*. Its keywords draw from either Biblical Hebrew or absurdly advanced Hebrew. String literals, for instance, are represented in `יקרא ... לאמר` _(Yikra/L'Emor)_ blocks instead of the traditional quotations syntax _(`"..."`)_.
+- *Extreme Verbosity.* The language syntax and its keywords are intentionally extremely verbose. Many keywords exist for grammatical fillers that serve zero semantic purpose.
+- *Every statement ends with a colon* as every verse in the Tanakh ends with one too.*
+- All keywords and identifiers use *bibli־case* as their casing convention.
+- The language syntax is in *Verb-first word order (VSO)*, matching Biblical Hebrew. For example, while traditionally being infixes, binary operations are instead *prefixes*. The expression `1 + 1` becomes `ויוסף אחד ל־אחד`.
+
+## Examples
+
+### Creation of Mankind
+
+```
+בס"ד
+וישב בארץ ישראל:
+
+כה הגה ה' לאמר נצהיר על היות עצם אדם חדש בתוכנית:
+ויהי עצם ושמו אדם נגלה היה ויאמר:
+    ויהי כתובים ושמו שם נחבא היה:
+    
+    ויהי מעשה בריאה נגלה היה ויקח כתובים ושמו שם ויאמר:
+        ויחלף אנכי ל־שם ב־שם:
+    ויתם:
+ויתם:
+
+ויהי עצם ושמו תוכנה נגלה היה ויאמר:
+    ויהי מעשה ושמו בראשית לכל־נגלה היה ויקח כתובים כמסדר ושמו מנחות ויאמר:
+        כה הגה ה' לאמר נברא את העצם "אדם", ונקרא לו "אדם".
+        כה הגה ה' לאמר לאחר מכן, נשמור את האדם החדש במשתנה היקרא "מופע־אדם".
+        ויהי אדם ושמו מופע־אדם ויהי ויברא אדם כי־שמו יקרא אדם לאמר כי־טוב:
+    ויתם:
+ויתם:
+```
+
+It is said that G-d himself used the above code to generate the first person.
+
+### Fibonacci
+
+```
+בס"ד
+וישב בארץ ישראל:
+
+ויהי עצם ושמו תוכנית נגלה היה ויאמר:
+
+    ויהי מעשה ושמו בראשית לכל־נגלה היה ויקח כתובים כמסדר ושמו מנחות ויאמר:
+        ויעש פיבונאצי כי־חזרות עשר כי־טוב:
+    ויתם:
+
+    ויהי מעשה ושמו פיבונאצי לכל־נגלה היה ויקח שלם ושמו חזרות ויאמר:
+        ויהי שלם ושמו א ויהי חמס:
+        ויהי שלם ושמו ב ויהי אחד:
+        ויהי שלם ושמו הבא:
+
+        וימנה שלם ושמו מונה מן חמס עד חזרות ויאמר:
+            ויעש מסוף ל־אמר כי־דבריו א כי־טוב:
+            ויחלף הבא ב־ויוסף א ל־ב:
+            ויחלף א ב־ב:
+            ויחלף ב ב־הבא:
+        ויתם:
+    ויתם:
+
+ויתם:
+```
+
+### Inheritance
+
+```
+בס"ד
+וישב בארץ ישראל:
+
+ויהי עצם ושמו חיה נגלה היה ויאמר:
+    ויהי מעשה ושמו צליל ויאמר:
+        ויעש מסוף ל־אמר כי־דבריו יקרא חיה עושה צליל לאמר כי־טוב:
+    ויתם:
+ויתם:
+
+ויהי עצם ושמו כלב בן־חיה נגלה היה ויאמר:
+    ויהי מעשה ושמו נביחה ויאמר:
+        ויעש מסוף ל־אמר כי־דבריו יקרא ווף ווף לאמר כי־טוב:
+    ויתם:
+ויתם:
+```
+
+### HTTP Server
+
+Below is a demonstration of *native Java integration*; interoperability.
+
+The snippet configures an HTTP server to listen on port 8080; requests made to the `/` endpoint will receive `שָׁלוֹם קוֹדֶשׁ` as the response body.
+
+```
+בס"ד
+וישב בארץ ישראל:
+
+ויבא את com ל־sun ל־net ל־httpserver ל־כולל:
+ויבא את java ל־io ל־כולל:
+ויבא את java ל־net ל־כולל:
+
+ויהי עצם ושמו תוכנית נגלה היה ויאמר:
+
+    ויהי InetSocketAddress ושמו כתובת לכל־נחבא היה:
+
+    ויהי מעשה ושמו בראשית לכל־נגלה היה ויקח כתובים כמסדר ושמו מנחות פן־יחטא IOException ויאמר:
+        ויחלף כתובת ב־ויברא InetSocketAddress כי־פורטו שמונים ושמונה אלף כי־טוב:
+
+        ויהי HttpServer ושמו שרת ויהי ויעש HttpServer ל־create כי־כתובתו כתובת ו־אין־לי־שמץ חמס כי־טוב:
+
+        ויעש שרת ל־createContext כי־נתיבו יקרא / לאמר ו־מנהלו ויברא מנהל־שלום כי־טוב:
+
+        ויעש שרת ל־setExecutor כי־משהו תהו כי־טוב:
+        ויעש שרת ל־start:
+
+        ויעש מסוף ל־אמר כי־דבריו יקרא וַיְחַל הַשָּׁרֵת בִּרְנָנָה בְּפוֹרֵט שְׁמוֹנִים וּשְׁמוֹנָה אֶלֶף כִּי־טוֹב לאמר כי־טוב:
+    ויתם:
+
+ויתם:
+
+
+ויהי עצם ושמו מנהל־שלום בצלם HttpHandler לכל־נגלה היה ויאמר:
+    ויהי מעשה ושמו handle נגלה היה ויקח HttpExchange ושמו ברית פן־יחטא IOException ויאמר:
+
+        ויהי קצרצר כמסדר ושמו תשובה ויהי ויעש יקרא שָׁלוֹם קוֹדֶשׁ לאמר ל־getBytes:
+
+        ויעש כי־ויעש ברית ל־getResponseHeaders כי־טוב ל־set כי־שמו יקרא Content-Type לאמר ו־תוכנו יקרא text/plain; charset=UTF-8 לאמר כי־טוב:
+        ויעש ברית ל־sendResponseHeaders כי־קוד־הצלחתו שתיים מאה ו־גודלו אורכו של תשובה כי־טוב:
+
+        ויהי OutputStream ושמו יציאת־שרת וכה הגה ה' לאמר: הבנתם יעני יציאת מצרים אבל יציאת שרת לא משנה עזבו ויחדל: ויהי ויעש ברית ל־getResponseBody:
+        ויעש יציאת־שרת ל־write כי־דבריו תשובה כי־טוב:
+        ויעש יציאת־שרת ל־close:
+
+    ויתם:
+ויתם:
+```
+
+## External Resources
+
+- The Motzi B'She'ela on GitHub
+- Codesh wiki
+
+## See Also
+
+- חווהסקריפט - Transpiler to a JavaScript-like Hebrew programming language
+- Rashi Plus Plus - Interpreter to a Python-like Hebrew programming language

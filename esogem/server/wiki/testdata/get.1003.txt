@@ -1,0 +1,85 @@
+# Iota
+
+Designed by | Chris Barker
+Appeared in | 2001
+Computational class | Turing-complete
+Reference implementation | Bracket abstraction to SKI basis
+
+*Iota* is a two-symbol Turing tarpit. Iota is traditionally presented with only two symbols, `*` and `i`; an Iota program is either an `i`, or a `*` followed by two Iota (sub-)programs.
+
+## Semantics
+
+Iota is best understood in terms of combinatory logic. Define the following combinator `ι` interpreting the program `i` into the SK basis:
+
+```
+K x y = x;
+S x y z = (x z) (y z);
+ι x = x S K;
+```
+
+Then every Iota program is an applicative tree of `ι` combinators, with `*` representing application. This is justified by Barker's encoding of `K` and `S` purely in terms of `ι`:
+
+```
+I = ι ι;
+K = ι (ι (ι ι));
+S = ι (ι (ι (ι ι)));
+```
+
+### Rewriting
+
+Iota execution can also be defined as repeating the following rewriting rules, which make use of the auxiliary subprograms `k` and `s`, and where `x,y,z` represent subprograms:
+
+```
+*ix     --> **xsk
+**kxy   --> x
+***sxyz --> **xz*yz
+```
+
+### Lambda calculus
+
+Alternatively Iota can be defined by translation to lambda calculus:
+
+```
+ι = λf.f(λx.λy.λz.((xz)(yz))(λx.λy.x))
+```
+
+That is,
+
+```
+ι = λf.fSK
+```
+
+### With the SKI combinators
+
+Iota is extensionally equivalent to `S (S I (K S)) (K K)`. That is,
+
+```
+ι x = S (S I (K S)) (K K) x;
+```
+
+## Complexity class
+
+*Theorem (Turing-completeness).* It is undecidable whether a tree of `ι` combinators has a normal form. (Barker, 2001)
+
+Barker's proof uses the above abstractions to translate between Iota and the SKI basis.
+
+*Theorem.* All Iota programs shorter than 27 symbols halt; there is an Iota program of 27 symbols which has no normal form. (Stay, 2004)
+
+Barker gives Stay's program as:
+
+```
+*i***i*i*i*ii**i*i*i*ii*iii
+```
+
+## See also
+
+- Jot, Iota's sister language from the same article
+- Binary combinatory logic for the SK basis
+- Unlambda for a much richer basis
+- Lambda calculus
+
+## External resources
+
+- Iota and Jot: the simplest languages? _(from the Wayback Machine; retrieved on 12 November 2020)_
+- Lambda tutorial (interactive), by the creator of this language _(from the Wayback Machine; retrieved on 26 July 2016)_
+- wikipedia:Iota and Jot

@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 
 	spb "github.com/fis/esolangs/esogem/server/proto"
 )
@@ -63,7 +62,7 @@ func (c *Client) Search(ctx context.Context, query string, kind SearchType, maxR
 	return resp.Query.Results, nil
 }
 
-func (c *Client) Get(ctx context.Context, pageID int) (Page, error) {
+func (c *Client) Get(ctx context.Context, pageID int) (*Page, error) {
 	req := url.Values{}
 	req.Add("action", "parse")
 	req.Add("pageid", strconv.Itoa(pageID))
@@ -74,7 +73,8 @@ func (c *Client) Get(ctx context.Context, pageID int) (Page, error) {
 	// TODO: add "mobileformat" once it's supported
 	resp := &struct {
 		Parse struct {
-			Text struct {
+			Title string `json:"title"`
+			Text  struct {
 				Content string `json:"*"`
 			} `json:"text"`
 		} `json:"parse"`
@@ -86,7 +86,7 @@ func (c *Client) Get(ctx context.Context, pageID int) (Page, error) {
 	if err != nil {
 		return nil, fmt.Errorf("wiki text extraction: %w", err)
 	}
-	return page, nil
+	return &Page{Title: resp.Parse.Title, Text: page}, nil
 }
 
 func (c *Client) apiCall(ctx context.Context, args url.Values, respData any) error {
@@ -114,25 +114,4 @@ func (c *Client) apiCall(ctx context.Context, args url.Values, respData any) err
 type PageID struct {
 	ID    int    `json:"pageid"`
 	Title string `json:"title"`
-}
-
-type Page []Section
-
-type Section struct {
-	Title   string
-	Content string
-}
-
-func (p Page) Content() string {
-	text := strings.Builder{}
-	for _, s := range p {
-		if s.Title != "" {
-			text.WriteString("# ")
-			text.WriteString(s.Title)
-			text.WriteByte('\n')
-		}
-		text.WriteString(s.Content)
-		text.WriteByte('\n')
-	}
-	return text.String()
 }

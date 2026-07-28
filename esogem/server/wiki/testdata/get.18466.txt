@@ -1,0 +1,34 @@
+# Reso
+
+- _This is still a work in progress. It may be changed in the future._
+
+
+
+Designed by | lynndotpy
+Appeared in | 2024
+Memory system | Fixed
+Dimensions | Two (current implementation)
+Computational class | 
+Major implementations | Rust
+Influenced by | Piet, Redstone, Game of Life
+File extension(s) | `.png`
+
+*Reso* is a graphical esoteric programming language which defines a logic circuit using a bitmap image. The basic components (AND and XOR) gates can be used to construct other logic gates, and with enough resources, a computer. It uses ten colors: Dark-teal for 'AND' gates, bright-teal for 'XOR' gates, dark-purple for logic gate input, bright-purple for logic gate output, and six colors for the wires (orange, sapphire, and lime wires, with an on/off state each.)
+
+All at once, Reso refers to (1) the graphical language which defines a logic graph, (2) the compiler which maps an image to a Reso circuit, and (3) the interpreter which simulates the Reso circuit and outputs the results.
+
+The language is implemented, but is in the 0.0.x release with breaking changes expected.
+
+## History
+
+Reso's first implementation was in 2018 in Python, with a different palette with only two wire colors. Reso was tweaked in 2021 for !!Con, adding a new palette and a third wire color. Reso was then reimplemented in 2023 in Rust, with the Python implementation being deprecated.
+
+In 2024, Reso has ongoing rewrites to make it easier to construct complicated logic components to make it easier to construct non-planar graphs using 2D bitmaps, to address the Wire-crossing problem.
+
+## External resources
+
+- Reso dev website
+- Reso palette reference
+- Source code (GitHub)
+- Source code (GitLab)
+- Rust crate

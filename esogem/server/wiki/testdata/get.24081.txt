@@ -1,0 +1,43 @@
+# 1AMB0A
+
+- _Note: The name is supposed to spell "Lambda"._
+
+1AMB0A is basically User:Hammy's version of binary lambda calculus.
+
+## Conversion
+
+λ → 00
+
+. → 0
+
+(a b) → 10a0b01
+
+Variables have to have binary names and be separated by 1, so 0001011010000101 is λx.λy.(x y)
+
+### Encoding
+
+This is just a bunch of binary. Split it up into 8-bit chunks and encode them in ASCII.
+
+#### Super Encoding
+
+Same as normal, but you split into 16-bit chunks and encode in Unicode.
+
+## Examples
+
+### I, Identity (or sometimes Idiot)
+
+The standard combinator I, equal to λx.x
+
+#### Original
+
+```
+000100
+```
+
+#### Encoded, and also Super Encoded (not enough? add zeroes!)
+
+```
+♦
+```
+
+This is actually the 4th character in Code page 437 (DOS or Windows ALT codes).

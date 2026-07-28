@@ -1,0 +1,25 @@
+# Ns2dL
+
+*Ns2dL* is a esolang made for the sake of making a 2d land that does NOT use a stack. Ns2dL uses a a list because yes. Oh also its made by Yayimhere
+
+## memory
+
+memory is stored in a list. There is also a buffer that stores indexes for the list.
+
+## Syntax
+
+Ns2dL has a few commands:
+
+Symbol | Meaning
+`!` | append the following number onto the list
+`$` | set the two buffer value to the two first value of the list
+`+` | add whats at the index of first buffer value onto the value with the index of the second buffer value and append that to the list
+`-` | subtract the value at the index of the first buffer value from the index at the second value and append that to the list
+`|` | go down if the value at the first index is more than the one at the second index else go up
+`Y` | copy the code pointer into the cell above and to the right of this command and to the top left
+`Ø` | delete the value at the index of the first buffer value
+`,` | output the value at the first index as a ascii char
+`.` | append user input as a ascii char
+`*` | `,` But with output as a number
+
+Ns2DdL uses befunge arrows to move around

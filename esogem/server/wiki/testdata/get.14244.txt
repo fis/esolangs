@@ -1,0 +1,45 @@
+# BALAE
+
+Paradigm(s) | Imperative
+Designed by | User:WallGraffiti
+Appeared in | 2021
+Memory system | Cell-based
+Dimensions | One-Dimensional
+Computational class | Turing complete
+Major implementations | Python
+Influenced by | Brainfuck, BAL
+File extension(s) | `.balae`
+
+*Brainfuck Assembly Language Advanced Edition/BALAE* (pronounced like Ballet) is a derivative of both BAL (originally developed by Olus2000) and Brainfuck. It adds four new commands, while squashing the original 8 into half the space.
+
+## The Basic Idea
+
+BALAE was designed to extend BAL for better usability, while keeping it to eight total commands. The obvious issue is that if you simply add four commands with no preperation you would have instantly gone over the eight command limit. The way this was solved was by combining each "pair" of commands into one command each. Below is the new set of commands (excluding the four newcomers)
+
+Pair | New | Description
+Arithmetic ("-" "+") | "~" | Takes argument n, subtracts 16 and applies to current cell.
+Pointer ("<" ">") | "^" | Essentially the same as "~" except applied to the pointer
+Loop ("[" "]") | "|" | Due to the addition of dedicated labels and jumpers, it adds argument n to the Program Counter
+User Interaction ("," ".") | ";" | If argument n is less than 16, output current cell to output n. Otherwise, turn current cell into the value of input n-16.
+
+## New Commands
+
+### "_"
+
+Doesn't actually _do_ anything by itself, but when used in tandem with "{" and "}", it can be a truly powerful tool.
+
+### "{" and "}"
+
+"{" and "}" jump to a label with value n forwards and backwards, respectively ("{" forward, "}" backward).
+
+### "@"
+
+Halts program with exit code n.
+
+## Examples
+
+Infinite print: _(provided output 0 displays text)_ `~15~15~15~15~05_00;00}00` Broken down: First we initialise the value 65, or "A" in ASCII: `~15~15~15~15~05` Next, we create the loop. `_00` is a label, and `}00` jumps back to that same label. The command inside the loop, `;00`, will display the character "A" on the screen *only if output 0 is, indeed, displaying text.*
+
+## External Resources
+
+- The Python emulator

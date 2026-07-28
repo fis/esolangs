@@ -1,0 +1,14 @@
+# Flip
+
+*Flip* is a two-dimensional esoteric programming language designed by Rune Zedeler and Erik Søe Sørensen. Computation is performed by balls carrying values colliding with playfield elements; it has been described as "a little like a game of billiards, if you play Programmers' Billiards." The only other data storage mechanism is the possibility to self-modifyingly flip diagonal walls (called "flippers") - similarily to how the much newer BackFlip operates. Combined with elements which split and combine balls this _requires_ rather than allows for multithreaded programming.
+
+As of Flip 2.0 the board consists of infinitely many identical layers. There have been added instructions to move balls up and down between the layers.
+
+Because the ball values are limited to 32 bit we are quite certain the Flip 1.0 was not Turing complete - even though we have not made a formal proof for this. Flip 2.0 is clearly Turing complete because the layers can be used to implement a stack by saving one ball (stack element) on each layer.
+
+Flip was inspired by Wierd, but has more in common with multi-threaded Bloated SNUSP. Though, notice that Flip is two years older than SNUSP.
+
+## External resources
+
+- Flip Home Page, which contains a Java interpreter and sample programs.
+- Flip interpreter on github, which contains another Java interpreter and IDE and source code.

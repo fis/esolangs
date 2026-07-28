@@ -1,0 +1,61 @@
+# D/Q
+
+*D/Q* is an extension to DQ, which is turing complete, and has less stacks than TDQ. It uses only two stacks. It was made to fix the problem of ℕDQ, while not increasing the stack count. Alike ℕDQ the commands run as ordered in the program.
+
+## Memory
+
+D/Q has two stacks, and a pointer that points to one of them. The symbols `1` and `2` can be on these stacks.
+
+## Commands
+
+D/Q uses the following commands:
+
+Command | Meaning
+`$` | Go to the stack no currently pointed to.
+`!` | If this command has been ran an even number of times, push `2` else `1`.
+`Q` | Pop top of current stack and discard it.
+`D` | Pop top of stack, copy it, and push one copy to each of the two stacks.
+`[p|q]n` | run `q` and jump to right after `n`'th(1 indexed) `.` if the stack has length 1 or less. If `q` has already been ran, then the jump is "inevitable". Else run `p` until the top of the stack is not equal to the one when the conditional was performed, in which this structure is left. Note that "empty stack" counts as a symbol change. The check for symbol equality is only checked at the start of the loop body, not in the middle. If no `n` is provided, no jump is performed with the conditional. `[p]n = [p|]n , [p] = [p|]`
+`.` | do nothing.
+
+## Computational class
+
+D/Q is turing complete, by translation from Short Minsky Machine Notation:
+
+```
+start program as: !!!Q
+℘c2 -> .[DQ]$[[DQ]$Q|[DQ]$]c$
+℘c1 -> .[DQ][Q[DQ]|$[DQ]$]c$
+℘2 -> .!!Q
+℘1 -> .!Q[DQ]!$![DQ]$Q!Q
+℘x -> .$[|$]c
+```
+
+### Explenenation
+
+Let's start with the `!!!Q`. First is pushes `1`; then `2`(because of the "switching") and then push `1` and pop it again, to keep the "next push" being `2`. Now we have the stack setup:
+
+```
+2 - counter 2(+1)
+1 - counter 1(+1)
+```
+
+As you can see, all the other translations start with `.`, to make the jumping work. Now, as you can see, register `2` is on top of the stack, and `1` is on bottom. Now let's look at the increments. `.!!Q` is quite obvious. It just pushes `2`. incrementing that register. However, incrementing register 1 is very different. First it does `.!Q`, so that the next thing push will be a `1`. Now, we run `[DQ]`. This continues 1. popping top of stack and pushing an instance to this stack and the other stack, and then pops the instance on this stack, until a new symbol(`1`) is reached. Then we push a `1`, incrementing the register. Then, we swap to the other stack, push a `2`, and move all elements back on the original stack using `[DQ]`. We use this technique to make sure that 2 isnt at 0 value and make sure it will get "pushed over" to the other stack. Then, we swap over to our register stack, decrement 2 again, returning it to its original value, and then push a `1` and pop it, to make sure the next push will push a `2`. Let's do the decrements now. `.[DQ]` moves 2 to the other stack, and swaps to that stack. Then, it does a test. If the stack is length one(so 2 is 0), move 2 back, and swap back to the original stack, and goto c. But in the case where its >length 1, it pops the top of stack, decrementing by one, then moves everything back, in which the stack will be empty and the stack symbol has "changed". Then we swap to the normal stack with `$`. Decrementing 1 is essentially the same.
+
+## Compilation From DQ
+
+The following works as a translation from (deterministic) DQ:
+
+```
+1 -> !!Q
+Q -> Q
+D -> D$DQ$
+```
+
+## Examples
+
+Looping counter:
+
+```
+![D$DQ$]   
+```

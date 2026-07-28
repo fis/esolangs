@@ -1,0 +1,164 @@
+# Izhora
+
+*Izhora* (the first version known as *Izhora 1*) is an OISC computer implemented as a large cellular automaton pattern by Yoel Matveyev in 2021[1].
+
+The author claims that in the future he wishes to extend his computer and to add some RISC features.
+
+## Overview
+
+Izhora 1 uses a simple one instruction language known as Subleq2. It has one 32-bit accumulator and a 16-bit PC (program counter). On each CPU cycle, 32-bit word is read from the RAM and interpreted as the branch address (the higher 16 bit) and the operand address (the lower 16 bit).
+
+The accumulator is then subtracted from the operand; the result is then stored in both the accumulator and the operand. If the result was zero or negative, the CPU branches to the jump address; otherwise it proceeds to the next instruction.
+
+The computer has 256kb of 32-bit addressable RAM and a 128x64 pixel display. Direct alphanumeric output is impossible. The "Hello World" program moves the words representing the characters to the display memory, which starts at #x400. An upgraded version called *Izhora 1b* has a 256x128 display and a virtual keyboard mapped to one of the memory addresses.
+
+The computer is supplied with an emulator and a basic assembler written in Common Lisp. It can be loaded as a Golly pattern; programs can be downloaded and uploaded by special scripts. On the emulator, programs run several orders of magnitude faster.
+
+## Examples
+
+```
+# Hello World using two loops
+
+.stdmacros # Include standard macrocommands
+.stdvars # Include standard variables
+
+i:
+.word 5
+add_scr_addr:
+.word 4
+add_data_addr:
+.word 2
+	
+.global _start # By default, PC will be set to this label
+
+_start:
+	zero $=0
+mov1:
+	subleq 1,$wrd0
+	subleq 1,$=0
+mov2:	
+	subleq 1,$0x0403
+	zero $=0
+mov3:
+	subleq 1,$wrd1
+	subleq 1,$=0
+mov4:	
+	subleq 1,$0x0402
+
+	add $add_data_addr,$mov1
+	add $add_scr_addr,$mov2
+	add $add_data_addr,$mov3
+	add $add_scr_addr,$mov4
+
+	subleq 1,$=1
+	subleq 1,$i
+	subleq $_start,$=0
+
+wrd0:
+.word	0
+wrd1:
+.word	0
+
+.org wrd0
+	
+.word 0b10010111010001000011000001000100,0b11001110010001110000010000000000
+.word 0b10010100010001000100100001000101,0b00101001010001001000010000000000
+.word 0b11110110010001000100100001010101,0b00101110010001001000010000000000
+.word 0b10010100010001000100100001010101,0b00101010010001001000000000000000
+.word 0b10010111011101110011000000101000,0b11001001011101110000010000000000	
+```
+
+Compiled into loadable machine code:
+
+```
+PC : 0003
+0000 00000005
+0001 00000004
+0002 00000002
+0003 00040000
+0004 00050000
+0005 0006002C
+0006 00070000
+0007 00080403
+0008 00090000
+0009 000A0000
+000A 000B002D
+000B 000C0000
+000C 000D0402
+000D 000E0000
+000E 000F0000
+000F 00100002
+0010 00110000
+0011 00120005
+0012 00130000
+0013 00140000
+0014 00150000
+0015 00160000
+0016 00170001
+0017 00180000
+0018 00190007
+0019 001A0000
+001A 001B0000
+001B 001C0000
+001C 001D0000
+001D 001E0002
+001E 001F0000
+001F 0020000A
+0020 00210000
+0021 00220000
+0022 00230000
+0023 00240000
+0024 00250001
+0025 00260000
+0026 0027000C
+0027 00280000
+0028 00290000
+0029 002A0001
+002A 002B0000
+002B 00030000
+002C 97443044
+002D CE470400
+002E 94444845
+002F 29448400
+0030 F6444855
+0031 2E448400
+0032 94444855
+0033 2A448000
+0034 97773028
+0035 C9770400
+```
+
+## Computational class
+
+Subleq, as well as Subleq2, are known to be Turing-complete. With enough commands, every common operation, such as long multiplication, long division, bitwise operators, left and right shifts can be implemented in a Subleq2 machine by testing whether an integer is negative, and thus the most significant bit is set (this requires a fixed width cell implementation).
+
+As of November 9, 2021, the Izhora repository has several assembly of "Hello World", prime numbers generator, Fibonacci numbers generator, and 128-bit factorials using a triple carry.
+
+## Simulators
+
+Besides the original Common Lisp simulator, there is an Izhora simulator written in Scratch.
+
+## See also
+
+- Cellular automata
+- Subleq/subleq.py public domain interpreter and simple assembler that can run the examples in this article
+- Addleq Variation of Subleq
+- P1eq Variation of Subleq
+- FlipJump Most basic OISC
+- BitBitJump Simpler OISC
+- Higher Subleq C compiler into Subleq
+- OISC One Instruction Set Computer
+- DJN OISC Simple variation
+- Subleq+ Subleq variation which is TC with no self-modification
+- Cryptoleq Heterogeneous encrypted and unencrypted computation
+- SIC-1 Assembly Language Browser-based subleq compiler and interpreter
+
+## External resources
+
+- Wikipedia article on Subleq and other OISCs
+- Mark II OISC Self-Interpreter
+- Oleg Mazonka's Subleq page
+- Subleq-based CPU, Subleq assembly libraries, and a very minimal Subleq interpreter
+- Izhora simulator in Scratch, using Turbowarp
+
+1. ↑ https://github.com/yoelmatveyev/Izhora

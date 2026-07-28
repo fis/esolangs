@@ -1,0 +1,129 @@
+# Clusterfuck
+
+- _This is still a work in progress. It may be changed in the future._
+
+*Clusterfuck* is a heavily added-to version of Brainfuck. This specification is not finished yet.
+
+## Language Overview
+
+Clusterfuck uses the a predefined 2d matrix for its storage array - the array has a predefined finite size and either wraps or does not wrap (depending on settings). Each cell is a byte long and either wraps or does not wrap depending on settings.
+
+Command | Description
+`>` | Move the pointer to the right
+`<` | Move the pointer to the left
+`v` | Move the pointer down
+`^` | Move the pointer up
+`+` | Increment the memory cell under the pointer
+`-` | Decrement the memory cell under the pointer
+`.` | Output the character signified by the cell under the pointer
+`,` | Input a character and store it in the cell under the pointer
+`[` | Jump past the matching `]` if the cell under the pointer is 0
+`]` | Jump back to the matching `[` if the cell under the first pointer is not 0
+`{` | Jump past the matching `{` if the cell under the pointer is not 0
+`}` | Jump back to the matching `}` if the cell under the first pointer is 0
+
+## Implementation Notes
+
+- Newlines are *always* \x10
+- The data matrix must be at least 256 by 256 but can be larger.
+- Each cell must range from 0 to 255 (an unsigned byte)
+
+## Current (Unfinished) Implementation
+
+```
+   #include <stdio.h>
+   #include 
+   #define MAXCODESIZE 65536
+   #define COLS 65536
+   #define ROWS 256
+   #define CP  ( cp + ( COLS * rp ) )
+   
+   int data[ROWS * COLS], cp, rp;
+   char code[MAXCODESIZE]; int codep, codelength;
+   int jmp_t[MAXCODESIZE]; // [ ] { }
+   int mem_t[256]; // (
+   int ret_t[256], retp; // )
+   
+   void loadprogram(char *filename)
+   {    
+       FILE *prog;
+       if(!(prog = fopen(filename, "r"))) fprintf(stderr,"Can't open the file %s.\n", filename),exit(1);
+       codelength = fread(code, 1, MAXCODESIZE, prog);
+       fclose(prog);
+   }
+   
+   void matchbrackets()
+   {
+       int stack[MAXCODESIZE];
+       int stackp = 0;
+       
+       for(codep=0; codep<codelength; codep++)
+       {
+           switch( code[codep] ){
+               case '{':
+               case '[':
+                   stack[stackp++]=codep; break;
+               case '}':
+               case ']': 
+                   if(stackp==0) fprintf(stderr,"Unmatched ']' at byte %d.", codep), exit(1);
+                   else
+                   {
+                       --stackp;
+                       jmp_t[codep]         = stack[stackp];
+                       jmp_t[stack[stackp]] = codep;
+                   }
+           }
+       }
+       if(stackp>0) fprintf(stderr,"Unmatched '[' at byte %d.", stack[--stackp]), exit(1);
+   }
+   void execute()
+   {
+       int c;
+       for(codep=0;codep<codelength;codep++)
+       {
+            switch(code[codep])
+            {
+               case '+': data[CP]++; break;
+               case '-': data[CP]--; break;
+               
+               case '<': cp--; break;
+               case '>': cp++; break;
+               case 'v': rp++; break;
+               case '^': rp--; break;
+               
+               case ',': if((c=getchar())!=EOF) data[CP]= (c=='\n'?10:c); break;
+               case '.': putchar(data[CP]==10?'\n':data[CP]); break;
+               
+               case '[': if(!data[CP]) codep = jmp_t[codep]; break;
+               case ']': if( data[CP]) codep = jmp_t[codep]; break;
+               
+               case '{': if( data[CP]) codep = jmp_t[codep]; break;
+               case '}': if(!data[CP]) codep = jmp_t[codep]; break;
+               
+               /*
+               // This little bit still doesnt quite work right... dunno why, recursion most likely.
+               case '(':
+                   mem_t[ data[CP] ] = codep + 1;
+                   while( code[codep] != ')' ) codep++;
+                   break;
+               case ')':
+                   codep = ret_t[ retp-- ];
+                   break;
+               case '&':
+                   ret_t[ retp++ ] = codep;
+                   codep = mem_t[ data[CP] ];
+                   break;
+               */
+           }
+       }
+   }
+   int main(int argc, char **argv)
+   {
+       if (argc > 2) fprintf(stderr, "Too many arguments.\n"), exit(1);
+       if (argc < 2) fprintf(stderr, "I need a program filename.\n"), exit(1);
+       loadprogram(argv[1]);
+       matchbrackets();
+       execute();
+       exit(0);
+   }
+```

@@ -1,0 +1,11 @@
+# GreeeeeeeeenText
+
+GreeeeeeeeenText is a joke language being worked on by User:Areallycoolusername. All code is in the format of 4chans greentext memes. A hello world program looks like:
+
+```
+>be me
+>says Hello world!
+>*gets output*
+```
+
+A compiler where all code actually turns green is being worked on. (But maybe blue instead for copyright and stuff.)

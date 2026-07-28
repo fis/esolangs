@@ -1,0 +1,47 @@
+# Decleq
+
+- _This article is not detailed enough and needs to be expanded. Please help us by adding some more information._
+
+*Decleq* (*Dec*rement and jump if *L*ess or *Eq*ual to zero) is an OISC by User:ChuckEsoteric08 inspired by P1eq.
+
+## Command
+
+```
+a b c
+```
+
+Means: `b=a-1` and jump to `c` if `b` is less or equal to zero.
+
+## Memory-mapped I/O
+
+It is optional
+
+```
+-2 b c
+```
+
+Outputs `b`
+
+```
+-1 b c
+```
+
+Set `b` to user input.
+
+## Examples
+
+### a=b=b-a with temporary address tmp<=0
+
+Written using SUBBIG Assembly:
+
+```
+loop:b b NEXT
+a a :endloop
+tmp tmp :loop
+endloop:
+```
+
+## See Also
+
+- DJN OISC
+- Subleq

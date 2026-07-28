@@ -1,0 +1,166 @@
+# ∞ bits, ℵ0 Bytes
+
+- _This is still a work in progress. It may be changed in the future._
+
+∞ bits, ℵ0 Bytes is designed by PSTF.
+
+## Concept
+
+To "InHeRiTaNcE" Concept of 6 bits, 12 bytes, I created this Esolang.
+
+## Commands
+
+### Command Character Table
+
+```
+     0123456789ABCDEF
+  
+00   □┌┐└┘○●▲►▼◄◊☺☻♀♂
+01   ♠♣♥♦♪♫♯←↑→↓↔↕░▒▓
+02    !"#$%&'()*+,-./
+03   0123456789:;<=>?
+04   @ABCDEFGHIJKLMNO
+05   PQRSTUVWXYZ[\]^_
+06   `abcdefghijklmno
+07   pqrstuvwxyz{|}~‰ 
+08   ‘’‚‛“”„‟†‡•․…′″‴
+09   ⅓⅔⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞√∞∟∩
+0A   █¡¢£¤¥¦§¨©ª«¬▄®¯
+0B   °±²³´▀¶·¸¹º»¼½¾¿
+0C   ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ
+0D   ÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß
+0E   àáâãäåæçèéêëìíîï
+0F   ðñòóôõö÷øùúûüýþÿ
+10   ĀāĒēĚěĪīŌōŒœŪūǍǎ
+11   ǏǐǑǒǓǔǕǖǗǘǙǚǛǜəʃ
+12   ○αβγδεζηθικλμνξπ
+13   ρστυφχψωϙϛϝϟϡϣϥϧ
+14   ϩϫϭϯϵ϶ϸϻάέήίΰϊϋό
+15   ύώɐɑɒɓɔɕɖɗɘɚɛɜɝɞ
+16   ɟɠɡɢɣɤɥɦɧɨɩɪɫɬɭɮ
+17   ɯɰɱɲɳɴɵɶɷɸɹɺɻɼɽɾ
+18   ɿʀʁʂʄʅʆʇʈʉʊʋʌʍʎʏ
+19   ʐʑʒʓʔʕʖʗʘʙʚʛʜʝʞʟ
+1A   ʠʡʢʣʤʥʦʧʨʩʪʫʬʭΔΘ
+1B   ΛΞΠΦΨΩБДЖЗИЙЛУЦЧ
+1C   ШЩЪЫЬЭЮЯбгджзийк
+1D   лмнтцчшщъыьэюяᴀᴁ
+1E   ᴂᴄᴅᴆᴇᴉᴊᴋᴌᴎᴑᴒᴓᴔᴕᴖ
+1F   ᴗᴘᴜᴝᴞᴟᴠᴡᴢᴣᴤᴥᴚ▌▐☼
+```
+
+### Command
+
+"top value of the stack" is shortened to "top value". Do A on B means to pop B, and push operation A applied to B.
+
+Byte | Name | Shortened | Action
+00 | null | `*` | Does absolutely nothing.
+01 | duplicate | `.` | Duplicates the top value.
+02 | over | `,` | Duplicates the second-to-top value.
+03 | flip | `:` | Flips the top two values.
+04 | flip all | `↕` | Flips the entire stack.
+05 | pop | `⌠` | Pops the top value.
+06 | add | `+` | Adds the top two values.
+07 | subtract | `-` | Subtracts the top two values.
+08 | multiply | `×` | Multiplies the top two values.
+09 | divide | `÷` | Divides the top two values.
+0a | power | `ⁿ` | Pop the top to values A and B, then push AB.
+0b | modulo | `◿` | Takes the remainder when divided.
+0c | floor | `⌊` | Rounds towards 0.
+0d | sine | `∿` | I don't have any Idea on this shit.
+0e | number | `#` | Prints the top value as an integer and then pop it out.
+0f | print | `→` | Prints the top value as a character (In Unicode, NaC(Not a character) will output as an question mark) and then pop it out.
+10 | zero | `0` | Pushes 0.
+11 | one | `1` | Pushes 1.
+12 | two | `2` | Pushes 2.
+13 | three | `3` | Pushes 3.
+14 | four | `4` | Pushes 4.
+15 | five | `5` | Pushes 5.
+16 | six | `6` | Pushes 6.
+17 | seven | `7` | Pushes 7.
+18 | eight | `8` | Pushes 8.
+19 | nine | `9` | Pushes 9.
+1a | push | `↑` | Pushes a number on to the stack.
+1b | pi | `π` | Pushes pi.
+1c | euler | `e` | Pushes Euler's number.
+1d | byte | `•` | Pushes 256.
+1e | round | `[` | Rounds as usual.
+1f | ceiling | `⌈` | Rounds away from 0.
+20 | jump | `↷` | Jumps to the corresponding instruction.
+21 | start loop | `(` | Jumps to the corresponding ) if the top value is ≤0.
+22 | end loop | `)` | Goes back to the corresponding ( if the top value is >0.
+23 | input | `↓` | Input a number and push it to the stack.
+24 | increment | `i` | Increases the top value by 1.
+25 | decrement | `d` | Decreases the top value by 1.
+26 | square | `s` | Squares the top value.
+27 | negative | ``` | Negates the top value.
+28 | short | `σ` | Pushes 65536.
+29 | int | `λ` | Pushes 2147483648.
+2a | long | `Λ` | Pushes 9223372036854775808.
+2b | double | `Δ` | Pushes 1.797693134862316e+308.
+2c | reciprocal | `r` | Divide 1 by the top value.
+2d | logarithm | `l` | Take log base a of b.
+2e | nan | `!` | Pushes NaN.
+2f | infinity | `∞` | Pushes infinity (float).
+30 | if | `c` | If the top value of the stack is a specified number, run the code.
+31 | else | `C` | Otherwise, do this.
+32 | end conditional | `x` | End the code in the else block.
+33 | right | `>` | Same as Brainfjck.
+34 | left | `<` | Same as Brainfjck.
+35 | unary | `¹` | Output the top value in _*unary*_.
+36 | newline | `↲` | Insert a newline.
+37 | outputWhole | `o` | Output the whole stack from top to bottom and then clear the stack.
+38 | listen | `l` | Input an decimal and then push into stack.
+39 | say | `S` | Output the top element as an decimal and then pop the top element.
+3a | quine | `q` | Output the source code in anyway.
+3b | random | `⚂` | Pushes a random number between 0 and 1.
+3c | read | `读` | Input a Unicode character and push its Unicode value into the stack.
+3d | cycle | `↻` | Toggles cycle mode: the program goes back to the first command after finishing the last.
+3e | clear | `□` | Pops everything.
+3f | end | `■` | Ends the program.
+69 | printtoggle | `¡` | Prints every character until this character found again.
+6e | stack | `栈` | Switch between the mode Brainfuck mode and Befunge mode -- Stack operation or memory operation.
+7f | memory | `刌` | Add an virtual memory for this program and discard it when executed `■` command.
+
+The valid program bit number is Ω(Absolute Infinity, if you've seen "Count from 0 to [[[(????T̛̖̗̘̙̜̝̄̅̆̇̈̉̊̋̌̍̎̏̐̑̒̓̔̕̚h̡̢̧̨̠̣̤̥̦̩è̸̹̺̻̼̀́̂̃̄̅̆̇̈̉̊̋̌̍̎̏̐̑̽̾̿̀́́ T̡̢̛̖̗̘̙̜̝̞̟̠̣̤̄̅̆̇̈̉̊̋̌̍̎̏̐̑̒̓̔̕̚r̡̢̧̨̛̗̗̘̙̜̝̞̟̠̣̤̥̦̩̪̚u͇͈͉͍͎ͣͤͥͦͧͨ́͂̓̈́͆͊͋͌ͅ͏̘͐͑̈́͑ͦ̀͂e̵͚͇͈ͬ́̾̿̀́͂̓̈́͆ͅ E̴̵̶̷̸̪̫̬̭̮̯̰̱̲̳̹̺̻̼̽n̸̷̸͍͚͊͋͆d̴̵̶̷̸̫̬̭̮̯̰̱̲̳ ơ̡̢̧̨̗̘̙̜̝̞̟̠̣̤̥̦̩̪̫̚f̴̵̶̷̸̬̮̯̰̱̲̳ N̴̵̶̷̸̡̢̧̨̛̖̗̘̙̜̝̞̟̠̣̤̥̦̩̪̫̬̭̮̯̰̱̲̳̹̄̅̆̇̈̉̊̋̌̍̎̏̐̑̒̓̔̕̚ư̡̢̜̝̞̟̠̣̤m͓͔͕͖͙͚͒͗͛͘͜b̡̢̛̘̙̜̝̞̟̠̣̤̥̦̚e̴̵̶̷̸̬̬̭̮̯̰̱̲̳̹̺̻̼̽̾̿̀́ṛ̴̵̶̷̸̡̢̧̨̤̥̦̩̪̫̬̭̮̯̰̱̲̳̹̺)]]]", then you'll understand this s**t.)
+
+### Numbers
+
+The number area is the whole ℝ.
+
+## Examples
+
+### Hello, world!
+
+```
+刌
+iiiiiiiiiii(>iiiiii>iiiiiiiii>iiiiiiii>iiii>iii>i<<<<<<d)>iii
+iii→>ii→iiiiiii→→iii→>>→>d→<<d→<→iii→dddddd→dddddddd→>>>i→>d→
+■
+```
+
+Compressed by Unicode UTF-16LE:
+
+```
+⑿␤␤␤␤␤㌡␤␤␤␳␤␤␤␤␳␤␤␤㌤␤␤␳␤␳㐴㐴㐴㌥␤␤␤㌏␤␏␤␤␤༏␤༤㌳㌏༥㐴༥༴␤༤┥┥┥┏┥┥┥༥㌳␳㌏༥?
+```
+
+### Cat program
+
+```
+读(→读)
+```
+
+Compressed with UTF-16LE:
+
+```
+㰡༼"
+```
+
+Raw hexadecimal:
+
+```
+3c 21 0f 3c 22
+```
+
+## Categories

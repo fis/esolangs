@@ -32,8 +32,8 @@ func TestSearch(t *testing.T) {
 			kind: wiki.SearchTitle,
 			want: []wiki.PageID{
 				{ID: 1005, Title: "Befunge"},
+				{ID: 16822, Title: "Befunge-98"},
 				{ID: 17044, Title: "Befunge colored"},
-				{ID: 2459, Title: "Befunge-93"},
 			},
 		},
 		{
@@ -55,22 +55,34 @@ func TestSearch(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	ts := newTestServer(t, map[string]string{
-		`/api.php?action=parse&disableeditsection=&disablelimitreport=&disabletoc=&format=json&pageid=1003&prop=text&utf8=`: "testdata/get.json",
-	})
+	pageIDs := []int{24081, 2596, 18466, 12058, 19787, 14985, 16181, 25173, 24756, 9555, 15304, 16994, 19757, 3419, 10129, 24854, 1140, 14244, 1003}
+
+	inputFiles := make(map[string]string)
+	wants := make(map[int]string)
+	for _, pageID := range pageIDs {
+		path := fmt.Sprintf(`/api.php?action=parse&disableeditsection=&disablelimitreport=&disabletoc=&format=json&pageid=%d&prop=text&utf8=`, pageID)
+		inputFiles[path] = fmt.Sprintf("testdata/get.%d.json", pageID)
+		want, err := os.ReadFile(fmt.Sprintf("testdata/get.%d.txt", pageID))
+		if err != nil {
+			t.Fatal(err)
+		}
+		wants[pageID] = string(want)
+	}
+
+	ts := newTestServer(t, inputFiles)
 	defer ts.finish(t)
 	c := wiki.NewClient(&spb.WikiConfig{Url: ts.http.URL + "/api.php"})
 
-	want, err := os.ReadFile("testdata/get.txt")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	pageID := 1003 // Iota
-	if page, err := c.Get(context.Background(), pageID); err != nil {
-		t.Errorf("Get(%d): %v", pageID, err)
-	} else if got := page.Content(); got != string(want) {
-		t.Errorf("Get(%d) = %s, want %s", pageID, got, want)
+	for _, pageID := range pageIDs {
+		t.Run(fmt.Sprintf("pageID=%d", pageID), func(t *testing.T) {
+			want := wants[pageID]
+			if page, err := c.Get(context.Background(), pageID); err != nil {
+				t.Errorf("Get(%d): %v", pageID, err)
+			} else if got := page.Content(); got != string(want) {
+				t.Errorf("Get(%d) = %s, want %s", pageID, got, want)
+				fmt.Printf("%#v\n", page)
+			}
+		})
 	}
 }
 

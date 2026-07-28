@@ -1,0 +1,341 @@
+# Dot's
+
+## introduction
+
+dot's or dots is a codeing language I kyle/Ilikecreepers (talk) made that is heavily inspiered by asciidots but I desinged it so that it be faster and more functional than the orignal asciidots however in order to do this I did have to sacrifice some elements of the orignal asciidots but I feel like what I added in place of thoese elements is far more better once you wrap you head around the working of stuff like [+] once again.
+
+Also because dot's is based of AsciiDots I recommend you have a look at that page first because it is far better at explaining the simple stuff than I am and sorry about that as well.
+
+Last but not least this coding language is faster but it does not like endless loops that much so if you do have endless loops expect a bit of performance hit this also does support strings, floats, bools, and ints and it will auto-identify which of these you are using when storing or using data.
+
+## download
+
+download git hub link
+
+## the console
+
+dots can also be used in a console form to do that just open enter.bat without any files and it should run in console mode at which point you should see a black box with a 001| in the top left corner and by this point, you should be able to type the code you want into the console with new lines included however it won't run until you type run on a new line by its self with no space
+
+## oparations guide
+
+The operations as I like to call them are the stuff that reacts with the dots and these reactions can build up into a full program
+
+### basics
+
+- The '' operation is used to line comment.
+
+- The .• operations are used to create dot entities(AKA the things that actually react with the operations) before everything starts to run and it can also be used as path. if there is no path next to the dot entity when it has been created the dot entity will be destroyed before the logic starts to run.
+
+- The # operation can be used to store stuff to a dots memory like this: .-#nil#-#reset# oh and if you type nil it will delete the memory and reset will delete memory stored in operations like [000] or ~ or /\ or }{ and the dot may also deleted depending on the operation to reset and how the operation was executed.
+
+- The ? operation can be used to request an input from the user and this input will then be saved to the dots data.
+
+- The $ can be used to print stuff to the console like this: .-?-$hello-world$--$hello world$--$I-hate #$ oh and # in one of $() will be replaced with the dots data in a string format oh and function stuff is always read as a string.
+
+- The -|+.• operations can and are used as paths for the dot to move along however the line paths only support the direction they go along.
+
+- The <^v> operations are used to make the dot move in the direction they point and they work at all times with all incoming directions.
+
+- The /\ operations reflect the dot like a laser pointing to a mirror at a 45 or 315 degree angle.
+
+- The & operation ends the program also the program will end if there are no more dot entities left.
+
+- If you are using $#() operations you can type ` to make sure the system reads the next letter along as noneditable text only and with that you can do things like:
+
+```
+.->-$I-made-`$40$--v ''it will print "I made $40" oh and this will have the abnormal effect of spaces vertically oh and the system won't read 
+  ^----------------< ''the ` part
+```
+
+### control flow
+
+- If a dot enters a ~ from under it and that dot has some amount of data and that data doesn't equal false then the next dot to come along after will move upwards.
+
+- The : operation makes any dot that moves over it go up if that dot has data that doesn't equal false if not the dot will continue onwards.
+
+- The ! operation can be used to invert control flow requirements and this can now also be used on @ and to flip the /\ like so:
+
+```
+  .   
+  |  >--$2$ ''this will print second
+.->-!/
+  |  >--$1$ ''this will print first and last
+  .
+```
+
+### The complcated stuff
+
+- The * operation duplicates the dots for all directions that have a -| path next to the operation and as long as the duplicated dots direction is not the inverse of our main dots direction after the dot that triggered the operation will be deleted.
+
+- The = operation will freeze all dots apart from the one that passed over it and the dots will remain frozen until the unfrozen dot passes over a = again and btw and the $#() operations secretly use this (without disruption).
+
+- The }{ operations will freeze all dots that pass over one of these operations from the closed side but if a dot passes over from the open side all dots frozen by gates will be unfrozen if allowed. (dots can only be unfrozen one at a time so if two dots are at the same gate and that gets opened only one will move but you can open the gate again for the other dots.)
+
+- The ABCDEFGHIJKLMNOP operations can be used in conjunction with gates by putting it on the side of the dot approaching the gate and with that, you can make it so that other gates that put the same letter on that side of the incoming dots will be the only ones that open for example:
+
+```
+    .-#wow#-@A}
+    .-A{--$gate A was opened$-$#$ ''gate A should be the only one that opens because of the A next to the gate on lines one and two
+    .-B{--$gate B was opened$
+    .-C{--$gate C was opened$
+```
+
+- The @ operation passes the dots data to dots frozen at gates if our dot then passes a gate from the open side and if the other dot were able to move past the gate. you can also use a flow inverter to make it so that dots will only move pass the gate if thay have the same data as the dot that opened the gate like so:
+
+```
+.-#wow#-!@-}
+.-#wow#-{--$gate wow was opened$
+.-#bob#-{--$gate bob was opened$
+.-#ght#-{--$gate ght was opened$
+```
+
+- The 2345678 makes the dot jump that number of spaces along in the direction it is going.
+
+- The () operations are used to support a function-like system that works like this:
+
+```
+    .--(c main)-\ ''if the first letter in the brackets is c then it will register the x,y, and direction of the dot (once it left the brackets)
+    /---#wow#---/ ''to memory under the text entered one space after c and after the dot will be destroyed
+    |
+    \-(r main) ''r takes the dots data and puts it in memory then destroys the dot
+.----(e main)  ''e teleports the dot to the x,y position that was registered for the func or gives an error if there is nothing
+.-----------(t main) ''t terminate the function so it can not be runned again and terminates any returned data
+ 
+               /-(g main)--$#$ ''g gets the data put in memory and replaces the dots memory with it
+.-----(p main)-: ''p probes to see if a function exists best used for stuff like "(p #)"
+
+.---(d .`-`-$wow-it-a-dots-print-test$) ''d is used to take everything and import it into the program two lined down from the last line 
+.--(l print`( "wow it a lua print test"`)) ''puting l will make everything execute as lua code oh and you and use ; for newlines in l or d
+.-(d C:\Users\bob\Desktop\printmore.dots) ''d can also be used to import the code from files
+''useing two ; togther like so ;; can also be used as an alternative for new lines in files and in the console
+```
+
+### the hold on to your stuff it's going to get more complicated stuff/multi-operations
+
+Multi operation are done in brackets like this [*] or this [apl] and these and they normally require two dots to work a list of all multi ops is below oh and all operations are done in the reverse the order dots go in for example(dot[2] /dot[1]) also dots can enter in any direction thay want but the returned dot will have the direction of the last dot to enter and one last thing only go through the middle if going vertically.
+
+[*] muiltyply
+
+[/] divide
+
+[+] add
+
+[-] takeaway
+
+[%] modulas
+
+[^] power of
+
+[&] and gate (gates only work with bools)
+
+[!] not gate (this one only needs one dot)
+
+[o] or gate
+
+[x] xor gate
+
+[>] more than
+
+[<] less than
+
+[=] equals
+
+[~] dosent equal
+
+[=>=] equals or is more than
+
+[=<=] equals or is less than
+
+[apl] append start of string
+
+[apr] append end of string
+
+[fir] find text right(Find the right most posistion of some text in text like so: dot one has 1 and dot two has "I am gay but I don't like rainbows", dot two has "gay", returned dot will have "8".)
+
+[fil] find text left (like fir but it find it finds left most posistion which for the above example would be 6)
+
+[rep] string replace (Takes in three inputs like so: dot one is the replace text,dot two is the text you want to replace, dot three equals the string you want to replace something in.)
+
+[sub] string sub (This also takes three inputs like so: dot one the right part of sub, dot two the left part of sub, dot three string you want to sub.)
+
+[ext] extract text (if dot one has 3 and dot two has | and dot three has dots|have|magical|powers then the returned dot will have magical)
+
+[rnd] random number (two dots with numbers can enter this in any order and a random number between the dots numbers will be returned)
+
+[typ] type (takes a dot and returns what type of data it has as a string types:number,string,boolean)
+
+[ton] to number (one dot)
+
+[tos] to string (one dot)
+
+[toc] to char (Takes ascii number i think turns it to a letter.)(one dot)
+
+[tob] to byte (Takes a letter or the first letter in a sequance of letters and turns it into a ascii number I think.)(one dot)
+
+[upp] string upper (one dot)
+
+[low] string lower (one dot)
+
+[len] string length (one dot)
+
+[rou] round (one dot)
+
+[000] dot counter (Replace the number inside brackets with a three-digit number like 002 or 888 then the multi-operation will count and then destroy the dots that pass over it until the count equals the number in the brackets at which point the count is instead reset and the last dot sent to satisfy the count will not be destroyed oh and count has to be over 2 and lower than 888.)
+
+### lua code you can use
+
+- onclose() This is a function that runs when the program is at its end.
+
+- operationout( dotid, op, x, y ) can be used to make fake oparations just return true
+
+- getuit() returns the user input text by defult this would be "enter input: " (ONLY EXACUTE)
+
+- changeuit( text ) changes the user input text (ONLY EXACUTE)
+
+- var( k, v ) to create and get vars safely without worry you could break something and to get a var just make v = nil and use varnil to remove a var but do not put brackets at the end of varnil (ONLY EXACUTE)
+
+- getdotkv( k ) gets key value data of the dot that ran the lua code data like: dir(direction), x, y and data(info put in the dot) (ONLY EXACUTE)
+
+- setdotkv( k, v ) sets info in the dot (ONLY EXACUTE)
+
+- removedot() removes the current dot (ONLY EXACUTE)
+
+- getfiledirectory() if dots was runned from a file you can use this to get the folder the file was in
+
+- getfilename() if dots was runned from a file you can use this to to get the file name
+
+## programs made in this
+
+hi world:
+
+```
+.-$hello world!$
+```
+
+calculator:
+
+```
+.--------(l changeuit`( "enter math symbol: "`))-(e main)
+
+.-(c main)-?-*-7      -*-*-*-------=-#reset#---------------------------------------------\
+             |         | | |                                                             |
+             |         2 4 6                                                             |
+             |                                                                           |
+             |         |          /--(l changeuit`( "enter number: "`))-(e add)          |
+             *-#+#----[=]---------:--------------------------------------------------\   |
+             |           |        /--(l changeuit`( "enter number: "`))-(e tak)      |   =
+             *-#`-#-----[=]-------:------------------------------------------------\ |   |
+             |             |      /--(l changeuit`( "enter number: "`))-(e mul)    >->-[004]------$Invaild-Input-Restarting-Main-Function$-(e main)
+        /-=--*-#*#--------[=]-----:------------------------------------------------/ |
+        |    |                    /--(l changeuit`( "enter number: "`))-(e div)      |
+        |    >-#/#-----------[=]--:--------------------------------------------------/
+        \-------------------=-/
+
+
+.--(c add)-*--?-4   -v
+           |       [ton]
+           >-?-[ton][+]--$#$--(l changeuit`( "enter math symbol: "`))-(e main)
+
+.---(c tak)-*--?-4   -v
+            |       [ton]
+            >-?-[ton][-]--$#$--(l changeuit`( "enter math symbol: "`))-(e main)
+	   
+.----(c mul)-*--?-4   -v
+             |       [ton]
+             >-?-[ton][*]--$#$--(l changeuit`( "enter math symbol: "`))-(e main)
+
+.-----(c div)-*--?-4   -v
+              |       [ton]
+              >-?-[ton][/]--$#$--(l changeuit`( "enter math symbol: "`))-(e main)
+```
+
+fizzbuzz (to 2999):
+
+```
+.-(l function onclose`(`) os.execute`( "pause"`) end) ''pause the program insted of closeing it right away so you can see result (only on windows)
+
+''fun fact even know this program is bigger in 2D size compared to the asciidots fizzbuzz it should be faster unless you got a really bad computer
+
+            /--------*--#0#---\
+            |        |        |
+.--(c fizz)-*-#3#-F{->-F}-[%]->-[=]----E}-(r fizz)
+             /--------*--#0#---\
+             |        |        |
+.---(c buzz)-*-#5#-B{->-B}-[%]->-[=]--------A}-(r buzz)
+.----(c loop)-\
+ /------------/ /---=-#reset#-----------------------=-*-*-=---------------------------------------------\
+ |              |                                     | |                                               |
+ *-(e fizz)     |                                     4 6                                               |
+ |              *----------------------------------------------------------------------------~---$#$    |
+ *-(e buzz)     |                                                                            |          |
+ |              |           /-------------------------~-=-----------------------=-----$fizz$-^-=--------/
+ \--------E{-A{-*--(g fizz)-:                         ^                                      |
+                |           /---------------------------~-=---------------------=-----$buzz$-^
+                *--(g buzz)-:                         2 ^                                    |
+                |                                     | |                                    |
+                |                     /---$fizzbuzz$--*-*-=--------------------------------=-/
+                |          /-(g buzz)-:
+                *-(g fizz)-:
+                |
+                \-----------------------------------------------------------------------------------------------------------------------------------------P}
+        /-#1#-\
+        |     |
+.----->-*----->-[ton]-[+]--\
+      \----------------}P--*-(e loop)
+                           |
+             &-[006]-[500]-/  ''change numbers here to affect how long the program runs for
+```
+
+fizzbuzz (endless):
+
+```
+            /--------*--#0#---\
+            |        |        |
+.--(c fizz)-*-#3#-F{->-F}-[%]->-[=]----E}-(r fizz)
+             /--------*--#0#---\
+             |        |        |
+.---(c buzz)-*-#5#-B{->-B}-[%]->-[=]--------A}-(r buzz)
+.----(c loop)-\
+ /------------/ /---=-#reset#-----------------------=-*-*-=---------------------------------------------\
+ |              |                                     | |                                               |
+ *-(e fizz)     |                                     4 6                                               |
+ |              *----------------------------------------------------------------------------~---$#$    |
+ *-(e buzz)     |                                                                            |          |
+ |              |           /-------------------------~-=-----------------------=-----$fizz$-^-=--------/
+ \--------E{-A{-*--(g fizz)-:                         ^                                      |
+                |           /---------------------------~-=---------------------=-----$buzz$-^
+                *--(g buzz)-:                         2 ^                                    |
+                |                                     | |                                    |
+                |                     /---$fizzbuzz$--*-*-=--------------------------------=-/
+                |          /-(g buzz)-:
+                *-(g fizz)-:
+                |
+                \-----------------------------------------------------------------------------------------------------------------------------------------P}
+        /-#1#-\
+        |     |
+.----->-*----->-[ton]-[+]--\
+      \----------------}P--*-(e loop)
+                           |
+```
+
+rng number gemarator:
+
+```
+.---(l changeuit`( "enter number: "`))-(e rnd)
+.-(c rnd)-*----?-4   --\
+          |            |
+          |          [ton]
+          >---?-[ton][rnd]--$#$-(e rnd)
+```
+
+truth machine:
+
+```
+.-(l function onclose`(`) os.execute`( "pause"`) end) ''pause the program insted of closeing it right away so you can see result (only on windows)
+             /-(e #)
+.--?-*-------~-$false$-& '' it is false if not 1/true
+     |       |
+     \-(p #)-/
+.------(c 1)-(e true)
+.-------(c true)-$true$-(e true)    
+```
