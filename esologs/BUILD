@@ -24,6 +24,8 @@ cc_library(
         "server.cc",
         "stalker.cc",
         "stalker.h",
+        "verifier.cc",
+        "verifier.h",
     ],
     hdrs = [
         "server.h",

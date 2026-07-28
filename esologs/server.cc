@@ -45,7 +45,7 @@ Server::Server(const Config& config, event::Loop* loop) : loop_(loop) {
     throw base::Exception("no targets configured");
 
   if (!config.metrics_addr().empty()) {
-    metric_exposer_ = std::make_unique<prometheus::Exposer>(config.metrics_addr());
+    metric_exposer_ = std::make_unique<prometheus::Exposer>(std::string{config.metrics_addr()});
     metric_registry_ = std::make_shared<prometheus::Registry>();
     metric_exposer_->RegisterCollectable(metric_registry_);
   }
@@ -63,22 +63,29 @@ Server::Server(const Config& config, event::Loop* loop) : loop_(loop) {
 
   if (!config.pipe_socket().empty())
     stalker_ = std::make_unique<Stalker>(config, loop_, this, metric_registry_.get());
+  if (config.has_verifier())
+    verifier_ = std::make_unique<Verifier>(config.verifier());
 
   web_server_ = std::make_unique<web::Server>(config.listen_port());
   web_server_->AddHandler("/", this);
   if (stalker_)
     web_server_->AddWebsocketHandler("/", kStalkerWebsocketProtocol, this);
+  if (verifier_) {
+    web_server_->AddHandler("/verify", verifier_.get(), web::Method::kHead | web::Method::kGet | web::Method::kPost);
+    if (auto css_handler = verifier_->css_handler(); css_handler)
+      web_server_->AddHandler("/verify.css", css_handler);
+  }
 }
 
-LogIndex* Server::index(const std::string& target) {
+LogIndex* Server::index(std::string_view target) {
   auto t = targets_.find(target);
   if (t != targets_.end())
     return &t->second->index;
   return nullptr;
 }
 
-int Server::HandleGet(const web::Request& req, web::Response* resp) {
-  const char* uri = req.uri();
+int Server::HandleRequest(web::Request* req, web::Response* resp) {
+  const char* uri = req->uri();
   if (!uri || *uri != '/') {
     FormatError(resp, 500, "missing request uri");
     return 500;
@@ -86,7 +93,7 @@ int Server::HandleGet(const web::Request& req, web::Response* resp) {
 
   Target* tgt;
   if (const char* target_uri = StripTarget(uri, &tgt); target_uri)
-    return tgt->HandleGet(this, target_uri, req, resp);
+    return tgt->HandleRequest(this, target_uri, req, resp);
 
 #if !defined(NDEBUG)
   std::string ext;
@@ -120,7 +127,7 @@ static bool CheckETag(std::string_view etag, std::string_view cond);
 static void AppendLastModified(FileInfo::time_type last_write, std::string* headers);
 static bool CheckLastModified(FileInfo::time_type last_write, const char* cond);
 
-int Server::Target::HandleGet(Server* srv, const char* uri, const web::Request& req, web::Response* resp) {
+int Server::Target::HandleRequest(Server* srv, const char* uri, web::Request* req, web::Response* resp) {
   std::string ys, ms, ds, format;
 
   if (RE2::FullMatch(uri, srv->re_index_, &ys)) {
@@ -167,13 +174,13 @@ int Server::Target::HandleGet(Server* srv, const char* uri, const web::Request& 
     if (stat_ok) {
       auto etag_pos = AppendETag(info, &extra_headers);
       AppendLastModified(info.last_write, &extra_headers);
-      if (const char* cond = req.header("If-None-Match")) {
+      if (const char* cond = req->header("If-None-Match")) {
         auto etag = std::string_view(extra_headers).substr(etag_pos.first, etag_pos.second);
         if (CheckETag(etag, cond)) {
           FormatErrorWithHeaders(resp, 304, extra_headers, "not modified");
           return 304;
         }
-      } else if (const char* cond = req.header("If-Modified-Since")) {
+      } else if (const char* cond = req->header("If-Modified-Since")) {
         if (CheckLastModified(info.last_write, cond)) {
           FormatErrorWithHeaders(resp, 304, extra_headers, "not modified");
           return 304;
@@ -182,7 +189,7 @@ int Server::Target::HandleGet(Server* srv, const char* uri, const web::Request& 
     }
 
     auto fmt = CreateFormatter(format, resp, extra_headers);
-    if (req.is_head())
+    if (req->method() == web::Method::kHead)
       return 200;
 
     LogEvent event;
@@ -218,7 +225,7 @@ int Server::Target::HandleGet(Server* srv, const char* uri, const web::Request& 
     }
   }
 
-  FormatError(resp, 404, "unknown path: /%s/%s", config.name().c_str(), uri);
+  FormatError(resp, 404, "unknown path: /%.*s/%s", config.name().size(), config.name().data(), uri);
   return 404;
 }
 

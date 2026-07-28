@@ -1,0 +1,28 @@
+body {
+  margin: 0;
+  background-color: #f6f6f6;
+  color: #202122;
+  font-family: sans-serif;
+}
+
+div.content {
+  margin: 2em;
+  border: 1px solid #a7d7f9;
+  padding: 1em;
+  background-color: #fff;
+}
+
+h1, h2 {
+  border-bottom: 1px solid #a2a9b1;
+  margin-block-start: 0.5em;
+  margin-block-end: 0.5em;
+  font-weight: normal;
+  font-family: 'Linux Libertine', 'Georgia', 'Times', 'Source Serif Pro', serif;
+}
+
+span.word, span.errmsg {
+  font-weight: bold;
+  font-family: monospace;
+}
+span.word { color: #000; }
+p.error { color: #a00; }

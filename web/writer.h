@@ -11,6 +11,10 @@
 
 namespace web {
 
+constexpr const char* kContentTypeHTML = "text/html; charset=utf-8";
+constexpr const char* kContentTypePlain = "text/plain; charset=utf-8";
+constexpr const char* kContentTypeCSS = "text/css; charset=utf-8";
+
 class Writer {
  public:
   /** Writer for a web response. */

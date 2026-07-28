@@ -5,6 +5,7 @@
 #include <chrono>
 #include <deque>
 #include <mutex>
+#include <string_view>
 
 #include <prometheus/registry.h>
 
@@ -21,7 +22,7 @@
 namespace esologs {
 
 struct IndexMapper {
-  virtual LogIndex* index(const std::string& target) = 0;
+  virtual LogIndex* index(std::string_view target) = 0;
   virtual ~IndexMapper() = default;
 };
 
@@ -51,7 +52,7 @@ class Stalker : public event::Socket::Watcher, public event::Timed {
     kWaiting,
   };
   struct Target {
-    Target(const std::string& n) : name(n) {}
+    Target(std::string_view n) : name(n) {}
     const std::string name; // TODO: maybe put TargetConfig copy here instead of client; less passing around
     std::int64_t last_day = 0;
     std::uint64_t last_line = 0;
@@ -66,7 +67,7 @@ class Stalker : public event::Socket::Watcher, public event::Timed {
   void UpdateClients();
   void Backfill();
 
-  Target* target(const std::string& name);
+  Target* target(std::string_view name);
 
   static constexpr std::chrono::days kBackfillDays{3};
   static constexpr std::size_t kQueueSize = 1000;

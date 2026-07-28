@@ -13,7 +13,7 @@
 
 namespace esologs {
 
-void FormatIndex(const web::Request& req, web::Response* resp, const TargetConfig& cfg, const LogIndex& index, int y);
+void FormatIndex(web::Request* req, web::Response* resp, const TargetConfig& cfg, const LogIndex& index, int y);
 
 void FormatError(web::Response* resp, int code, const char* fmt, ...);
 void FormatErrorWithHeaders(web::Response* resp, int code, std::string_view extra_headers, const char* fmt, ...);
@@ -24,9 +24,9 @@ struct LogFormatter {
   static std::unique_ptr<LogFormatter> CreateText(web::Response* resp, std::string_view extra_headers = std::string_view());
   static std::unique_ptr<LogFormatter> CreateRaw(web::Response* resp, std::string_view extra_headers = std::string_view());
 
-  virtual void FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next, const std::string& title) = 0;
+  virtual void FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next, std::string_view title) = 0;
   virtual void FormatFooter(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) = 0;
-  virtual void FormatStalkerHeader(int year, const std::string& title) = 0;
+  virtual void FormatStalkerHeader(int year, std::string_view title) = 0;
   virtual void FormatStalkerFooter() = 0;
   virtual void FormatDay(bool multiday, int year, int month, int day) = 0;
   virtual void FormatElision() = 0;

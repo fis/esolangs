@@ -303,6 +303,35 @@
   },
   "selectedYankedVersions": {},
   "moduleExtensions": {
+    "//:extensions.bzl%non_module_dependencies": {
+      "general": {
+        "bzlTransitiveDigest": "8zvbccA2SPXVLAZq/EfBwfpq7FMBvwjn6qOkvuzcU5k=",
+        "usagesDigest": "IqY208KkRUMxKxxX/IwLZDen/tOclofkUl1g90MEsRk=",
+        "recordedInputs": [
+          "REPO_MAPPING:,bazel_tools bazel_tools"
+        ],
+        "generatedRepoSpecs": {
+          "closure_compiler_prebuilt": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_file",
+            "attributes": {
+              "url": "http://dl.google.com/closure-compiler/compiler-20180204.zip",
+              "sha256": "67374a621c663b416fa462b6fd9f5b4a5a753b44eeb914413a47d3312323c857"
+            }
+          },
+          "com_github_yhirose_cpp_httplib": {
+            "repoRuleId": "@@bazel_tools//tools/build_defs/repo:http.bzl%http_archive",
+            "attributes": {
+              "urls": [
+                "https://github.com/yhirose/cpp-httplib/archive/75fdb06696d4e27b590135c1e4a226b4e13e9bd7.zip"
+              ],
+              "strip_prefix": "cpp-httplib-75fdb06696d4e27b590135c1e4a226b4e13e9bd7",
+              "sha256": "1393c3b4b47b060fb11d669ffb1c74f2617a98163309c59b8522f15501d96a2a",
+              "build_file": "@@//tools:com_github_yhirose_cpp_httplib.BUILD"
+            }
+          }
+        }
+      }
+    },
     "@@rules_android+//rules/android_sdk_repository:rule.bzl%android_sdk_repository_extension": {
       "general": {
         "bzlTransitiveDigest": "+rMrzIrv7sImYmkbXJYv+gFpTJQ79X3MpwwMLI2A+oA=",

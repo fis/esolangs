@@ -1,4 +1,4 @@
-syntax = "proto3";
+edition = "2024";
 
 package esologs;
 
@@ -7,6 +7,7 @@ message Config {
   repeated TargetConfig target = 2;
   string pipe_socket = 3;
   string metrics_addr = 4;
+  VerifierConfig verifier = 5;
 }
 
 message TargetConfig {
@@ -16,4 +17,13 @@ message TargetConfig {
   string title = 4;
   string about = 5;
   string announce = 6;
+}
+
+message VerifierConfig {
+  string cookie = 1;
+  string secret = 2;
+  string domain = 3;
+  string form = 4;
+  string success = 5;
+  string css = 6;
 }

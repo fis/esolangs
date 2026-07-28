@@ -4,14 +4,17 @@
 #include <string_view>
 #include <unordered_map>
 
+#include "absl/container/flat_hash_map.h"
 #include <prometheus/exposer.h>
 #include <prometheus/registry.h>
 #include "re2/re2.h"
 
+#include "base/common.h"
 #include "event/loop.h"
 #include "esologs/config.pb.h"
 #include "esologs/index.h"
 #include "esologs/stalker.h"
+#include "esologs/verifier.h"
 #include "web/server.h"
 
 namespace esologs {
@@ -19,17 +22,18 @@ namespace esologs {
 class Server : public web::RequestHandler, public web::WebsocketHandler, public IndexMapper {
  public:
   Server(const Config& config, event::Loop* loop);
+  DISALLOW_COPY(Server);
 
   int port() const { return web_server_->port(); }
-  LogIndex* index(const std::string& target) override;
+  LogIndex* index(std::string_view target) override;
 
-  int HandleGet(const web::Request& req, web::Response* resp) override;
+  int HandleRequest(web::Request* req, web::Response* resp) override;
   web::WebsocketClientHandler* HandleWebsocketClient(const char* uri, const char* protocol) override;
 
  private:
   struct Target {
     Target(const TargetConfig& c) : config(c), index(c.log_path()) {}
-    int HandleGet(Server* srv, const char* uri, const web::Request& req, web::Response* resp);
+    int HandleRequest(Server* srv, const char* uri, web::Request* req, web::Response* resp);
     web::WebsocketClientHandler* HandleWebsocketClient(Server* srv, const char* uri, const char* protocol);
     TargetConfig config;
     LogIndex index;
@@ -39,8 +43,9 @@ class Server : public web::RequestHandler, public web::WebsocketHandler, public 
 
   event::Loop* loop_;
 
-  std::unordered_map<std::string_view, std::unique_ptr<Target>> targets_;
+  absl::flat_hash_map<std::string_view, std::unique_ptr<Target>> targets_;
   std::unique_ptr<Stalker> stalker_;
+  std::unique_ptr<Verifier> verifier_;
 
   std::unique_ptr<prometheus::Exposer> metric_exposer_;
   std::shared_ptr<prometheus::Registry> metric_registry_;

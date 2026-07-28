@@ -1,4 +1,9 @@
+#include <algorithm>
+
 #include <strings.h> // strcasecmp
+
+#include "absl/container/flat_hash_map.h"
+#include "absl/strings/str_split.h"
 
 #include "base/exc.h"
 #include "base/log.h"
@@ -10,27 +15,39 @@ namespace web {
 class Server::CivetConnection : public Request, public Response {
  public:
   explicit CivetConnection(struct mg_connection* conn);
-  bool is_head() const override; 
-  const char* uri() const override;
+  Method method() const override { return method_; }
+  const char* uri() const override { return info_->local_uri; }
+  std::string_view query() const override { return info_->query_string ? info_->query_string : std::string_view{}; }
   const char* header(const char* key) const override;
+  const std::string& body(const std::size_t = kDefaultMaxRequestSize) override;
+  const absl::flat_hash_map<std::string_view, std::string_view>& form_data() override;
+  std::string_view param(std::string_view key) override;
+
   void Write(const void* data, std::size_t size) override;
 
  private:
+  std::string_view DecodeAndCache(std::string_view raw);
+
   struct mg_connection* const conn_;
   const struct mg_request_info* const info_;
+  Method const method_;
+  bool body_read_ = false;
+  std::string body_data_ = {};
+  bool form_parsed_ = false;
+  absl::flat_hash_map<std::string_view, std::string_view> form_data_ = {};
+  std::vector<std::unique_ptr<std::string>> decoded_data_ = {};
 };
 
+static Method MethodByName(std::string_view name) {
+  if (name == "HEAD") return Method::kHead;
+  if (name == "GET") return Method::kGet;
+  if (name == "POST") return Method::kPost;
+  return Method::kUnknown;
+}
+
 Server::CivetConnection::CivetConnection(struct mg_connection* conn)
-    : conn_(conn), info_(mg_get_request_info(conn))
+    : conn_(conn), info_(mg_get_request_info(conn)), method_(MethodByName(info_->request_method))
 {}
-
-bool Server::CivetConnection::is_head() const {
-  return std::string_view(info_->request_method) == "HEAD";
-}
-
-const char* Server::CivetConnection::uri() const {
-  return info_->local_uri;
-}
 
 const char* Server::CivetConnection::header(const char* key) const {
   for (int i = 0; i < info_->num_headers; i++) {
@@ -40,8 +57,97 @@ const char* Server::CivetConnection::header(const char* key) const {
   return NULL;
 }
 
+const std::string& Server::CivetConnection::body(std::size_t max_size) {
+  if (body_read_)
+    return body_data_;
+
+  constexpr std::size_t kChunkSize = 65536;
+  while (body_data_.size() < max_size) {
+    std::size_t body_size = body_data_.size(), buf_size = std::min(body_size + kChunkSize, max_size);
+    body_data_.resize(buf_size);
+    int got = mg_read(conn_, body_data_.data() + body_size, buf_size - body_size);
+    body_data_.resize(body_size + (size_t) std::max(0, got));
+    if (got <= 0)
+      break;
+  }
+  return body_data_;
+}
+
+const absl::flat_hash_map<std::string_view, std::string_view>& Server::CivetConnection::form_data() {
+  if (form_parsed_)
+    return form_data_;
+
+  std::string_view data;
+
+  if (auto ct = header("Content-Type"); ct && std::string_view{ct} == "application/x-www-form-urlencoded")
+    data = body();
+  else
+    data = info_->query_string;
+
+  for (auto item : absl::StrSplit(data, '&')) {
+    std::string_view key{}, value{};
+    if (std::size_t sep = item.find('='); sep != item.npos)
+      key = item.substr(0, sep), value = item.substr(sep+1);
+    else
+      key = item;
+    form_data_.emplace(DecodeAndCache(key), DecodeAndCache(value));
+  }
+  return form_data_;
+}
+
+std::string_view Server::CivetConnection::param(std::string_view key) {
+  const auto& data = form_data();
+  if (auto it = data.find(key); it != data.end())
+    return it->second;
+  return {};
+}
+
 void Server::CivetConnection::Write(const void* data, std::size_t size) {
   mg_write(conn_, data, size);
+}
+
+static std::pair<unsigned char, bool> DecodeHexDigit(char ch) {
+  if (ch >= '0' && ch <= '9')
+    return {ch - '0', true};
+  else if (ch >= 'A' && ch <= 'F')
+    return {10 + (ch - 'A'), true};
+  else if (ch >= 'a' && ch <= 'f')
+    return {10 + (ch - 'a'), true};
+  return {0, false};
+}
+
+static std::pair<unsigned char, bool> DecodeHex(std::string_view text) {
+  if (text.size() < 2)
+    return {0, false};
+  auto [d1, ok1] = DecodeHexDigit(text[0]);
+  auto [d2, ok2] = DecodeHexDigit(text[1]);
+  if (!ok1 || !ok2)
+    return {0, false};
+  return {d1 << 4 | d2, true};
+}
+
+std::string_view Server::CivetConnection::DecodeAndCache(std::string_view raw) {
+  if (raw.find('+') == raw.npos && raw.find('%') == raw.npos)
+    return raw; // usable as-is
+  auto decoded = std::make_unique<std::string>();
+  for (std::size_t i = 0; i < raw.size(); i++) {
+    switch (raw[i]) {
+    case '+':
+      decoded->push_back(' ');
+      break;
+    case '%':
+      if (auto [ch, ok] = DecodeHex(raw.substr(i+1)); ok)
+        decoded->push_back(ch), i += 2;
+      else
+        decoded->push_back('%');
+    default:
+      decoded->push_back(raw[i]);
+      break;
+    }
+  }
+  std::string_view ret = *decoded;
+  decoded_data_.emplace_back(std::move(decoded));
+  return ret;
 }
 
 class Server::CivetWebsocket : public Websocket {
@@ -94,7 +200,7 @@ void Server::CivetWebsocket::Close(Status status) {
   // TODO: verify this bit
 }
 
-Server::Server(const std::string& port) {
+void Server::Start(const std::string& port) {
   const char* options[] = {
     "listening_ports", port.c_str(),
     "num_threads", "2",
@@ -121,14 +227,16 @@ int Server::port() const {
   return port_info.port;
 }
 
-void Server::AddHandler(const char* path, RequestHandler* handler) {
-  mg_set_request_handler(civet_ctx_, path, CivetRequestHandler, handler);
+void Server::AddHandler(const char* path, RequestHandler* handler, Method allowed_methods) {
+  auto* record = request_handlers_.emplace_back(std::make_unique<RequestHandlerRecord>(handler, allowed_methods)).get();
+  mg_set_request_handler(civet_ctx_, path, CivetRequestHandler, record);
+
 }
 
 void Server::AddWebsocketHandler(const char* path, const char* proto, WebsocketHandler* handler) {
-  auto* record = &websocket_handlers_.emplace_back(this, handler, proto);
+  auto* record = websocket_handlers_.emplace_back(std::make_unique<WebsocketHandlerRecord>(this, handler, proto)).get();
   mg_set_websocket_handler_with_subprotocols(
-      civet_ctx_, path, &record->proto.get()->proto_list,
+      civet_ctx_, path, &record->proto->proto_list,
       CivetWebsocketConnectHandler,
       CivetWebsocketReadyHandler,
       CivetWebsocketDataHandler,
@@ -137,12 +245,11 @@ void Server::AddWebsocketHandler(const char* path, const char* proto, WebsocketH
 }
 
 int Server::CivetRequestHandler(struct mg_connection* conn, void* cb) {
-  std::string_view method = mg_get_request_info(conn)->request_method;
-  if (method != "HEAD" && method != "GET")
-    return 0; // TODO: return method not allowed?
-  auto* handler = static_cast<RequestHandler*>(cb);
+  auto* record = static_cast<RequestHandlerRecord*>(cb);
   CivetConnection c(conn);
-  return handler->HandleGet(c, &c);
+  if (record->allowed_methods & c.method())
+    return record->handler->HandleRequest(&c, &c);
+  return 0; // TODO: write 405 Method Not Allowed response?
 }
 
 int Server::CivetWebsocketConnectHandler(const struct mg_connection* const_conn, void* cb) {

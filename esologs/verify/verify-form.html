@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Esolang verification</title>
+    <link rel="stylesheet" type="text/css" href="verify.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <div class="content">
+      <h1 style="font-style: italic;">tl;dr</h1>
+      <p>
+        Write the words <span class="word">${word1}</span> and <span class="word">${word2}</span>, in order, in the two boxes below, to verify you're not just following links blindly.
+      </p>
+      <p>(Note: this service is in beta, and may have bugs.)</p>
+      <h1>Verification</h1>
+      <form action="verify" method="post">
+        <p>
+          <label for="key1">Word 1:</label>
+          <input type="text" id="key1" name="key1" required minlength="5" maxlength="5" size="8" />
+        </p>
+        <p>
+          <label for="key2">Word 2:</label>
+          <input type="text" id="key2" name="key2" required minlength="5" maxlength="5" size="8" />
+        </p>
+        ${+error}
+        <p class="error">
+          You have not spoken the Words rightly. Feel free to try again.
+          The specific error was:<br>
+          <span class="errmsg">${error}</span>
+        </p>
+        ${-}
+        <p><input type="submit" value="Verify" /></p>
+        <input type="hidden" id="seed" name="seed" value="${seed}" />
+        ${+ref} <input type="hidden" id="ref" name="ref" value="${ref}" /> ${-}
+      </form>
+      <h1>Details</h1>
+      <h2>Context</h2>
+      <p>
+        <a href="https://weirdgloop.org/blog/clankers">It kind of sucks to run wikis now.</a>
+        Ours runs on fairly limited, donated resources, which used to be fine for the amount of human and well-behaved crawler traffic we had.
+        Nowadays, though, the system is periodically hammered by just the dumbest possible type of automated traffic, trying to follow every link, including all the possible historical pages and diffs.
+        Some of these are very expensive (in terms of compute) to serve, especially compared to plain article pages served from the file cache.
+      </p>
+      <p>
+        We don't know what this traffic is for.
+        The common assumption is that it's crawling for large language model training purposes.
+        But unlike the established players in this space, these crawlers don't use recognizable user agents and dedicated IP addresses, but instead route all the traffic through what appear to be residential proxies / botnets.
+        This all makes the traffic appear to come from regular consumer ISPs all around the globe, with new address for pretty much every request, making it hard to filter out systematically.
+      </p>
+      <p>
+        Our initial (partial) solution to this issue was to limit many of the more obscure and expensive pages to logged-in users only.
+        But creating an account is a high bar if you just wanted to see a specific page's history and aren't planning to become an editor.
+      </p>
+      <p>
+        This page provides a middle ground between just browsing and creating an account.
+        You're required to do a trivial task (and yes, an LLM would be capable of it, but we operate under the assumption that the crawling is <strong>not</strong> LLM-directed itself) to prove you're not just blindly following links.
+        Once you do so, we'll remember it for a reasonably long while, and allow you to access such otherwise restricted pages.
+      </p>
+      <h2>Implementation</h2>
+      <p>
+        When a request comes in for a restricted page:
+      </p>
+      <ul>
+        <li>If the user is logged in (defined as: has a non-empty <code>esolang_wiki_session</code> cookie set), it's allowed.</li>
+        <li>If the user has gone through this verification (defined as: has a non-empty <code>esolang_vrfy</code> cookie set), it's allowed.</li>
+        <li>Otherwise, nginx serves an error page explaining the situation, including a link to <code>/verify?ref=...</code>, with the original request in the query string.</li>
+      </ul>
+      <p>
+        If the user opts to follow the verification link, the verification form (this page) is served.
+        On the form, there are two randomly generated words (each with 16 bits of entropy), extracted from a SHA-256 hash of the current timestamp concatenated with a secret.
+        There are also hidden elements that propagate the generation timestamp and (optionally) the original request path for generating a link back.
+      </p>
+      <p>
+        The user then types in the words in the relevant fields, and submits the form.
+        The server verifies that (a) the words generated from that timestamp match what the user typed, and (b) that the timestamp is not more than 15 minutes old.
+        (It's very debatable whether this form of replay protection is in any way necessary, but hey.)
+      </p>
+      <p>
+        Assuming the validation succeeds, the server sets the cookie <code>esolang_vrfy=1</code>, informs the user of a successful verification, and provides a link back to the original page.
+        The cookie is set with an expiration time of 90 days (7776000 seconds), so the user does not have to go through the verification too often.
+        A subsequent request to the <code>/verify</code> endpoint that still has the cookie set will skip the form and just bump the expiration to 90 days from now.
+      </p>
+      <p>
+        Note that this is in no way a security measure.
+        If you don't want to go through the trouble of typing in the words, you can also manually set the cookie, and even make it never expire.
+        Likewise, no user-identifying data is stored in the cookie: as set by the system, it always has the same value (<code>1</code>).
+      </p>
+      <h2>Compliance</h2>
+      <p>
+        It is our understanding that:
+      </p>
+      <ul>
+        <li>As the cookie is not used to identify a particular user, it is not considered as personal data subject to the GDPR.</li>
+        <li>If it <em>did</em> qualify as personal data, we would be processing it on the basis of legitimate interest, along the lines of IT security.</li>
+        <li>From the context of the EPD, the set cookie is classified as "strictly necessary", as it analogous to an authentication cookie, so it does not require explicit consent.</li>
+        <li>If it <em>did</em> require explicit consent, we would argue that you are about to supply that consent by choosing to interact with this page.</li>
+      </ul>
+    </div>
+  </body>
+</html>

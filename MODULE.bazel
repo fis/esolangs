@@ -6,6 +6,7 @@ local_path_override(module_name = "bracket", path = "../bracket")
 bazel_dep(name = "bracket-protos")
 local_path_override(module_name = "bracket-protos", path = "../bracket-protos")
 
+bazel_dep(name = "abseil-cpp", version = "20260107.1")
 bazel_dep(name = "civetweb", version = "1.16.bcr.4")
 bazel_dep(name = "googletest", version = "1.17.0.bcr.2")
 bazel_dep(name = "cpp-httplib", version = "0.46.0")

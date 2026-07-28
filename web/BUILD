@@ -18,6 +18,7 @@ cc_library(
         "writer.h",
     ],
     deps = [
+        "@abseil-cpp//absl/container:flat_hash_map",
         "@bracket//base",
         "@civetweb//:civetweb",
     ],

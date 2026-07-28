@@ -356,7 +356,7 @@ void Stalker::Backfill() {
   }
 }
 
-Stalker::Target* Stalker::target(const std::string& name) {
+Stalker::Target* Stalker::target(std::string_view name) {
   for (auto& t : targets_)
     if (t->name == name)
       return t.get();

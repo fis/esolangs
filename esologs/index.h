@@ -77,7 +77,7 @@ struct FileInfo {
 class LogIndex {
  public:
 
-  LogIndex(const std::string& root) : root_(root) {
+  explicit LogIndex(std::string_view root) : root_(root) {
     Scan(/* full: */ true);
   }
 

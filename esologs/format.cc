@@ -53,9 +53,9 @@ constexpr char kCssLog[] = "../log.css";
 
 } // unnamed namespace
 
-void FormatIndex(const web::Request& req, web::Response* resp, const TargetConfig& cfg, const LogIndex& index, int y) {
+void FormatIndex(web::Request* req, web::Response* resp, const TargetConfig& cfg, const LogIndex& index, int y) {
   web::Writer web(resp, kContentTypeHtml);
-  if (req.is_head())
+  if (req->method() == web::Method::kHead)
     return;
 
   bool all = y < 0;
@@ -292,9 +292,9 @@ class HtmlLineFormatter : public LogLineFormatter {
  public:
   HtmlLineFormatter(web::Response* resp, std::string_view extra_headers) : web_(resp, kContentTypeHtml, 200, extra_headers) {}
   HtmlLineFormatter(std::string* buffer) : web_(buffer) {}
-  void FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next, const std::string& title) override;
+  void FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next, std::string_view title) override;
   void FormatFooter(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next) override;
-  void FormatStalkerHeader(int year, const std::string& title) override;
+  void FormatStalkerHeader(int year, std::string_view title) override;
   void FormatStalkerFooter() override;
   void FormatDay(bool multiday, int year, int month, int day) override;
   void FormatElision() override;
@@ -329,7 +329,7 @@ void HtmlLineFormatter::FormatNav(const YMD& date, const std::optional<YMD>& pre
       "</div>\n");
 }
 
-void HtmlLineFormatter::FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next, const std::string& title) {
+void HtmlLineFormatter::FormatHeader(const YMD& date, const std::optional<YMD>& prev, const std::optional<YMD>& next, std::string_view title) {
   WriteHtmlHeader(&web_, kCssLog, nullptr, date, " - ", title);
   FormatNav(date, prev, next);
 }
@@ -339,7 +339,7 @@ void HtmlLineFormatter::FormatFooter(const YMD& date, const std::optional<YMD>& 
   WriteHtmlFooter(&web_);
 }
 
-void HtmlLineFormatter::FormatStalkerHeader(int year, const std::string& title) {
+void HtmlLineFormatter::FormatStalkerHeader(int year, std::string_view title) {
   WriteHtmlHeader(&web_, kCssLog, "../stalker.js", title, " - stalker mode");
   web_.Write(
       "<div class=\"n\">"
@@ -565,9 +565,9 @@ void HtmlLineFormatter::FormatLine(const LogLine& line) {
 class TextLineFormatter : public LogLineFormatter {
  public:
   TextLineFormatter(web::Response* resp, std::string_view extra_headers) : web_(resp, kContentTypeText, 200, extra_headers) {}
-  void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&, const std::string&) override {}
+  void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&, std::string_view) override {}
   void FormatFooter(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
-  void FormatStalkerHeader(int, const std::string&) override {}
+  void FormatStalkerHeader(int, std::string_view) override {}
   void FormatStalkerFooter() override {}
   void FormatDay(bool multiday, int year, int month, int day) override;
   void FormatElision() override;
@@ -632,9 +632,9 @@ void TextLineFormatter::FormatLine(const LogLine& line) {
 class RawFormatter : public LogFormatter {
  public:
   RawFormatter(web::Response* resp, std::string_view extra_headers) : web_(resp, kContentTypeText, 200, extra_headers), offset_s_(0) {}
-  void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&, const std::string&) override {}
+  void FormatHeader(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&, std::string_view) override {}
   void FormatFooter(const YMD&, const std::optional<YMD>&, const std::optional<YMD>&) override {}
-  void FormatStalkerHeader(int, const std::string&) override {}
+  void FormatStalkerHeader(int, std::string_view) override {}
   void FormatStalkerFooter() override {}
   void FormatDay(bool, int year, int month, int day) override;
   void FormatElision() override {}
