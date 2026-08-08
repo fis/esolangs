@@ -36,7 +36,7 @@ type Model interface {
 
 type WikiSource interface {
 	Search(ctx context.Context, query string, kind wiki.SearchType, maxResults int) ([]wiki.PageID, error)
-	Get(ctx context.Context, pageID int) (wiki.Page, error)
+	Get(ctx context.Context, pageID int) (*wiki.Page, error)
 }
 
 func New(model Model, wikiSource WikiSource, query string, logEntry *spb.LogEntry) *Flow {
@@ -128,8 +128,10 @@ func (fl *Flow) generateSearchTerms(ctx context.Context) ([]string, error) {
 	return terms, nil
 }
 
-func (fl *Flow) addBackground(ctx context.Context, pageID wiki.PageID, page wiki.Page, maxTokens int) (string, int, error) {
-	newBackground := append(fl.background, article{pageID: pageID.ID, title: pageID.Title, content: page.Content()})
+func (fl *Flow) addBackground(ctx context.Context, pageID wiki.PageID, page *wiki.Page, maxTokens int) (string, int, error) {
+	pageContent := page.Content()
+
+	newBackground := append(fl.background, article{pageID: pageID.ID, title: pageID.Title, content: pageContent})
 	prompt := makeResponsePrompt(fl.query, newBackground)
 	promptSize := fl.model.CountTokens(ctx, prompt)
 	// TODO: consider also compacting long pages to include more responses in the prompt, even if it technically fits
@@ -140,7 +142,7 @@ func (fl *Flow) addBackground(ctx context.Context, pageID wiki.PageID, page wiki
 
 	// TODO: try compacting using page sections first
 
-	summaryPrompt := makeSummaryPrompt(fl.query, page.Content(), maxTokens)
+	summaryPrompt := makeSummaryPrompt(fl.query, pageContent, maxTokens)
 	summary, err := fl.model.Generate(ctx, summaryPrompt, fl.log)
 	if err != nil {
 		return "", 0, err

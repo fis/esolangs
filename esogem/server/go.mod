@@ -5,6 +5,6 @@ go 1.26.2
 require (
 	github.com/eliben/go-sentencepiece v0.7.0
 	github.com/google/go-cmp v0.7.0
-	golang.org/x/net v0.55.0
+	golang.org/x/net v0.57.0
 	google.golang.org/protobuf v1.36.11
 )
